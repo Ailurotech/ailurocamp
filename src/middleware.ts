@@ -4,14 +4,14 @@ import { NextRequestWithAuth } from 'next-auth/middleware';
 
 // Define role-based route patterns
 const roleRoutePatterns = {
-  admin: ['/admin', '/admin/dashboard'],
-  instructor: ['/instructor', '/instructor/dashboard'],
+  admin: ['/admin'],
+  instructor: ['/instructor'],
   student: ['/dashboard']
 };
 
 // Define the default landing pages for each role
 const roleDefaultPages = {
-  admin: '/admin/dashboard',
+  admin: '/admin',
   instructor: '/instructor',
   student: '/dashboard'
 };

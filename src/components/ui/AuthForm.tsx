@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 
 interface AuthFormProps {
@@ -12,7 +12,6 @@ interface AuthFormProps {
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -20,6 +19,27 @@ export default function AuthForm({ mode }: AuthFormProps) {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { data: session, status } = useSession();
+
+  // Redirect based on user role
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      switch (session.user.currentRole) {
+        case "student":
+          router.push("/dashboard");
+          break;
+        case "instructor":
+          router.push("/instructor");
+          break;
+        case "admin":
+          router.push("/admin");
+          break;
+        default:
+          router.push("/dashboard");
+          break;
+      }
+    }
+  }, [status, session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +57,6 @@ export default function AuthForm({ mode }: AuthFormProps) {
         if (result?.error) {
           throw new Error(result.error);
         }
-
-        router.push(callbackUrl);
       } else {
         const response = await fetch("/api/auth/register", {
           method: "POST",
