@@ -43,12 +43,18 @@ export const authOptions: NextAuthOptions = {
     newUser: '/auth/register',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.roles = user.roles;
         token.currentRole = user.currentRole;
       }
+
+      // update token from a session update
+      if (trigger === 'update' && session?.currentRole) {
+        token.currentRole = session.currentRole;
+      }
+
       return token;
     },
     async session({ session, token }) {

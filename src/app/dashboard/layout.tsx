@@ -21,9 +21,14 @@ export default function DashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // If the session is still loading, show a loading message
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: "/" });
@@ -44,7 +49,10 @@ export default function DashboardLayout({
       }
 
       // Refresh the page to update the session
-      window.location.href = `/${role.toLowerCase()}`;
+      router.push(`/${role.toLowerCase()}`);
+
+      // update the session
+      await update({ currentRole: role });
     } catch (error) {
       console.error("Error switching role:", error);
     }
@@ -138,7 +146,7 @@ export default function DashboardLayout({
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 left-0 z-10 mt-2 w-full origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <div className="absolute bottom-full mb-2 right-0 left-0 z-10 w-full origin-bottom-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="py-1">
                       {session?.user?.roles?.includes("admin") &&
                         session?.user?.currentRole !== "admin" && (
