@@ -39,28 +39,32 @@ const courseSchema = new mongoose.Schema<ICourse>(
     thumbnail: {
       type: String,
     },
-    modules: [{
-      title: {
-        type: String,
-        required: true,
+    modules: [
+      {
+        title: {
+          type: String,
+          required: true,
+        },
+        content: {
+          type: String,
+          required: true,
+        },
+        order: {
+          type: Number,
+          required: true,
+        },
+        duration: {
+          type: Number,
+          required: true,
+        },
       },
-      content: {
-        type: String,
-        required: true,
+    ],
+    enrolledStudents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
       },
-      order: {
-        type: Number,
-        required: true,
-      },
-      duration: {
-        type: Number,
-        required: true,
-      },
-    }],
-    enrolledStudents: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    }],
+    ],
     price: {
       type: Number,
     },
@@ -87,4 +91,5 @@ const courseSchema = new mongoose.Schema<ICourse>(
 // Index for better search performance
 courseSchema.index({ title: 'text', description: 'text' });
 
-export default mongoose.models.Course || mongoose.model<ICourse>('Course', courseSchema); 
+export default mongoose.models.Course ||
+  mongoose.model<ICourse>('Course', courseSchema);

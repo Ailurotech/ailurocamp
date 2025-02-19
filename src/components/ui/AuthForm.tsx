@@ -1,34 +1,34 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 
 interface AuthFormProps {
-  mode: "login" | "register";
+  mode: 'login' | 'register';
 }
 
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    name: "",
+    email: '',
+    password: '',
+    name: '',
   });
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
     try {
-      if (mode === "login") {
-        const result = await signIn("credentials", {
+      if (mode === 'login') {
+        const result = await signIn('credentials', {
           redirect: false,
           email: formData.email,
           password: formData.password,
@@ -40,19 +40,19 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
         router.push(callbackUrl);
       } else {
-        const response = await fetch("/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Something went wrong");
+          throw new Error(data.message || 'Something went wrong');
         }
 
-        router.push("/auth/login?registered=true");
+        router.push('/auth/login?registered=true');
       }
     } catch (err: any) {
       setError(err.message);
@@ -66,19 +66,19 @@ export default function AuthForm({ mode }: AuthFormProps) {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {mode === "login"
-              ? "Sign in to your account"
-              : "Create a new account"}
+            {mode === 'login'
+              ? 'Sign in to your account'
+              : 'Create a new account'}
           </h2>
-          {searchParams.get("registered") && mode === "login" && (
+          {searchParams.get('registered') && mode === 'login' && (
             <div className="mt-2 p-2 bg-green-50 text-green-700 text-center rounded">
               Registration successful! Please sign in.
             </div>
           )}
           <p className="mt-2 text-center text-sm text-gray-600">
-            {mode === "login" ? (
+            {mode === 'login' ? (
               <>
-                Or{" "}
+                Or{' '}
                 <Link
                   href="/auth/register"
                   className="font-medium text-indigo-600 hover:text-indigo-500"
@@ -88,7 +88,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
               </>
             ) : (
               <>
-                Already have an account?{" "}
+                Already have an account?{' '}
                 <Link
                   href="/auth/login"
                   className="font-medium text-indigo-600 hover:text-indigo-500"
@@ -109,7 +109,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
             </div>
           )}
           <div className="rounded-md shadow-sm -space-y-px">
-            {mode === "register" && (
+            {mode === 'register' && (
               <div>
                 <label htmlFor="name" className="sr-only">
                   Name
@@ -196,7 +196,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
                   </svg>
                 </span>
               ) : null}
-              {mode === "login" ? "Sign in" : "Register"}
+              {mode === 'login' ? 'Sign in' : 'Register'}
             </button>
           </div>
         </form>

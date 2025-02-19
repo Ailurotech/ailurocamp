@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
@@ -151,11 +151,11 @@ export default function AdminDashboard() {
                   <div>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        activity.type === "user"
-                          ? "bg-green-100 text-green-800"
-                          : activity.type === "course"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-purple-100 text-purple-800"
+                        activity.type === 'user'
+                          ? 'bg-green-100 text-green-800'
+                          : activity.type === 'course'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-purple-100 text-purple-800'
                       }`}
                     >
                       {activity.type}
@@ -174,35 +174,35 @@ export default function AdminDashboard() {
 const recentActivity = [
   {
     id: 1,
-    type: "user",
-    title: "New user registration: John Doe",
-    time: "2 hours ago",
+    type: 'user',
+    title: 'New user registration: John Doe',
+    time: '2 hours ago',
     icon: UsersIcon,
   },
   {
     id: 2,
-    type: "course",
-    title: "New course published: Advanced React Patterns",
-    time: "4 hours ago",
+    type: 'course',
+    title: 'New course published: Advanced React Patterns',
+    time: '4 hours ago',
     icon: BookOpenIcon,
   },
   {
     id: 3,
-    type: "instructor",
-    title: "New instructor approved: Jane Smith",
-    time: "1 day ago",
+    type: 'instructor',
+    title: 'New instructor approved: Jane Smith',
+    time: '1 day ago',
     icon: AcademicCapIcon,
   },
   {
     id: 4,
-    type: "course",
-    title: "Course updated: TypeScript Fundamentals",
-    time: "2 days ago",
+    type: 'course',
+    title: 'Course updated: TypeScript Fundamentals',
+    time: '2 days ago',
     icon: BookOpenIcon,
   },
 ];
 
-function UsersIcon(props: React.ComponentProps<"svg">) {
+function UsersIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -221,7 +221,7 @@ function UsersIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function BookOpenIcon(props: React.ComponentProps<"svg">) {
+function BookOpenIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -240,7 +240,7 @@ function BookOpenIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function AcademicCapIcon(props: React.ComponentProps<"svg">) {
+function AcademicCapIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

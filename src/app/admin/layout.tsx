@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 
 const navigation = [
-  { name: "Dashboard", href: "/admin", icon: HomeIcon },
-  { name: "Users", href: "/admin/users", icon: UsersIcon },
-  { name: "Courses", href: "/admin/courses", icon: BookOpenIcon },
-  { name: "Instructors", href: "/admin/instructors", icon: AcademicCapIcon },
-  { name: "Reports", href: "/admin/reports", icon: ChartBarIcon },
-  { name: "Settings", href: "/admin/settings", icon: CogIcon },
+  { name: 'Dashboard', href: '/admin', icon: HomeIcon },
+  { name: 'Users', href: '/admin/users', icon: UsersIcon },
+  { name: 'Courses', href: '/admin/courses', icon: BookOpenIcon },
+  { name: 'Instructors', href: '/admin/instructors', icon: AcademicCapIcon },
+  { name: 'Reports', href: '/admin/reports', icon: ChartBarIcon },
+  { name: 'Settings', href: '/admin/settings', icon: CogIcon },
 ];
 
 export default function AdminLayout({
@@ -25,32 +25,32 @@ export default function AdminLayout({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Redirect if not admin
-  if (session?.user?.currentRole !== "admin") {
+  if (session?.user?.currentRole !== 'admin') {
     return <div>Access Denied. Admin only.</div>;
   }
 
   const handleSignOut = async () => {
-    await signOut({ redirect: true, callbackUrl: "/" });
+    await signOut({ redirect: true, callbackUrl: '/' });
   };
 
   const switchToRole = async (role: string) => {
     try {
-      const response = await fetch("/api/auth/switch-role", {
-        method: "POST",
+      const response = await fetch('/api/auth/switch-role', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ newRole: role }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to switch role");
+        throw new Error('Failed to switch role');
       }
 
       // Refresh the page to update the session
       window.location.href = `/${role.toLowerCase()}`;
     } catch (error) {
-      console.error("Error switching role:", error);
+      console.error('Error switching role:', error);
     }
   };
 
@@ -78,15 +78,15 @@ export default function AdminLayout({
                       href={item.href}
                       className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                         isActive
-                          ? "bg-indigo-50 text-indigo-600"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          ? 'bg-indigo-50 text-indigo-600'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                     >
                       <item.icon
                         className={`mr-3 h-6 w-6 flex-shrink-0 ${
                           isActive
-                            ? "text-indigo-600"
-                            : "text-gray-400 group-hover:text-gray-500"
+                            ? 'text-indigo-600'
+                            : 'text-gray-400 group-hover:text-gray-500'
                         }`}
                         aria-hidden="true"
                       />
@@ -145,19 +145,19 @@ export default function AdminLayout({
                   {isProfileOpen && (
                     <div className="absolute right-0 left-0 z-10 mt-2 w-full origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <div className="py-1">
-                        {session?.user?.roles?.includes("instructor") &&
-                          session?.user?.currentRole !== "instructor" && (
+                        {session?.user?.roles?.includes('instructor') &&
+                          session?.user?.currentRole !== 'instructor' && (
                             <button
-                              onClick={() => switchToRole("instructor")}
+                              onClick={() => switchToRole('instructor')}
                               className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
                             >
                               Switch to Instructor
                             </button>
                           )}
-                        {session?.user?.roles?.includes("student") &&
-                          session?.user?.currentRole !== "student" && (
+                        {session?.user?.roles?.includes('student') &&
+                          session?.user?.currentRole !== 'student' && (
                             <button
-                              onClick={() => switchToRole("student")}
+                              onClick={() => switchToRole('student')}
                               className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
                             >
                               Switch to Student
@@ -191,7 +191,7 @@ export default function AdminLayout({
   );
 }
 
-function HomeIcon(props: React.ComponentProps<"svg">) {
+function HomeIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -210,7 +210,7 @@ function HomeIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function UsersIcon(props: React.ComponentProps<"svg">) {
+function UsersIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -229,7 +229,7 @@ function UsersIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function BookOpenIcon(props: React.ComponentProps<"svg">) {
+function BookOpenIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -248,7 +248,7 @@ function BookOpenIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function AcademicCapIcon(props: React.ComponentProps<"svg">) {
+function AcademicCapIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -267,7 +267,7 @@ function AcademicCapIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function ChartBarIcon(props: React.ComponentProps<"svg">) {
+function ChartBarIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -286,7 +286,7 @@ function ChartBarIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function CogIcon(props: React.ComponentProps<"svg">) {
+function CogIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -310,7 +310,7 @@ function CogIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function ChevronUpDownIcon(props: React.ComponentProps<"svg">) {
+function ChevronUpDownIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -329,7 +329,7 @@ function ChevronUpDownIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function LogoutIcon(props: React.ComponentProps<"svg">) {
+function LogoutIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

@@ -58,59 +58,67 @@ const assessmentSchema = new mongoose.Schema<IAssessment>(
       required: true,
       min: 0,
     },
-    questions: [{
-      question: {
-        type: String,
-        required: true,
-      },
-      type: {
-        type: String,
-        enum: ['multiple-choice', 'true-false', 'short-answer', 'essay'],
-        required: true,
-      },
-      options: [{
-        type: String,
-      }],
-      correctAnswer: {
-        type: mongoose.Schema.Types.Mixed,
-      },
-      points: {
-        type: Number,
-        required: true,
-        min: 0,
-      },
-    }],
-    submissions: [{
-      student: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-      },
-      answers: [{
-        questionIndex: {
+    questions: [
+      {
+        question: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          enum: ['multiple-choice', 'true-false', 'short-answer', 'essay'],
+          required: true,
+        },
+        options: [
+          {
+            type: String,
+          },
+        ],
+        correctAnswer: {
+          type: mongoose.Schema.Types.Mixed,
+        },
+        points: {
           type: Number,
           required: true,
+          min: 0,
         },
-        answer: {
-          type: mongoose.Schema.Types.Mixed,
+      },
+    ],
+    submissions: [
+      {
+        student: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
           required: true,
         },
-      }],
-      score: {
-        type: Number,
-        min: 0,
+        answers: [
+          {
+            questionIndex: {
+              type: Number,
+              required: true,
+            },
+            answer: {
+              type: mongoose.Schema.Types.Mixed,
+              required: true,
+            },
+          },
+        ],
+        score: {
+          type: Number,
+          min: 0,
+        },
+        feedback: {
+          type: String,
+        },
+        submittedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        gradedAt: {
+          type: Date,
+        },
       },
-      feedback: {
-        type: String,
-      },
-      submittedAt: {
-        type: Date,
-        default: Date.now,
-      },
-      gradedAt: {
-        type: Date,
-      },
-    }],
+    ],
   },
   {
     timestamps: true,
@@ -121,4 +129,5 @@ const assessmentSchema = new mongoose.Schema<IAssessment>(
 assessmentSchema.index({ course: 1, type: 1 });
 assessmentSchema.index({ 'submissions.student': 1 });
 
-export default mongoose.models.Assessment || mongoose.model<IAssessment>('Assessment', assessmentSchema); 
+export default mongoose.models.Assessment ||
+  mongoose.model<IAssessment>('Assessment', assessmentSchema);

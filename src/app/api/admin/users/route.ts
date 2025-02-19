@@ -7,27 +7,31 @@ import User from '@/models/User';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || !(session.user as any).roles.includes('admin')) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (
+      !session ||
+      !session.user ||
+      !(session.user as any).roles.includes('admin')
+    ) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
 
-    const users = await User.find({}, {
-      password: 0, // Exclude password field
-    });
+    const users = await User.find(
+      {},
+      {
+        password: 0, // Exclude password field
+      }
+    );
 
     return NextResponse.json({
-      users: users.map(user => ({
+      users: users.map((user) => ({
         id: user._id.toString(),
         name: user.name,
         email: user.email,
         roles: user.roles,
         currentRole: user.currentRole,
-      }))
+      })),
     });
   } catch (error: any) {
     console.error('Fetch users error:', error);
@@ -36,4 +40,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-} 
+}

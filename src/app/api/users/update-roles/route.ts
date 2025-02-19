@@ -8,17 +8,16 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const { userId, roles } = await req.json();
 
     // Validate roles
     const validRoles = ['admin', 'instructor', 'student'];
-    const invalidRoles = roles.filter((role: string) => !validRoles.includes(role));
+    const invalidRoles = roles.filter(
+      (role: string) => !validRoles.includes(role)
+    );
     if (invalidRoles.length > 0) {
       return NextResponse.json(
         { message: `Invalid roles: ${invalidRoles.join(', ')}` },
@@ -30,10 +29,7 @@ export async function POST(req: Request) {
 
     const user = await User.findById(userId);
     if (!user) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
     // Update roles and ensure currentRole is still valid
@@ -61,4 +57,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}
