@@ -1,0 +1,68 @@
+name: Code Review
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  pull-requests: write
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    name: Check Code Formatting
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: yarn install --frozen-lockfile
+
+      - name: Check formatting
+        run: yarn run format:check
+
+  code-review:
+    runs-on: ubuntu-latest
+    name: AI Code Review
+    needs: format-check
+    outputs:
+      review_output: ${{ steps.review.outputs.review_output }}
+    steps:
+      - name: Code Review
+        id: review
+        uses: hustcer/deepseek-review@v1
+        with:
+          chat-token: ${{ secrets.CHAT_TOKEN }}
+          sys-prompt: |
+            You are a professional code review assistant. Your task is to review the given code changes and evaluate their overall quality. Please perform the following steps:
+            
+            1. Analyze the code changes based on the following five criteria:
+              - **Code Readability (0-20):** Evaluate clarity, naming conventions, and overall structure.
+              - **Maintainability (0-20):** Assess modularity, documentation, and ease of future modifications.
+              - **Performance(0-20):** Consider efficiency of algorithms and potential optimizations.
+              - **Security (0-20):** Identify vulnerabilities or insecure practices.
+              - **Code Style (0-20):** Check adherence to coding standards and consistency.
+            
+            2. For each category, assign a score between 0 and 20 and provide a brief explanation of your evaluation.
+            
+            3. Sum the five category scores to produce an overall quality score out of 100.
+            
+            4. In your final output, include a structured JSON output with:
+              - The overall score.
+              - A breakdown of scores for each category.
+              - A summary comment listing identified issues or areas for improvement.
+            
+            5. Finally, if the overall score is 91 or above and the score of each category is 16 or above, conclude with the message: "Good enough for merging." Otherwise, list all issues that need addressing.
+          user-prompt: "Please review the following code changes:\n\n($diff_content)"
+          exclude-patterns: "pnpm-lock.yaml,package-lock.json,*.lock,yarn.lock,package.json"
