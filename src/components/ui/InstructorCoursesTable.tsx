@@ -68,6 +68,98 @@ export default function InstructorCoursesTable({
     setIsEditModalOpen(true);
   };
 
+  // Save Edited Course Changes
+  const saveEditedCourse = async () => {
+    if (!editCourse) return;
+
+    // Determine whether fields have changed or not
+    const changes: { title?: string; description?: string } = {};
+    if (editCourse.title !== editdTitle) {
+      changes.title = editdTitle;
+    }
+    if (editCourse.description !== editedDescription) {
+      changes.description = editedDescription;
+    }
+
+    // If no changes, close the modal
+    if (Object.keys(changes).length === 0) {
+      setIsEditModalOpen(false);
+      setEditCourse(null);
+      return;
+    }
+
+    // If changes, send request to update the course
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${editCourse.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(changes),
+    });
+    const data = await res.json();
+    console.log("data", data);
+    
+    // If there is an error
+    if (!res.ok) {
+      console.log(data.error);
+    } else {
+      // If no error
+      let updatedCourse = data.updatedResult;
+      updatedCourse = {
+        ...updatedCourse,
+        id: (updatedCourse._id as mongoose.Types.ObjectId).toString(),
+        enrolledStudents: updatedCourse.enrolledStudents? updatedCourse.enrolledStudents.length : 0,
+        reviews: updatedCourse.reviews.map((review: { studentId: mongoose.Types.ObjectId; comment: string; rating: number }) => ({
+          ...review,
+          studentId: (review.studentId as mongoose.Types.ObjectId).toString(),
+        }))
+      };
+      setCourses((prev) =>
+        prev.map((prevCourse) =>
+          prevCourse.id === editCourse.id ? updatedCourse : prevCourse
+        )
+      );
+      setIsEditModalOpen(false);
+      setEditCourse(null);
+    }
+  };
+
+  // Toggle Publish/Unpublish
+  const handlePublishToggle = async (course: Course) => {
+    // Send request to update the course
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${course.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: course.status === "published" ? "unpublished" : "published" }),
+    });
+    const data = await res.json();
+    console.log("data", data);
+
+    // If there is an error
+    if (!res.ok) {
+      console.log(data.error);
+    } else {
+      // If no error
+      let updatedCourse = data.updatedResult;
+      updatedCourse = {
+        ...updatedCourse,
+        id: (updatedCourse._id as mongoose.Types.ObjectId).toString(),
+        enrolledStudents: updatedCourse.enrolledStudents? updatedCourse.enrolledStudents.length : 0,
+        reviews: updatedCourse.reviews.map((review: { studentId: mongoose.Types.ObjectId; comment: string; rating: number }) => ({
+          ...review,
+          studentId: (review.studentId as mongoose.Types.ObjectId).toString(),
+        }))
+      };
+      setCourses((prev) =>
+        prev.map((prevCourse) =>
+          prevCourse.id === course.id ? updatedCourse : prevCourse
+        )
+      );
+    }
+  };
+
   // Open Delete Confirmation
   const handleDeleteConfirm = (course: Course) => {
     setCourseToDelete(course);
@@ -158,7 +250,7 @@ export default function InstructorCoursesTable({
                     Edit
                   </button>
                   <button
-                    // onClick={() => handlePublishToggle(course)}
+                    onClick={() => handlePublishToggle(course)}
                     className="text-blue-600 hover:text-blue-900"
                   >
                     {course.status === "published" ? "Unpublish" : "Publish"}
@@ -265,7 +357,7 @@ export default function InstructorCoursesTable({
               </button>
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                // onClick={saveEditedCourse}
+                onClick={saveEditedCourse}
               >
                 Save Changes
               </button>
