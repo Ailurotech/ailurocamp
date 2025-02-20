@@ -17,14 +17,13 @@ type Course = {
 };
 
 interface InstructorCoursesTableProps {
-  initialCourses: ICourse[] | [];
+  initialCourses: ICourse[];
 }
 
 export default function InstructorCoursesTable({
   initialCourses,
 }: InstructorCoursesTableProps) {
   const [courses, setCourses] = useState<Course[]>(
-    // Convert courses in databse to the format we need
     initialCourses.map((course) => ({
       ...course,
       id: (course._id as mongoose.Types.ObjectId).toString(),
@@ -51,7 +50,6 @@ export default function InstructorCoursesTable({
   // State for Delete Confirmation
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
 
   // Open Reviews Modal
   const handleViewReviews = (courseId: string) => {
