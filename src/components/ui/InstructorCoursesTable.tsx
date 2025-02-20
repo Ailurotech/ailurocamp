@@ -167,13 +167,21 @@ export default function InstructorCoursesTable({
   };
 
   // Confirm Delete
-  const deleteCourse = () => {
-    if (courseToDelete) {
-      setCourses((prev) =>
-        prev.filter((course) => course.id !== courseToDelete.id)
-      );
-      setCourseToDelete(null);
+  // Delete a course
+  const deleteCourse = async (courseId: string) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${courseId}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+
+    // If there is an error
+    if (!res.ok) {
+      console.log(data.error);
+    } else {
+      // If no error
+      setCourses((prev) => prev.filter((prevCourse) => prevCourse.id !== courseId));
       setIsDeleteModalOpen(false);
+      setCourseToDelete(null);
     }
   };
 
@@ -387,7 +395,7 @@ export default function InstructorCoursesTable({
               </button>
               <button
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                onClick={deleteCourse}
+                onClick={() => deleteCourse(courseToDelete.id)}
               >
                 Delete
               </button>
