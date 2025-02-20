@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, ChangeEvent } from "react";
-import { createCourse } from "@/lib/actions/courseActions";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function NewCourseForm() {
   const [title, setTitle] = useState("");
@@ -14,6 +15,9 @@ export default function NewCourseForm() {
   const [status, setStatus] = useState("unpublished"); // "unpublished" or "published"
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
+
   const handleThumbnailChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setThumbnail(e.target.files[0]);
@@ -22,9 +26,58 @@ export default function NewCourseForm() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("category", category);
+    formData.append("price", price);
+    if (thumbnail) {
+      formData.append("thumbnail", thumbnail);
+    } else {
+      formData.append("thumbnail", "");
+    }
+    formData.append("tags", tags);
+    formData.append("status", status);
+
+    // Get the instructor id from the session
+    if (sessionStatus === "authenticated") {
+      if (session && session.user) {
+        formData.append("instructor", session.user.id);
+      }
+    } else {
+      alert("You need to be logged in to create a course");
+      router.push("/auth/login");
+    }
+
+    // Send request to create course
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (res.ok) {
+      // reset the form
+      setTitle("");
+      setDescription("");
+      setCategory("");
+      setPrice("");
+      setThumbnail(null);
+      setTags("");
+      setStatus("unpublished");
+      setPreviewUrl(null);
+      alert("Course created successfully");
+      router.push("/instructor/courses");
+    } else {
+      alert("Failed to create course");
+    }
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
-      <form action={createCourse} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Course Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
