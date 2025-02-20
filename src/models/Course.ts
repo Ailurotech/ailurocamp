@@ -16,11 +16,13 @@ export interface ICourse extends mongoose.Document {
   category: string;
   level: 'beginner' | 'intermediate' | 'advanced';
   status: 'published' | 'unpublished';
-  reviews: [{
-    studentId: mongoose.Types.ObjectId;
-    comment: string;
-    rating: number;
-  }];
+  reviews: [
+    {
+      studentId: mongoose.Types.ObjectId;
+      comment: string;
+      rating: number;
+    },
+  ];
   averageRating: number;
   revenue: number;
   tags: string[];
@@ -47,28 +49,32 @@ const courseSchema = new mongoose.Schema<ICourse>(
     thumbnail: {
       type: String,
     },
-    modules: [{
-      title: {
-        type: String,
-        required: true,
+    modules: [
+      {
+        title: {
+          type: String,
+          required: true,
+        },
+        content: {
+          type: String,
+          required: true,
+        },
+        order: {
+          type: Number,
+          required: true,
+        },
+        duration: {
+          type: Number,
+          required: true,
+        },
       },
-      content: {
-        type: String,
-        required: true,
+    ],
+    enrolledStudents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
       },
-      order: {
-        type: Number,
-        required: true,
-      },
-      duration: {
-        type: Number,
-        required: true,
-      },
-    }],
-    enrolledStudents: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    }],
+    ],
     price: {
       type: Number,
       required: true,
@@ -87,20 +93,22 @@ const courseSchema = new mongoose.Schema<ICourse>(
       enum: ['published', 'unpublished'],
       default: 'unpublished',
     },
-    reviews: [{
-      studentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+    reviews: [
+      {
+        studentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        comment: {
+          type: String,
+          required: true,
+        },
+        rating: {
+          type: Number,
+          required: true,
+        },
       },
-      comment: {
-        type: String,
-        required: true,
-      },
-      rating: {
-        type: Number,
-        required: true,
-      },
-    }],
+    ],
     averageRating: {
       type: Number,
       default: 0,
@@ -122,4 +130,5 @@ const courseSchema = new mongoose.Schema<ICourse>(
 // Index for better search performance
 courseSchema.index({ title: 'text', description: 'text' });
 
-export default mongoose.models.Course || mongoose.model<ICourse>('Course', courseSchema); 
+export default mongoose.models.Course ||
+  mongoose.model<ICourse>('Course', courseSchema);

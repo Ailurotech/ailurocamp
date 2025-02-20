@@ -1,4 +1,4 @@
-import NewCourseForm from "@/components/ui/NewCourseForm";
+import NewCourseForm from '@/components/ui/NewCourseForm';
 
 export default function NewCoursePage() {
   return (

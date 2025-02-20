@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState, ChangeEvent } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useState, ChangeEvent } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export default function NewCourseForm() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [price, setPrice] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [price, setPrice] = useState('');
   const [thumbnail, setThumbnail] = useState<File | null>(null);
-  const [tags, setTags] = useState("");
-  const [status, setStatus] = useState("unpublished"); // "unpublished" or "published"
+  const [tags, setTags] = useState('');
+  const [status, setStatus] = useState('unpublished'); // "unpublished" or "published"
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const router = useRouter();
@@ -30,50 +30,50 @@ export default function NewCourseForm() {
     e.preventDefault();
 
     const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("category", category);
-    formData.append("price", price);
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('category', category);
+    formData.append('price', price);
     if (thumbnail) {
-      formData.append("thumbnail", thumbnail);
+      formData.append('thumbnail', thumbnail);
     } else {
-      formData.append("thumbnail", "");
+      formData.append('thumbnail', '');
     }
-    formData.append("tags", tags);
-    formData.append("status", status);
+    formData.append('tags', tags);
+    formData.append('status', status);
 
     // Get the instructor id from the session
-    if (sessionStatus === "authenticated") {
+    if (sessionStatus === 'authenticated') {
       if (session && session.user) {
-        formData.append("instructor", session.user.id);
+        formData.append('instructor', session.user.id);
       }
     } else {
-      alert("You need to be logged in to create a course");
-      router.push("/auth/login");
+      alert('You need to be logged in to create a course');
+      router.push('/auth/login');
     }
 
     // Send request to create course
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course`, {
-      method: "POST",
+      method: 'POST',
       body: formData,
     });
 
     if (res.ok) {
       // reset the form
-      setTitle("");
-      setDescription("");
-      setCategory("");
-      setPrice("");
+      setTitle('');
+      setDescription('');
+      setCategory('');
+      setPrice('');
       setThumbnail(null);
-      setTags("");
-      setStatus("unpublished");
+      setTags('');
+      setStatus('unpublished');
       setPreviewUrl(null);
-      alert("Course created successfully");
-      router.push("/instructor/courses");
+      alert('Course created successfully');
+      router.push('/instructor/courses');
     } else {
-      alert("Failed to create course");
+      alert('Failed to create course');
     }
-  }
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -195,8 +195,8 @@ export default function NewCourseForm() {
                 type="radio"
                 name="status"
                 value="unpublished"
-                checked={status === "unpublished"}
-                onChange={() => setStatus("unpublished")}
+                checked={status === 'unpublished'}
+                onChange={() => setStatus('unpublished')}
                 className="form-radio"
               />
               <span className="ml-2">Save as Draft</span>
@@ -206,8 +206,8 @@ export default function NewCourseForm() {
                 type="radio"
                 name="status"
                 value="published"
-                checked={status === "published"}
-                onChange={() => setStatus("published")}
+                checked={status === 'published'}
+                onChange={() => setStatus('published')}
                 className="form-radio"
               />
               <span className="ml-2">Publish Immediately</span>
@@ -230,12 +230,12 @@ export default function NewCourseForm() {
       <div className="mt-10 border-t pt-6">
         <h2 className="text-xl font-bold mb-4">Course Preview</h2>
         <div className="space-y-4">
-          <h3 className="text-2xl font-semibold">{title || "Course Title"}</h3>
+          <h3 className="text-2xl font-semibold">{title || 'Course Title'}</h3>
           <p className="text-gray-700">
-            {description || "Course description will appear here."}
+            {description || 'Course description will appear here.'}
           </p>
-          <p className="text-gray-500">Category: {category || "N/A"}</p>
-          <p className="text-gray-500">Price: ${price || "0.00"}</p>
+          <p className="text-gray-500">Category: {category || 'N/A'}</p>
+          <p className="text-gray-500">Price: ${price || '0.00'}</p>
           {previewUrl && (
             <Image
               src={previewUrl}
@@ -247,15 +247,15 @@ export default function NewCourseForm() {
           )}
           {tags && (
             <p className="text-gray-500">
-              Tags:{" "}
+              Tags:{' '}
               {tags
-                .split(",")
+                .split(',')
                 .map((tag) => tag.trim())
-                .join(", ")}
+                .join(', ')}
             </p>
           )}
           <p className="text-gray-500">
-            Status: {status === "published" ? "published" : "unpublished"}
+            Status: {status === 'published' ? 'published' : 'unpublished'}
           </p>
         </div>
       </div>

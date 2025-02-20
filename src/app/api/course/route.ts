@@ -15,7 +15,9 @@ export async function POST(req: Request) {
     const price = priceString ? Number(priceString) : 0;
     const thumbnail = formData.get('thumbnail');
     const tagsString = formData.get('tags') as string;
-    const tags = tagsString ? tagsString.split(',').map((tag) => tag.trim()) : [];
+    const tags = tagsString
+      ? tagsString.split(',').map((tag) => tag.trim())
+      : [];
     const status = formData.get('status') as string;
     const instructor = formData.get('instructor') as string;
 
@@ -33,15 +35,18 @@ export async function POST(req: Request) {
       reviews: [],
       averageRating: 0,
       revenue: 0,
-      tags
+      tags,
     };
-    console.log("courseData", courseData);
+    console.log('courseData', courseData);
 
     const newCourse = new Course(courseData);
     const savedCourse = await newCourse.save();
     return NextResponse.json({ savedCourse }, { status: 201 });
   } catch (error: unknown) {
     console.error('Error creating course:', error);
-    return NextResponse.json({ error: 'Failed to create course', message: (error as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create course', message: (error as Error).message },
+      { status: 500 }
+    );
   }
 }
