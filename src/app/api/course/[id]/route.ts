@@ -19,3 +19,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: 'Error updating course', message: (error as Error).message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const { id } = await params;
+    await connectDB();
+    const deletedResult = await Course.findByIdAndDelete(id);
+    return NextResponse.json({ deletedResult });
+  } catch (error) {
+    console.error('Delete course error:', error);    
+    return NextResponse.json({ error: 'Error deleting course', message: (error as Error).message }, { status: 500 });
+  }
+}
