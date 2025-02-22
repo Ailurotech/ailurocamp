@@ -93,22 +93,6 @@ const courseSchema = new mongoose.Schema<ICourse>(
       enum: ['published', 'unpublished'],
       default: 'unpublished',
     },
-    reviews: [
-      {
-        studentId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-        },
-        comment: {
-          type: String,
-          required: true,
-        },
-        rating: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
     averageRating: {
       type: Number,
       default: 0,
