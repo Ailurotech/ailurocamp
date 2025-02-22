@@ -9,6 +9,7 @@ export default function NewCourseForm() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [level, setLevel] = useState('');
   const [price, setPrice] = useState('');
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [tags, setTags] = useState('');
@@ -33,6 +34,7 @@ export default function NewCourseForm() {
     formData.append('title', title);
     formData.append('description', description);
     formData.append('category', category);
+    formData.append('level', level);
     formData.append('price', price);
     if (thumbnail) {
       formData.append('thumbnail', thumbnail);
@@ -63,6 +65,7 @@ export default function NewCourseForm() {
       setTitle('');
       setDescription('');
       setCategory('');
+      setLevel('');
       setPrice('');
       setThumbnail(null);
       setTags('');
@@ -126,6 +129,25 @@ export default function NewCourseForm() {
             <option value="fullstack">Fullstack</option>
             <option value="mobile">Mobile</option>
             <option value="design">Design</option>
+          </select>
+        </div>
+
+        {/* Level */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Level
+          </label>
+          <select
+            name="level"
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            className="mt-1 block w-full p-2 border rounded-md"
+            required
+          >
+            <option value="">Select a level</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
           </select>
         </div>
 
@@ -235,6 +257,7 @@ export default function NewCourseForm() {
             {description || 'Course description will appear here.'}
           </p>
           <p className="text-gray-500">Category: {category || 'N/A'}</p>
+          <p className="text-gray-500">Level: {level || 'N/A'}</p>
           <p className="text-gray-500">Price: ${price || '0.00'}</p>
           {previewUrl && (
             <Image
