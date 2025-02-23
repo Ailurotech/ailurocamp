@@ -4,6 +4,15 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDB from '@/lib/mongodb';
 import  Course from '@/models/Course';
 import { z } from 'zod';
+import path from 'path';
+import fs from 'fs';
+import fsPromises from 'fs/promises';
+import { pipeline } from 'stream';
+import { promisify } from 'util';
+import { Readable } from 'stream';
+
+// Promisify the pipeline function
+const pipelineAsync = promisify(pipeline);
 
 // Define a schema for the incoming course data.
 const courseSchema = z.object({
@@ -75,11 +84,12 @@ export async function POST(req: Request) {
     // console.log('parsedCourseData', parsedCourseData);
 
     // Prepare the course data
+    // Don't store the thumbnail at first, store it later by using the saved course id
     const courseData = {
       title,
       description,
       instructor,
-      thumbnail: thumbnail instanceof File ? thumbnail.name : null,
+      thumbnail: null,
       modules: [],
       enrolledStudents: [],
       price: parsedCourseData.data.price,
@@ -94,6 +104,30 @@ export async function POST(req: Request) {
     // Create a new course
     const newCourse = new Course(courseData);
     const savedCourse = await newCourse.save();
+
+    // If a thumbnail is provided, store it in public/images with a name based on the courseId
+    if (thumbnail && thumbnail.size > 0) {
+      const extension = thumbnail.name.split('.').pop();
+      const fileName = `${title}_${savedCourse._id}.${extension}`; // Use the course title and courseId for the file name
+
+      // Ensure the directory exists
+      const directory = path.join(process.cwd(), 'public', 'images');
+      await fsPromises.mkdir(directory, { recursive: true });
+
+      // Convert the thumbnail file to a buffer and create a readable stream
+      const filePath = path.join(directory, fileName);
+      const buffer = Buffer.from(await thumbnail.arrayBuffer());
+      const ReadableStream = Readable.from(buffer);
+      const writeStream = fs.createWriteStream(filePath);
+    
+      // Pipe the readable stream to the write stream
+      await pipelineAsync(ReadableStream, writeStream);
+
+      // Update the course with the thumbnail path
+      savedCourse.thumbnail = `public/images/${fileName}`;
+      await savedCourse.save();
+    }
+
     return NextResponse.json({ savedCourse }, { status: 201 });
   } catch (error: unknown) {
     return NextResponse.json(
