@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
     // Validate roles
     const validRoles = ['admin', 'instructor', 'student'];
-    const invalidRoles = roles.filter(role => !validRoles.includes(role));
+    const invalidRoles = roles.filter((role) => !validRoles.includes(role));
     if (invalidRoles.length > 0) {
       return NextResponse.json(
         { message: `Invalid roles: ${invalidRoles.join(', ')}` },
@@ -66,4 +66,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}

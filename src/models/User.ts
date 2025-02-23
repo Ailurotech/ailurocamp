@@ -37,22 +37,22 @@ const userSchema = new mongoose.Schema<IUser>(
       enum: ['admin', 'instructor', 'student'],
       default: ['student'],
       validate: {
-        validator: function(v: string[]) {
+        validator: function (v: string[]) {
           return Array.isArray(v) && v.length > 0;
         },
-        message: 'At least one role must be assigned'
-      }
+        message: 'At least one role must be assigned',
+      },
     },
     currentRole: {
       type: String,
       enum: ['admin', 'instructor', 'student'],
       default: 'student',
       validate: {
-        validator: function(this: IUser, role: string) {
+        validator: function (this: IUser, role: string) {
           return this.roles.includes(role);
         },
-        message: 'Current role must be one of the assigned roles'
-      }
+        message: 'Current role must be one of the assigned roles',
+      },
     },
     avatar: {
       type: String,
@@ -66,7 +66,7 @@ const userSchema = new mongoose.Schema<IUser>(
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -77,7 +77,7 @@ userSchema.pre('save', async function (next) {
 });
 
 // Ensure roles array is never empty and currentRole is valid
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
   if (!this.roles || this.roles.length === 0) {
     this.roles = ['student'];
   }
@@ -88,8 +88,11 @@ userSchema.pre('save', function(next) {
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-export default mongoose.models.User || mongoose.model<IUser>('User', userSchema); 
+export default mongoose.models.User ||
+  mongoose.model<IUser>('User', userSchema);

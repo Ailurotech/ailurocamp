@@ -8,10 +8,7 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const { newRole } = await req.json();
@@ -19,20 +16,14 @@ export async function POST(req: Request) {
     // Validate role
     const validRoles = ['admin', 'instructor', 'student'];
     if (!validRoles.includes(newRole)) {
-      return NextResponse.json(
-        { message: 'Invalid role' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Invalid role' }, { status: 400 });
     }
 
     await connectDB();
 
     const user = await User.findById(session.user.id);
     if (!user) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
     // Check if user has the role they're trying to switch to
@@ -64,4 +55,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -158,31 +158,31 @@ export default function DashboardPage() {
 const recentActivity = [
   {
     id: 1,
-    title: "Completed Module 3: Advanced React Patterns",
-    time: "2 hours ago",
+    title: 'Completed Module 3: Advanced React Patterns',
+    time: '2 hours ago',
     icon: BookOpenIcon,
   },
   {
     id: 2,
-    title: "Submitted Assignment: API Integration",
-    time: "4 hours ago",
+    title: 'Submitted Assignment: API Integration',
+    time: '4 hours ago',
     icon: ClipboardIcon,
   },
   {
     id: 3,
-    title: "Started new course: Next.js Mastery",
-    time: "1 day ago",
+    title: 'Started new course: Next.js Mastery',
+    time: '1 day ago',
     icon: BookOpenIcon,
   },
   {
     id: 4,
-    title: "Earned certificate: TypeScript Fundamentals",
-    time: "2 days ago",
+    title: 'Earned certificate: TypeScript Fundamentals',
+    time: '2 days ago',
     icon: ChartBarIcon,
   },
 ];
 
-function BookOpenIcon(props: React.ComponentProps<"svg">) {
+function BookOpenIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -201,7 +201,7 @@ function BookOpenIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function ClipboardIcon(props: React.ComponentProps<"svg">) {
+function ClipboardIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -220,7 +220,7 @@ function ClipboardIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function ChartBarIcon(props: React.ComponentProps<"svg">) {
+function ChartBarIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

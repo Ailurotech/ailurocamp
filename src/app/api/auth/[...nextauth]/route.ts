@@ -8,19 +8,21 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         try {
           await connectDB();
-          
+
           const user = await User.findOne({ email: credentials?.email });
           if (!user) {
             throw new Error('No user found with this email');
           }
 
-          const isValid = await user.comparePassword(credentials?.password || '');
+          const isValid = await user.comparePassword(
+            credentials?.password || ''
+          );
           if (!isValid) {
             throw new Error('Invalid password');
           }
@@ -35,8 +37,8 @@ export const authOptions: NextAuthOptions = {
         } catch (error: any) {
           throw new Error(error.message);
         }
-      }
-    })
+      },
+    }),
   ],
   pages: {
     signIn: '/auth/login',
@@ -67,4 +69,4 @@ export const authOptions: NextAuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST }; 
+export { handler as GET, handler as POST };

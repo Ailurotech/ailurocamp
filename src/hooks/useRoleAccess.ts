@@ -19,9 +19,11 @@ export function useRoleAccess(requiredRole: string) {
 
     // If user doesn't have the required role, redirect to appropriate dashboard
     if (!userRoles.includes(requiredRole)) {
-      const redirectPath = userRoles.includes('admin') ? '/admin' :
-                         userRoles.includes('instructor') ? '/instructor' : 
-                         '/dashboard';
+      const redirectPath = userRoles.includes('admin')
+        ? '/admin'
+        : userRoles.includes('instructor')
+          ? '/instructor'
+          : '/dashboard';
       router.push(redirectPath);
       return;
     }
@@ -33,8 +35,10 @@ export function useRoleAccess(requiredRole: string) {
   }, [session, status, requiredRole, router]);
 
   return {
-    isAuthorized: session?.user.roles?.includes(requiredRole) && session?.user.currentRole === requiredRole,
+    isAuthorized:
+      session?.user.roles?.includes(requiredRole) &&
+      session?.user.currentRole === requiredRole,
     isLoading: status === 'loading',
     session,
   };
-} 
+}

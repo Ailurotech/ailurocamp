@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface User {
   id: string;
@@ -15,7 +15,7 @@ export default function UsersPage() {
   const { data: session } = useSession();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -23,9 +23,9 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users");
+      const response = await fetch('/api/admin/users');
       if (!response.ok) {
-        throw new Error("Failed to fetch users");
+        throw new Error('Failed to fetch users');
       }
       const data = await response.json();
       setUsers(data.users);
@@ -38,16 +38,16 @@ export default function UsersPage() {
 
   const handleRoleChange = async (userId: string, roles: string[]) => {
     try {
-      const response = await fetch("/api/users/update-roles", {
-        method: "POST",
+      const response = await fetch('/api/users/update-roles', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ userId, roles }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update user roles");
+        throw new Error('Failed to update user roles');
       }
 
       // Refresh the users list
@@ -158,11 +158,11 @@ export default function UsersPage() {
                         <span
                           key={role}
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            role === "admin"
-                              ? "bg-red-100 text-red-800"
-                              : role === "instructor"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-green-100 text-green-800"
+                            role === 'admin'
+                              ? 'bg-red-100 text-red-800'
+                              : role === 'instructor'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-green-100 text-green-800'
                           }`}
                         >
                           {role}
@@ -178,7 +178,7 @@ export default function UsersPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center space-x-2">
-                        {["admin", "instructor", "student"].map((role) => (
+                        {['admin', 'instructor', 'student'].map((role) => (
                           <label
                             key={role}
                             className="inline-flex items-center"

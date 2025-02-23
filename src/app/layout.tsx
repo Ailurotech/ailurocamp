@@ -1,13 +1,13 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Providers from "./providers";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import Providers from './providers';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "AiluroCamp - Learning Management System",
-  description: "A modern learning management system for online education",
+  title: 'AiluroCamp - Learning Management System',
+  description: 'A modern learning management system for online education',
 };
 
 export default function RootLayout({

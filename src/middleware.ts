@@ -6,14 +6,14 @@ import { NextRequestWithAuth } from 'next-auth/middleware';
 const roleRoutePatterns = {
   admin: ['/admin', '/admin/dashboard'],
   instructor: ['/instructor', '/instructor/dashboard'],
-  student: ['/dashboard']
+  student: ['/dashboard'],
 };
 
 // Define the default landing pages for each role
 const roleDefaultPages = {
   admin: '/admin/dashboard',
   instructor: '/instructor',
-  student: '/dashboard'
+  student: '/dashboard',
 };
 
 export default async function middleware(req: NextRequestWithAuth) {
@@ -22,14 +22,17 @@ export default async function middleware(req: NextRequestWithAuth) {
 
   // Public paths that don't require authentication
   const publicPaths = ['/auth/login', '/auth/register', '/'];
-  const isPublicPath = publicPaths.some(path => req.nextUrl.pathname.startsWith(path));
+  const isPublicPath = publicPaths.some((path) =>
+    req.nextUrl.pathname.startsWith(path)
+  );
 
   // If the path is public, allow access
   if (isPublicPath) {
     // Redirect authenticated users away from auth pages
-    if (isAuthenticated && (req.nextUrl.pathname.startsWith('/auth/'))) {
+    if (isAuthenticated && req.nextUrl.pathname.startsWith('/auth/')) {
       const currentRole = (token.currentRole as string) || 'student';
-      const redirectPath = roleDefaultPages[currentRole as keyof typeof roleDefaultPages];
+      const redirectPath =
+        roleDefaultPages[currentRole as keyof typeof roleDefaultPages];
       return NextResponse.redirect(new URL(redirectPath, req.url));
     }
     return NextResponse.next();
@@ -47,17 +50,26 @@ export default async function middleware(req: NextRequestWithAuth) {
 
   // Check if the user is trying to access a role-specific route
   for (const [role, patterns] of Object.entries(roleRoutePatterns)) {
-    if (patterns.some(pattern => req.nextUrl.pathname.startsWith(pattern))) {
+    if (patterns.some((pattern) => req.nextUrl.pathname.startsWith(pattern))) {
       // If user doesn't have the required role, redirect to their appropriate dashboard
       if (!userRoles.includes(role)) {
-        const highestRole = userRoles.includes('admin') ? 'admin' :
-                          userRoles.includes('instructor') ? 'instructor' : 
-                          'student';
-        return NextResponse.redirect(new URL(roleDefaultPages[highestRole], req.url));
+        const highestRole = userRoles.includes('admin')
+          ? 'admin'
+          : userRoles.includes('instructor')
+            ? 'instructor'
+            : 'student';
+        return NextResponse.redirect(
+          new URL(roleDefaultPages[highestRole], req.url)
+        );
       }
       // If user has the role but it's not their current role, redirect to switch role
       if (role !== currentRole) {
-        return NextResponse.redirect(new URL(roleDefaultPages[currentRole as keyof typeof roleDefaultPages], req.url));
+        return NextResponse.redirect(
+          new URL(
+            roleDefaultPages[currentRole as keyof typeof roleDefaultPages],
+            req.url
+          )
+        );
       }
     }
   }
@@ -76,4 +88,4 @@ export const config = {
      */
     '/((?!_next/static|_next/image|favicon.ico|public).*)',
   ],
-}; 
+};
