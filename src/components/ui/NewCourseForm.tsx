@@ -40,7 +40,10 @@ export default function NewCourseForm() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Pop up state for notification
-  const [popup, setPopup] = useState<{ message: string; action?: () => void } | null>(null);
+  const [popup, setPopup] = useState<{
+    message: string;
+    action?: () => void;
+  } | null>(null);
 
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
@@ -82,7 +85,7 @@ export default function NewCourseForm() {
       popup.action();
     }
     setPopup(null);
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     // Prevent the default form submission
@@ -165,11 +168,11 @@ export default function NewCourseForm() {
         formData.append('instructor', session.user.id);
       }
     } else {
-      setPopup({ 
+      setPopup({
         message: 'You must be logged in to create a course',
         action: () => {
           router.push('/auth/login');
-        }
+        },
       });
     }
 
@@ -190,7 +193,7 @@ export default function NewCourseForm() {
       setTags('');
       setStatus('unpublished');
       setPreviewUrl(null);
-      setPopup({ 
+      setPopup({
         message: 'Course created successfully.',
         action: () => router.push('/instructor/courses'),
       });

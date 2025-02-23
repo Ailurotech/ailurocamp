@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectDB from '@/lib/mongodb';
-import  Course from '@/models/Course';
+import Course from '@/models/Course';
 import { z } from 'zod';
 import path from 'path';
 import fs from 'fs';
@@ -16,23 +16,23 @@ const pipelineAsync = promisify(pipeline);
 
 // Define a schema for the incoming course data.
 const courseSchema = z.object({
-  title: z.string().min(1, "Course title is required"),
-  description: z.string().min(1, "Course description is required"),
+  title: z.string().min(1, 'Course title is required'),
+  description: z.string().min(1, 'Course description is required'),
   category: z.enum(['frontend', 'backend', 'fullstack', 'mobile', 'design'], {
-    errorMap: () => ({ message: "Invalid category" }),
+    errorMap: () => ({ message: 'Invalid category' }),
   }),
   level: z.enum(['beginner', 'intermediate', 'advanced'], {
-    errorMap: () => ({ message: "Invalid level" }),
+    errorMap: () => ({ message: 'Invalid level' }),
   }),
   price: z.preprocess(
     (val) => parseFloat(val as string),
-    z.number().nonnegative("Price must be non-negative")
+    z.number().nonnegative('Price must be non-negative')
   ),
   tags: z.string().optional(),
   status: z.enum(['published', 'unpublished'], {
-    errorMap: () => ({ message: "Invalid status" }),
+    errorMap: () => ({ message: 'Invalid status' }),
   }),
-  instructor: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid instructor id"),
+  instructor: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid instructor id'),
 });
 
 export async function POST(req: Request) {
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       status,
       instructor,
     });
-    
+
     if (!parsedCourseData.success) {
       // console.log(parsedCourseData.error.errors);
       return NextResponse.json(
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
       const buffer = Buffer.from(await thumbnail.arrayBuffer());
       const ReadableStream = Readable.from(buffer);
       const writeStream = fs.createWriteStream(filePath);
-    
+
       // Pipe the readable stream to the write stream
       await pipelineAsync(ReadableStream, writeStream);
 
