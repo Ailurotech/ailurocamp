@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import clsx from "clsx";
-import { ICourse } from "@/models/Course";
-import mongoose from "mongoose";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import clsx from 'clsx';
+import { ICourse } from '@/models/Course';
+import mongoose from 'mongoose';
+import { useRouter } from 'next/navigation';
 
 type Course = {
   id: string;
@@ -13,7 +13,7 @@ type Course = {
   averageRating: number;
   revenue: number;
   description: string;
-  status: "published" | "unpublished";
+  status: 'published' | 'unpublished';
 };
 
 interface InstructorCoursesTableProps {
@@ -27,15 +27,17 @@ export default function InstructorCoursesTable({
     initialCourses.map((course) => ({
       ...course,
       id: (course._id as mongoose.Types.ObjectId).toString(),
-      enrolledStudents: course.enrolledStudents? course.enrolledStudents.length : 0,
+      enrolledStudents: course.enrolledStudents
+        ? course.enrolledStudents.length
+        : 0,
     }))
   );
 
   // State for Edit Modal
   const [editCourse, setEditCourse] = useState<Course | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editdTitle, setEditdTitle] = useState("");
-  const [editedDescription, setEditedDescription] = useState("");
+  const [editdTitle, setEditdTitle] = useState('');
+  const [editedDescription, setEditedDescription] = useState('');
 
   // State for Delete Confirmation
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
@@ -72,16 +74,19 @@ export default function InstructorCoursesTable({
     }
 
     // If changes, send request to update the course
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${editCourse.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(changes),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${editCourse.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(changes),
+      }
+    );
     const data = await res.json();
-    console.log("data", data);
-    
+    console.log('data', data);
+
     // If there is an error
     if (!res.ok) {
       console.log(data.error);
@@ -91,7 +96,9 @@ export default function InstructorCoursesTable({
       updatedCourse = {
         ...updatedCourse,
         id: (updatedCourse._id as mongoose.Types.ObjectId).toString(),
-        enrolledStudents: updatedCourse.enrolledStudents? updatedCourse.enrolledStudents.length : 0,
+        enrolledStudents: updatedCourse.enrolledStudents
+          ? updatedCourse.enrolledStudents.length
+          : 0,
       };
       setCourses((prev) =>
         prev.map((prevCourse) =>
@@ -106,15 +113,20 @@ export default function InstructorCoursesTable({
   // Toggle Publish/Unpublish
   const handlePublishToggle = async (course: Course) => {
     // Send request to update the course
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${course.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ status: course.status === "published" ? "unpublished" : "published" }),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${course.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: course.status === 'published' ? 'unpublished' : 'published',
+        }),
+      }
+    );
     const data = await res.json();
-    console.log("data", data);
+    console.log('data', data);
 
     // If there is an error
     if (!res.ok) {
@@ -125,7 +137,9 @@ export default function InstructorCoursesTable({
       updatedCourse = {
         ...updatedCourse,
         id: (updatedCourse._id as mongoose.Types.ObjectId).toString(),
-        enrolledStudents: updatedCourse.enrolledStudents? updatedCourse.enrolledStudents.length : 0,
+        enrolledStudents: updatedCourse.enrolledStudents
+          ? updatedCourse.enrolledStudents.length
+          : 0,
       };
       setCourses((prev) =>
         prev.map((prevCourse) =>
@@ -144,9 +158,12 @@ export default function InstructorCoursesTable({
   // Confirm Delete
   // Delete a course
   const deleteCourse = async (courseId: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${courseId}`, {
-      method: "DELETE",
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/course/${courseId}`,
+      {
+        method: 'DELETE',
+      }
+    );
     const data = await res.json();
 
     // If there is an error
@@ -154,7 +171,9 @@ export default function InstructorCoursesTable({
       console.log(data.error);
     } else {
       // If no error
-      setCourses((prev) => prev.filter((prevCourse) => prevCourse.id !== courseId));
+      setCourses((prev) =>
+        prev.filter((prevCourse) => prevCourse.id !== courseId)
+      );
       setIsDeleteModalOpen(false);
       setCourseToDelete(null);
     }
@@ -207,7 +226,9 @@ export default function InstructorCoursesTable({
                 </td>
                 <td className="px-4 py-3 text-sm">
                   <button
-                    onClick={() => router.push(`/instructor/courses/${course.id}/review`)}
+                    onClick={() =>
+                      router.push(`/instructor/courses/${course.id}/review`)
+                    }
                     className="text-blue-500 hover:underline"
                   >
                     View Reviews
@@ -216,10 +237,10 @@ export default function InstructorCoursesTable({
                 <td className="px-4 py-3">
                   <span
                     className={clsx(
-                      "inline-flex px-2 text-xs font-semibold rounded-full",
-                      course.status === "published"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
+                      'inline-flex px-2 text-xs font-semibold rounded-full',
+                      course.status === 'published'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
                     )}
                   >
                     {course.status}
@@ -236,7 +257,7 @@ export default function InstructorCoursesTable({
                     onClick={() => handlePublishToggle(course)}
                     className="text-blue-600 hover:text-blue-900"
                   >
-                    {course.status === "published" ? "Unpublish" : "Publish"}
+                    {course.status === 'published' ? 'Unpublish' : 'Publish'}
                   </button>
                   <button
                     onClick={() => handleDeleteConfirm(course)}
@@ -295,10 +316,9 @@ export default function InstructorCoursesTable({
               <button
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
                 onClick={() => {
-                    setIsEditModalOpen(false);
-                    setEditCourse(null);
-                  }
-                }
+                  setIsEditModalOpen(false);
+                  setEditCourse(null);
+                }}
               >
                 Cancel
               </button>
@@ -321,7 +341,7 @@ export default function InstructorCoursesTable({
               Delete Confirmation
             </h3>
             <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to delete{" "}
+              Are you sure you want to delete{' '}
               <strong>{courseToDelete.title}</strong>? This action cannot be
               undone.
             </p>

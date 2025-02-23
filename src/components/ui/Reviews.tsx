@@ -1,6 +1,6 @@
-import { Review } from "@/types/review";
+import { Review } from '@/types/review';
 
-export default function Reviews({ reviews }: { reviews: Review[] }) {  
+export default function Reviews({ reviews }: { reviews: Review[] }) {
   if (reviews.length === 0) {
     return <p className="text-gray-500">No reviews yet</p>;
   }
@@ -12,7 +12,9 @@ export default function Reviews({ reviews }: { reviews: Review[] }) {
           <p className="font-semibold">{review.userId.name}</p>
           <p className="text-gray-700">{review.comment}</p>
           <p className="text-sm text-gray-500">Rating: {review.rating}</p>
-          <p className="text-sm text-gray-500">Date: {new Date(review.updatedAt).toLocaleString()}</p>
+          <p className="text-sm text-gray-500">
+            Date: {new Date(review.updatedAt).toLocaleString()}
+          </p>
         </div>
       ))}
     </div>

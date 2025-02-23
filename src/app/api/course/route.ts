@@ -11,6 +11,9 @@ export async function GET() {
   } catch (error: unknown) {
     // console.error('Error fetching courses:', error);
     // console.log("error", error);
-    return NextResponse.json({ error: 'Failed to fetch courses', message: (error as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch courses', message: (error as Error).message },
+      { status: 500 }
+    );
   }
 }

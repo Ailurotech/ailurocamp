@@ -1,16 +1,16 @@
-import InstructorCoursesTable from "@/components/ui/InstructorCoursesTable";
-let error = "";
+import InstructorCoursesTable from '@/components/ui/InstructorCoursesTable';
+let error = '';
 
 export default async function InstructorCoursesPage() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/course`, {
-    cache: "no-store",
+    cache: 'no-store',
   });
   const data = await res.json();
 
   if (!res.ok) {
     error = data.error;
   }
-  error = "";
+  error = '';
   const courses = data.courses;
 
   return (
