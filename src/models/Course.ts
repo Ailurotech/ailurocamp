@@ -16,13 +16,6 @@ export interface ICourse extends mongoose.Document {
   category: string;
   level: 'beginner' | 'intermediate' | 'advanced';
   status: 'published' | 'unpublished';
-  reviews: [
-    {
-      studentId: mongoose.Types.ObjectId;
-      comment: string;
-      rating: number;
-    },
-  ];
   averageRating: number;
   revenue: number;
   tags: string[];
