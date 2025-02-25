@@ -10,32 +10,13 @@ import fsPromises from 'fs/promises';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 import { Readable } from 'stream';
+import CourseCategory from '@/models/CourseCategory';
+import CourseLevel from '@/models/CourseLevel';
 
 // Promisify the pipeline function
 const pipelineAsync = promisify(pipeline);
 
-// Define a schema for the incoming course data.
-const courseSchema = z.object({
-  title: z.string().min(1, 'Course title is required'),
-  description: z.string().min(1, 'Course description is required'),
-  category: z.enum(['frontend', 'backend', 'fullstack', 'mobile', 'design'], {
-    errorMap: () => ({ message: 'Invalid category' }),
-  }),
-  level: z.enum(['beginner', 'intermediate', 'advanced'], {
-    errorMap: () => ({ message: 'Invalid level' }),
-  }),
-  price: z.preprocess(
-    (val) => parseFloat(val as string),
-    z.number().nonnegative('Price must be non-negative')
-  ),
-  tags: z.string().optional(),
-  status: z.enum(['published', 'unpublished'], {
-    errorMap: () => ({ message: 'Invalid status' }),
-  }),
-  instructor: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid instructor id'),
-});
-
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     // Authenticate the user
     const session: Session | null = await getServerSession(authOptions);
@@ -44,6 +25,25 @@ export async function POST(req: Request) {
     }
 
     await connectDB();
+
+    // Retrive valid categories and levels from the database
+    const categoryDocs = await CourseCategory.find({});
+    const validCategories: string[] = categoryDocs.map((doc) => doc.name);
+    if (validCategories.length === 0) {
+      return NextResponse.json(
+        { message: 'No valid categories found' },
+        { status: 500 }
+      );
+    }
+
+    const levelDocs = await CourseLevel.find({});
+    const validLevels: string[] = levelDocs.map((doc) => doc.name);
+    if (validLevels.length === 0) {
+      return NextResponse.json(
+        { message: 'No valid levels found' },
+        { status: 500 }
+      );
+    }
 
     // Extract the form data
     const formData: FormData = await req.formData();
@@ -61,6 +61,31 @@ export async function POST(req: Request) {
     //   : [];
     const status = formData.get('status') as string;
     const instructor = formData.get('instructor') as string;
+
+    // Define a schema for the incoming course data.
+    const courseSchema = z.object({
+      title: z.string().min(1, 'Course title is required'),
+      description: z.string().min(1, 'Course description is required'),
+      category: z.string().refine(
+        (value) => validCategories.includes(value), 
+        { message: 'Invalid category' }
+      ),
+      level: z.string().refine(
+        (value) => validLevels.includes(value), 
+        { message: 'Invalid level' }
+      ),
+      price: z.preprocess(
+        (val) => parseFloat(val as string),
+        z.number().nonnegative('Price must be non-negative')
+      ),
+      tags: z.string().optional(),
+      status: z.enum(['published', 'unpublished'], {
+        errorMap: () => ({ message: 'Invalid status' }),
+      }),
+      instructor: z
+        .string()
+        .regex(/^[0-9a-fA-F]{24}$/, 'Invalid instructor id'),
+    });
 
     // Validate the course data
     const parsedCourseData = courseSchema.safeParse({

@@ -14,7 +14,8 @@ export interface ICourse extends mongoose.Document {
   enrolledStudents?: mongoose.Types.ObjectId[];
   price: number;
   category: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
+  // level: 'beginner' | 'intermediate' | 'advanced';
+  level: string;
   status: 'published' | 'unpublished';
   averageRating: number;
   revenue: number;
