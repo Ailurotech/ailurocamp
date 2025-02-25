@@ -27,8 +27,10 @@ export async function POST(req: Request): Promise<Response> {
     await connectDB();
 
     // Retrive valid categories and levels from the database
+    // category
     const categoryDocs = await CourseCategory.find({});
-    const validCategories: string[] = categoryDocs.map((doc) => doc.name);
+    const validCategories: string[] = categoryDocs[0].category;
+  
     if (validCategories.length === 0) {
       return NextResponse.json(
         { message: 'No valid categories found' },
@@ -36,8 +38,10 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
+    // level
     const levelDocs = await CourseLevel.find({});
-    const validLevels: string[] = levelDocs.map((doc) => doc.name);
+    const validLevels: string[] = levelDocs[0].level;
+    
     if (validLevels.length === 0) {
       return NextResponse.json(
         { message: 'No valid levels found' },
@@ -98,6 +102,10 @@ export async function POST(req: Request): Promise<Response> {
       status,
       instructor,
     });
+
+    console.log('parsedCourseData', parsedCourseData);
+    console.log(parsedCourseData?.error?.errors);
+    
 
     if (!parsedCourseData.success) {
       // console.log(parsedCourseData.error.errors);

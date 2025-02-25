@@ -1,30 +1,10 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { z } from 'zod';
-
-// Define a schema for the course form data.
-const formSchema = z.object({
-  title: z.string().min(1, 'Course title is required'),
-  description: z.string().min(1, 'Course description is required'),
-  category: z.enum(['frontend', 'backend', 'fullstack', 'mobile', 'design'], {
-    errorMap: () => ({ message: 'Please select a valid category' }),
-  }),
-  level: z.enum(['beginner', 'intermediate', 'advanced'], {
-    errorMap: () => ({ message: 'Please select a valid level' }),
-  }),
-  price: z.preprocess(
-    (val) => parseFloat(val as string),
-    z.number().nonnegative('Price must be non-negative')
-  ),
-  tags: z.string().optional(),
-  status: z.enum(['published', 'unpublished'], {
-    errorMap: () => ({ message: 'Please select a valid status' }),
-  }),
-});
 
 export default function NewCourseForm() {
   const [title, setTitle] = useState('');
@@ -38,6 +18,8 @@ export default function NewCourseForm() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   // Error state to display validation errors for form fields
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [levelOptions, setLevelOptions] = useState<string[]>([]);
 
   // Pop up state for notification
   const [popup, setPopup] = useState<{
@@ -70,6 +52,41 @@ export default function NewCourseForm() {
     status: statusRef,
   };
 
+  // Fetch category and level options from API
+  useEffect(() => {
+    async function fetchOptions() {
+      // Fetch category
+      const categoryRes: Response = await fetch('/api/category');
+      if (!categoryRes.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const {
+        categories: [{ category }],
+      }: { categories: { category: string[] }[] } = await categoryRes.json();
+      console.log("category", category);
+      
+      setCategoryOptions(category);
+      console.log("categoryOptions", categoryOptions);
+      
+
+      // Fetch level
+      const levelRes: Response = await fetch('/api/level');
+      if (!levelRes.ok) {
+        throw new Error('Failed to fetch levels');
+      }
+      const {
+        levels: [{ level }],
+      }: { levels: { level: string[] }[] } = await levelRes.json();
+      console.log("level", level);
+      
+      setLevelOptions(level);
+      console.log("levelOptions", levelOptions);
+      
+    }
+
+    fetchOptions();
+  }, []);
+
   // Handler for thumbnail change
   const handleThumbnailChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -94,6 +111,36 @@ export default function NewCourseForm() {
     // Clear previous errors
     setErrors({});
 
+
+    console.log("levelOptions", levelOptions);
+    // Define a schema for the course form data.
+    const formSchema = z.object({
+      title: z.string().min(1, 'Course title is required'),
+      description: z.string().min(1, 'Course description is required'),
+      category: z
+        .string()
+        .refine((val) => categoryOptions.includes(val), {
+          message: 'Please select a valid category',
+        }),
+      level: z
+        .string()
+        .refine((val) => levelOptions.includes(val), {
+          message: 'Please select a valid level',
+        }),
+      price: z.preprocess(
+        (val) => parseFloat(val as string),
+        z.number().nonnegative('Price must be non-negative')
+      ),
+      tags: z.string().optional(),
+      status: z.enum(['published', 'unpublished'], {
+        errorMap: () => ({ message: 'Please select a valid status' }),
+      }),
+    });
+
+    console.log("category", category);
+    console.log(categoryOptions.includes(category));
+    
+    
     // Validate the form data
     const result = formSchema.safeParse({
       title,
@@ -272,11 +319,11 @@ export default function NewCourseForm() {
             // required
           >
             <option value="">Select a category</option>
-            <option value="frontend">Frontend</option>
-            <option value="backend">Backend</option>
-            <option value="fullstack">Fullstack</option>
-            <option value="mobile">Mobile</option>
-            <option value="design">Design</option>
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
           </select>
           {errors.category && (
             <p className="text-red-600 text-sm mt-1">{errors.category}</p>
@@ -297,9 +344,11 @@ export default function NewCourseForm() {
             // required
           >
             <option value="">Select a level</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
+            {levelOptions.map((level) => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
           </select>
           {errors.level && (
             <p className="text-red-600 text-sm mt-1">{errors.level}</p>
