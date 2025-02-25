@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 
 const navigation = [
@@ -21,7 +21,6 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Redirect if not admin
