@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 
 const navigation = [
@@ -21,7 +21,7 @@ export default function InstructorLayout({
 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const router = useRouter();
+  // const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Redirect if not instructor
@@ -180,11 +180,7 @@ export default function InstructorLayout({
 
         {/* Main content */}
         <div className="pl-64 flex-1">
-          <main className="py-6">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-              {children}
-            </div>
-          </main>
+          {children}
         </div>
       </div>
     </div>
