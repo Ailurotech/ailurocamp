@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 
 const navigation = [
@@ -19,10 +19,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
-  const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleSignOut = async () => {
