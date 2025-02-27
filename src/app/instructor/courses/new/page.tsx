@@ -137,10 +137,11 @@ export default function NewCourseForm() {
         (val) => parseFloat(val as string),
         z.number().nonnegative('Price must be non-negative')
       ),
-      thumbnail: z.instanceof(File).refine(
-        (file) => file.type.startsWith('image/'),
-        { message: 'Only image files are allowed.' }
-      ),
+      thumbnail: z
+        .instanceof(File)
+        .refine((file) => file.type.startsWith('image/'), {
+          message: 'Only image files are allowed.',
+        }),
       tags: z.string().optional(),
       status: z.enum(['published', 'unpublished'], {
         errorMap: () => ({ message: 'Please select a valid status' }),
