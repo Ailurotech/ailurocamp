@@ -11,11 +11,15 @@ export interface ICourse extends mongoose.Document {
     order: number;
     duration: number;
   }[];
-  enrolledStudents: mongoose.Types.ObjectId[];
-  price?: number;
+  enrolledStudents?: mongoose.Types.ObjectId[];
+  price: number;
   category: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  status: 'draft' | 'published' | 'archived';
+  // level: 'beginner' | 'intermediate' | 'advanced';
+  level: string;
+  status: 'published' | 'unpublished';
+  averageRating: number;
+  revenue: number;
+  tags: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +71,7 @@ const courseSchema = new mongoose.Schema<ICourse>(
     ],
     price: {
       type: Number,
+      required: true,
     },
     category: {
       type: String,
@@ -74,13 +79,26 @@ const courseSchema = new mongoose.Schema<ICourse>(
     },
     level: {
       type: String,
-      enum: ['beginner', 'intermediate', 'advanced'],
-      default: 'beginner',
+      required: true,
+      // enum: ['beginner', 'intermediate', 'advanced'],
+      // default: 'beginner',
     },
     status: {
       type: String,
-      enum: ['draft', 'published', 'archived'],
-      default: 'draft',
+      enum: ['published', 'unpublished'],
+      default: 'unpublished',
+    },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    revenue: {
+      type: Number,
+      default: 0,
+    },
+    tags: {
+      type: [String],
+      default: [],
     },
   },
   {

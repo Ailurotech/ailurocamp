@@ -39,7 +39,8 @@ export async function GET() {
     });
   } catch (error: Error | unknown) {
     console.error('Fetch users error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { message: 'Error fetching users', error: errorMessage },
       { status: 500 }
