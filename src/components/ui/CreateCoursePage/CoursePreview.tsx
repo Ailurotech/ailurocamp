@@ -14,7 +14,7 @@ interface CoursePreviewProps {
   status: string;
 }
 
-export default function CoursePreview({
+const CoursePreview = React.memo(function CoursePreview({
   title,
   description,
   category,
@@ -59,4 +59,6 @@ export default function CoursePreview({
       </div>
     </div>
   );
-}
+});
+
+export default CoursePreview;
