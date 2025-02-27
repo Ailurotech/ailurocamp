@@ -12,9 +12,10 @@ import { promisify } from 'util';
 import { Readable } from 'stream';
 import CourseCategory from '@/models/CourseCategory';
 import CourseLevel from '@/models/CourseLevel';
+import type { ICategory, ILevel, ICourseFormData } from '@/types/course';
 
 // Promisify the pipeline function
-const pipelineAsync = promisify(pipeline);
+const pipelineAsync: (readable: NodeJS.ReadableStream, writable: NodeJS.WritableStream) => Promise<void> = promisify(pipeline);
 
 export async function POST(req: Request): Promise<Response> {
   try {
@@ -28,7 +29,7 @@ export async function POST(req: Request): Promise<Response> {
 
     // Retrive valid categories and levels from the database
     // category
-    const categoryDocs = await CourseCategory.find({});
+    const categoryDocs: ICategory[] = await CourseCategory.find({});
     const validCategories: string[] = categoryDocs[0].category;
   
     if (validCategories.length === 0) {
@@ -39,7 +40,7 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     // level
-    const levelDocs = await CourseLevel.find({});
+    const levelDocs: ILevel[] = await CourseLevel.find({});
     const validLevels: string[] = levelDocs[0].level;
     
     if (validLevels.length === 0) {
@@ -51,18 +52,13 @@ export async function POST(req: Request): Promise<Response> {
 
     // Extract the form data
     const formData: FormData = await req.formData();
-
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
     const category = formData.get('category') as string;
     const level = formData.get('level') as string;
     const priceString = formData.get('price') as string;
-    // const price = priceString ? Number(priceString) : 0;
     const thumbnail = formData.get('thumbnail') as File | null;
     const tagsString = formData.get('tags') as string;
-    // const tags: string[] = tagsString
-    //   ? tagsString.split(',').map((tag) => tag.trim())
-    //   : [];
     const status = formData.get('status') as string;
     const instructor = formData.get('instructor') as string;
 
@@ -103,10 +99,6 @@ export async function POST(req: Request): Promise<Response> {
       instructor,
     });
 
-    console.log('parsedCourseData', parsedCourseData);
-    console.log(parsedCourseData?.error?.errors);
-    
-
     if (!parsedCourseData.success) {
       // console.log(parsedCourseData.error.errors);
       return NextResponse.json(
@@ -114,11 +106,10 @@ export async function POST(req: Request): Promise<Response> {
         { status: 400 }
       );
     }
-    // console.log('parsedCourseData', parsedCourseData);
 
     // Prepare the course data
     // Don't store the thumbnail at first, store it later by using the saved course id
-    const courseData = {
+    const courseData: ICourseFormData = {
       title,
       description,
       instructor,
@@ -128,7 +119,7 @@ export async function POST(req: Request): Promise<Response> {
       price: parsedCourseData.data.price,
       category,
       level,
-      status,
+      status: parsedCourseData.data.status,
       averageRating: 0,
       revenue: 0,
       tags: tagsString ? tagsString.split(',').map((tag) => tag.trim()) : [],
@@ -140,18 +131,18 @@ export async function POST(req: Request): Promise<Response> {
 
     // If a thumbnail is provided, store it in public/images with a name based on the courseId
     if (thumbnail && thumbnail.size > 0) {
-      const extension = thumbnail.name.split('.').pop();
-      const fileName = `${title}_${savedCourse._id}.${extension}`; // Use the course title and courseId for the file name
+      const extension: string | undefined = thumbnail.name.split('.').pop();
+      const fileName: string = `${title}_${savedCourse._id}.${extension}`; // Use the course title and courseId for the file name
 
       // Ensure the directory exists
-      const directory = path.join(process.cwd(), 'public', 'images');
+      const directory: string = path.join(process.cwd(), 'public', 'images');
       await fsPromises.mkdir(directory, { recursive: true });
 
       // Convert the thumbnail file to a buffer and create a readable stream
-      const filePath = path.join(directory, fileName);
-      const buffer = Buffer.from(await thumbnail.arrayBuffer());
-      const ReadableStream = Readable.from(buffer);
-      const writeStream = fs.createWriteStream(filePath);
+      const filePath: string = path.join(directory, fileName);
+      const buffer: Buffer = Buffer.from(await thumbnail.arrayBuffer());
+      const ReadableStream: NodeJS.ReadableStream = Readable.from(buffer);
+      const writeStream: NodeJS.WritableStream = fs.createWriteStream(filePath);
 
       // Pipe the readable stream to the write stream
       await pipelineAsync(ReadableStream, writeStream);

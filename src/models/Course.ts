@@ -79,8 +79,9 @@ const courseSchema = new mongoose.Schema<ICourse>(
     },
     level: {
       type: String,
-      enum: ['beginner', 'intermediate', 'advanced'],
-      default: 'beginner',
+      required: true,
+      // enum: ['beginner', 'intermediate', 'advanced'],
+      // default: 'beginner',
     },
     status: {
       type: String,
