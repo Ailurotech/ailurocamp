@@ -4,7 +4,7 @@ import connectDB from '@/lib/mongodb';
 import CourseLevel from '@/models/CourseLevel';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
+import type { ILevel } from '@/types/course';
 
 // Fetch all levels
 export async function GET(): Promise<NextResponse> {
@@ -16,7 +16,7 @@ export async function GET(): Promise<NextResponse> {
     }
 
     await connectDB();
-    const levels: { name: string }[] = await CourseLevel.find({});
+    const levels: ILevel[] = await CourseLevel.find({});
     return NextResponse.json({ levels });
   } catch (error: unknown) {
     return NextResponse.json(
@@ -35,10 +35,9 @@ export async function POST(req: Request): Promise<NextResponse> {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { level } = await req.json();
+    const { level }: { level: string[] } = await req.json();
     await connectDB();
-    const levelRes = await CourseLevel.create({ level });
-
+    const levelRes: ILevel = await CourseLevel.create({ level });
     return NextResponse.json({ levelRes });
   } catch (error: unknown) {
     return NextResponse.json(

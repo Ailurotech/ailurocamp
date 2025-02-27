@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import CourseCategory from '@/models/CourseCategory';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import type { ICategory } from '@/types/course';
 
 // Fetch all categories
 export async function GET(): Promise<NextResponse> {
@@ -14,7 +15,7 @@ export async function GET(): Promise<NextResponse> {
     }
 
     await connectDB();
-    const categories: { category: string }[] = await CourseCategory.find({});
+    const categories: ICategory[] = await CourseCategory.find({});
     return NextResponse.json({ categories });
   } catch (error: unknown) {
     return NextResponse.json(
@@ -32,17 +33,12 @@ export async function POST(req: Request): Promise<NextResponse> {
     if (session?.user?.currentRole !== 'admin') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-
-    const { category } = await req.json();
-    console.log("category", category);
     
+    const { category }: { category: string[] } = await req.json();
     await connectDB();
-    
-    const categoryRes = await CourseCategory.create({ category });
-
+    const categoryRes: ICategory = await CourseCategory.create({ category });
     return NextResponse.json({ categoryRes });
   } catch (error: unknown) {
-    console.log("error", error);
     return NextResponse.json(
       { message: 'Error creating category', error: (error as Error).message },
       { status: 500 }

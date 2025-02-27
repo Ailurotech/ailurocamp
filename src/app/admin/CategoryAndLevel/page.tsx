@@ -13,7 +13,7 @@ export default function Home() {
     e.preventDefault();
 
     // Convert comma-separated string into an array and remove extra spaces.
-    const category = categoryInput
+    const category: string[] = categoryInput
       .split(',')
       .map((cat) => cat.trim())
       .filter((cat) => cat.length > 0);
@@ -26,20 +26,26 @@ export default function Home() {
       return;
     }
 
-    const res = await fetch('/api/category', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ category }),
-    });
+    // Send request to add category
+    try {
+      const res: Response = await fetch('/api/category', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ category }),
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      setCategoryMessage('category saved successfully!');
-      setCategoryInput('');
-    } else {
-      setCategoryMessage(data.error || 'An error occurred');
+      // const data = await res.json();
+      if (res.ok) {
+        setCategoryMessage('category saved successfully!');
+        setCategoryInput('');
+      } else {
+        setCategoryMessage("Failed to add category, please try again.");
+      }
+    } catch (error: unknown) {
+      console.error('Error adding category:', error);
+      setCategoryMessage("Failed to add category, please try again.");
     }
   };
 
@@ -48,33 +54,36 @@ export default function Home() {
     e.preventDefault();
 
     // Convert comma-separated string into an array and remove extra spaces.
-    const level = levelInput
+    const level: string[] = levelInput
       .split(',')
       .map((lel) => lel.trim())
       .filter((lel) => lel.length > 0);
-
-    console.log('level', level);
-    console.log(JSON.stringify({ level }));
 
     if (level.length === 0) {
       setLevelMessage('Please enter at least one level.');
       return;
     }
 
-    const res = await fetch('/api/level', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ level }),
-    });
+    // Send request to add level
+    try {
+      const res = await fetch('/api/level', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ level }),
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      setLevelMessage('level saved successfully!');
-      setLevelInput('');
-    } else {
-      setLevelMessage(data.error || 'An error occurred');
+      // const data = await res.json();
+      if (res.ok) {
+        setLevelMessage('level saved successfully!');
+        setLevelInput('');
+      } else {
+        setLevelMessage("Failed to add level, please try again.");
+      }
+    } catch (error: unknown) {
+      console.error('Error adding level:', error);
+      setLevelMessage("Failed to add level, please try again.");
     }
   };
 
