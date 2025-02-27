@@ -5,7 +5,6 @@ import React from 'react';
 export interface PopupProps {
   message: string;
   type?: 'success' | 'error';
-  // action?: () => void;
   onOK?: () => void;
   onClose: () => void;
 }
@@ -13,7 +12,6 @@ export interface PopupProps {
 export default function PopupModal({
   message,
   type = 'success',
-  // action,
   onOK,
   onClose,
 }: PopupProps) {

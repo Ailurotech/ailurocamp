@@ -96,7 +96,6 @@ export default function NewCourseForm() {
             window.location.reload();
             setPopup(null);
           },
-          // onClose: () => setPopup(null),
         });
       }
     }
@@ -245,7 +244,6 @@ export default function NewCourseForm() {
       setPopup({
         message: 'Course created successfully.',
         type: 'success',
-        // onClose: () => setPopup(null),
         onClose: () => {
           router.push('/instructor/courses');
           setPopup(null);
