@@ -2,96 +2,71 @@
 
 import { useState } from 'react';
 
+// A generalized handler for adding either categories or levels
+const handleAdd = async (
+  e: React.FormEvent,
+  inputValue: string,
+  setInputValue: React.Dispatch<React.SetStateAction<string>>,
+  setMessage: React.Dispatch<React.SetStateAction<string>>,
+  endpoint: string,
+  fieldName: string
+) => {
+  e.preventDefault();
+
+  // Convert comma-separated string into an array and remove extra spaces.
+  const values: string[] = inputValue
+    .split(',')
+    .map((val) => val.trim())
+    .filter((val) => val.length > 0);
+
+  if (values.length === 0) {
+    setMessage(`Please enter at least one ${fieldName}.`);
+    return;
+  }
+
+  // Send request to add category/level
+  try {
+    const res: Response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ [fieldName]: values }),
+    });
+
+    if (res.ok) {
+      setMessage(`${fieldName} saved successfully!`);
+      setInputValue('');
+    } else {
+      setMessage(`Failed to add ${fieldName}, please try again.`);
+    }
+  } catch {
+    setMessage(`Failed to add ${fieldName}, please try again.`);
+  }
+};
+
 export default function Home() {
   const [categoryInput, setCategoryInput] = useState('');
   const [categoryMessage, setCategoryMessage] = useState('');
   const [levelInput, setLevelInput] = useState('');
   const [levelMessage, setLevelMessage] = useState('');
 
-  // Handle add category
-  const handleAddCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Convert comma-separated string into an array and remove extra spaces.
-    const category: string[] = categoryInput
-      .split(',')
-      .map((cat) => cat.trim())
-      .filter((cat) => cat.length > 0);
-
-    console.log('category', category);
-    console.log(JSON.stringify({ category }));
-
-    if (category.length === 0) {
-      setCategoryInput('Please enter at least one category.');
-      return;
-    }
-
-    // Send request to add category
-    try {
-      const res: Response = await fetch('/api/category', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ category }),
-      });
-
-      // const data = await res.json();
-      if (res.ok) {
-        setCategoryMessage('category saved successfully!');
-        setCategoryInput('');
-      } else {
-        setCategoryMessage('Failed to add category, please try again.');
-      }
-    } catch (error: unknown) {
-      console.error('Error adding category:', error);
-      setCategoryMessage('Failed to add category, please try again.');
-    }
-  };
-
-  // Handle add level
-  const handleAddLevel = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Convert comma-separated string into an array and remove extra spaces.
-    const level: string[] = levelInput
-      .split(',')
-      .map((lel) => lel.trim())
-      .filter((lel) => lel.length > 0);
-
-    if (level.length === 0) {
-      setLevelMessage('Please enter at least one level.');
-      return;
-    }
-
-    // Send request to add level
-    try {
-      const res = await fetch('/api/level', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ level }),
-      });
-
-      // const data = await res.json();
-      if (res.ok) {
-        setLevelMessage('level saved successfully!');
-        setLevelInput('');
-      } else {
-        setLevelMessage('Failed to add level, please try again.');
-      }
-    } catch (error: unknown) {
-      console.error('Error adding level:', error);
-      setLevelMessage('Failed to add level, please try again.');
-    }
-  };
-
   return (
     <div>
       <div style={{ padding: '2rem' }}>
         <h1>Add category</h1>
-        <form onSubmit={handleAddCategory}>
+        <form
+          onSubmit={(e: React.FormEvent) =>
+            handleAdd(
+              e,
+              categoryInput,
+              setCategoryInput,
+              setCategoryMessage,
+              '/api/category',
+              'category'
+            )
+          }
+        >
           <input
             type="text"
             placeholder="Enter category separated by commas"
@@ -108,7 +83,18 @@ export default function Home() {
 
       <div style={{ padding: '2rem' }}>
         <h1>Add level</h1>
-        <form onSubmit={handleAddLevel}>
+        <form
+          onSubmit={(e: React.FormEvent) =>
+            handleAdd(
+              e,
+              levelInput,
+              setLevelInput,
+              setLevelMessage,
+              '/api/level',
+              'level'
+            )
+          }
+        >
           <input
             type="text"
             placeholder="Enter level separated by commas"
