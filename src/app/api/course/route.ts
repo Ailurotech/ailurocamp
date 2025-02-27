@@ -69,16 +69,12 @@ export async function POST(req: Request): Promise<Response> {
     const courseSchema = z.object({
       title: z.string().min(1, 'Course title is required'),
       description: z.string().min(1, 'Course description is required'),
-      category: z
-        .string()
-        .refine((value) => validCategories.includes(value), {
-          message: 'Invalid category',
-        }),
-      level: z
-        .string()
-        .refine((value) => validLevels.includes(value), {
-          message: 'Invalid level',
-        }),
+      category: z.string().refine((value) => validCategories.includes(value), {
+        message: 'Invalid category',
+      }),
+      level: z.string().refine((value) => validLevels.includes(value), {
+        message: 'Invalid level',
+      }),
       price: z.preprocess(
         (val) => parseFloat(val as string),
         z.number().nonnegative('Price must be non-negative')
