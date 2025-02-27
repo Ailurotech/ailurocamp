@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession, Session } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Course from '@/models/Course';
 import { z } from 'zod';
@@ -69,15 +69,23 @@ export async function POST(req: Request): Promise<Response> {
     const courseSchema = z.object({
       title: z.string().min(1, 'Course title is required'),
       description: z.string().min(1, 'Course description is required'),
-      category: z.string().refine((value) => validCategories.includes(value), {
-        message: 'Invalid category',
-      }),
-      level: z.string().refine((value) => validLevels.includes(value), {
-        message: 'Invalid level',
-      }),
+      category: z
+        .string()
+        .refine((value) => validCategories.includes(value), {
+          message: 'Invalid category',
+        }),
+      level: z
+        .string()
+        .refine((value) => validLevels.includes(value), {
+          message: 'Invalid level',
+        }),
       price: z.preprocess(
         (val) => parseFloat(val as string),
         z.number().nonnegative('Price must be non-negative')
+      ),
+      thumbnail: z.instanceof(File).refine(
+        (file) => file.type.startsWith('image/'),
+        { message: 'Only image files are allowed.' }
       ),
       tags: z.string().optional(),
       status: z.enum(['published', 'unpublished'], {
@@ -95,13 +103,13 @@ export async function POST(req: Request): Promise<Response> {
       category,
       level,
       price: priceString,
+      thumbnail,
       tagsString,
       status,
       instructor,
     });
 
     if (!parsedCourseData.success) {
-      // console.log(parsedCourseData.error.errors);
       return NextResponse.json(
         { error: parsedCourseData.error.errors },
         { status: 400 }

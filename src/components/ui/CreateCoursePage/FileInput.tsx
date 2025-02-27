@@ -8,6 +8,8 @@ interface FileInputProps {
   fileRef?: RefObject<HTMLInputElement>;
   previewUrl: string | null;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+  required?: boolean;
 }
 
 export default function FileInput({
@@ -15,6 +17,8 @@ export default function FileInput({
   fileRef,
   previewUrl,
   onChange,
+  error,
+  required = false,
 }: FileInputProps) {
   return (
     <div>
@@ -26,7 +30,9 @@ export default function FileInput({
         accept="image/*"
         onChange={onChange}
         className="mt-1 block w-full"
+        required={required}
       />
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
       {previewUrl && (
         <Image
           src={previewUrl}

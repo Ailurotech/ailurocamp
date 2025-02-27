@@ -110,6 +110,9 @@ export default function NewCourseForm() {
       setThumbnail(e.target.files[0]);
       const url = URL.createObjectURL(e.target.files[0]);
       setPreviewUrl(url);
+    } else {
+      setThumbnail(null);
+      setPreviewUrl(null);
     }
   }
 
@@ -135,6 +138,10 @@ export default function NewCourseForm() {
         (val) => parseFloat(val as string),
         z.number().nonnegative('Price must be non-negative')
       ),
+      thumbnail: z.instanceof(File).refine(
+        (file) => file.type.startsWith('image/'),
+        { message: 'Only image files are allowed.' }
+      ),
       tags: z.string().optional(),
       status: z.enum(['published', 'unpublished'], {
         errorMap: () => ({ message: 'Please select a valid status' }),
@@ -148,6 +155,7 @@ export default function NewCourseForm() {
       category,
       level,
       price,
+      thumbnail,
       tags,
       status,
     });
@@ -171,6 +179,7 @@ export default function NewCourseForm() {
         'category',
         'level',
         'price',
+        'thumbnail',
         'tags',
         'status',
       ];
@@ -210,7 +219,7 @@ export default function NewCourseForm() {
     formData.append('category', category);
     formData.append('level', level);
     formData.append('price', price);
-    formData.append('thumbnail', thumbnail || '');
+    formData.append('thumbnail', thumbnail as File);
     formData.append('tags', tags);
     formData.append('status', status);
     formData.append('instructor', session.user.id);
@@ -335,6 +344,8 @@ export default function NewCourseForm() {
             fileRef={thumbnailRef as RefObject<HTMLInputElement>}
             previewUrl={previewUrl}
             onChange={handleThumbnailChange}
+            error={errors.thumbnail}
+            required
           />
 
           {/* Course Tags */}
