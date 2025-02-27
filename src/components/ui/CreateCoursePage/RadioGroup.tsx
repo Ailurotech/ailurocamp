@@ -24,15 +24,10 @@ export default function RadioGroup({
 }: RadioGroupProps) {
   return (
     <div>
-      <span className="block text-sm font-medium text-gray-700">
-        {label}
-      </span>
+      <span className="block text-sm font-medium text-gray-700">{label}</span>
       <div className="mt-1 flex items-center space-x-4" ref={containerRef}>
         {options.map((option) => (
-          <label
-            key={option.value}
-            className="inline-flex items-center"
-          >
+          <label key={option.value} className="inline-flex items-center">
             <input
               type="radio"
               name={name}

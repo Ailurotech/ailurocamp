@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import CourseCategory from '@/models/CourseCategory';
 import { getServerSession, Session } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import type { ICategory } from '@/types/course';
 
 // Fetch all categories
@@ -33,7 +33,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     if (session?.user?.currentRole !== 'admin') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-    
+
     const { category }: { category: string[] } = await req.json();
     await connectDB();
     const categoryRes: ICategory = await CourseCategory.create({ category });

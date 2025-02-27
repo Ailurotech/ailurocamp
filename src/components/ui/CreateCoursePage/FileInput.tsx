@@ -18,9 +18,7 @@ export default function FileInput({
 }: FileInputProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
       <input
         ref={fileRef}
         name="thumbnail"

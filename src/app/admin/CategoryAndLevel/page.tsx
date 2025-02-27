@@ -41,11 +41,11 @@ export default function Home() {
         setCategoryMessage('category saved successfully!');
         setCategoryInput('');
       } else {
-        setCategoryMessage("Failed to add category, please try again.");
+        setCategoryMessage('Failed to add category, please try again.');
       }
     } catch (error: unknown) {
       console.error('Error adding category:', error);
-      setCategoryMessage("Failed to add category, please try again.");
+      setCategoryMessage('Failed to add category, please try again.');
     }
   };
 
@@ -79,11 +79,11 @@ export default function Home() {
         setLevelMessage('level saved successfully!');
         setLevelInput('');
       } else {
-        setLevelMessage("Failed to add level, please try again.");
+        setLevelMessage('Failed to add level, please try again.');
       }
     } catch (error: unknown) {
       console.error('Error adding level:', error);
-      setLevelMessage("Failed to add level, please try again.");
+      setLevelMessage('Failed to add level, please try again.');
     }
   };
 
@@ -103,7 +103,7 @@ export default function Home() {
             Save
           </button>
         </form>
-        {categoryMessage && <p className='text-blue-400'>{categoryMessage}</p>}
+        {categoryMessage && <p className="text-blue-400">{categoryMessage}</p>}
       </div>
 
       <div style={{ padding: '2rem' }}>
@@ -120,7 +120,7 @@ export default function Home() {
             Save
           </button>
         </form>
-        {levelMessage && <p className='text-blue-400'>{levelMessage}</p>}
+        {levelMessage && <p className="text-blue-400">{levelMessage}</p>}
       </div>
     </div>
   );

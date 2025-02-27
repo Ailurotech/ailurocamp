@@ -28,7 +28,8 @@ export async function GET() {
     });
   } catch (error: Error | unknown) {
     console.error('Fix user error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { message: 'Error fixing user', error: errorMessage },
       { status: 500 }

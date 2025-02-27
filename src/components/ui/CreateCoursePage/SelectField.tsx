@@ -25,9 +25,7 @@ export default function SelectField({
 }: SelectFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
       <select
         ref={selectRef}
         name={name}
@@ -45,9 +43,7 @@ export default function SelectField({
           </option>
         ))}
       </select>
-      {error && (
-        <p className="text-red-600 text-sm mt-1">{error}</p>
-      )}
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );
 }

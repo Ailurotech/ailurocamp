@@ -33,9 +33,7 @@ export default function InputField({
 }: InputFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
       <input
         ref={inputRef}
         type={type}
@@ -50,14 +48,8 @@ export default function InputField({
           error ? 'border-red-500' : ''
         }`}
       />
-      {helperText && (
-        <p className="text-sm text-gray-500">{helperText}</p>
-      )}
-      {error && (
-        <p className="text-red-600 text-sm mt-1">
-          {error}
-        </p>
-      )}
+      {helperText && <p className="text-sm text-gray-500">{helperText}</p>}
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );
 }

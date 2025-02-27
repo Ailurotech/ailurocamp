@@ -10,7 +10,9 @@ import SelectField from '@/components/ui/CreateCoursePage/SelectField';
 import FileInput from '@/components/ui/CreateCoursePage/FileInput';
 import RadioGroup from '@/components/ui/CreateCoursePage/RadioGroup';
 import CoursePreview from '@/components/ui/CreateCoursePage/CoursePreview';
-import PopupModal, { PopupProps } from '@/components/ui/CreateCoursePage/PopupModal';
+import PopupModal, {
+  PopupProps,
+} from '@/components/ui/CreateCoursePage/PopupModal';
 import TextareaField from '@/components/ui/CreateCoursePage/TextareaField';
 
 export default function NewCourseForm() {
@@ -22,7 +24,9 @@ export default function NewCourseForm() {
   const [price, setPrice] = useState('');
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [tags, setTags] = useState('');
-  const [status, setStatus] = useState<'unpublished' | 'published'>('unpublished');
+  const [status, setStatus] = useState<'unpublished' | 'published'>(
+    'unpublished'
+  );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Error state to display validation errors for form fields
@@ -121,16 +125,12 @@ export default function NewCourseForm() {
     const formSchema = z.object({
       title: z.string().min(1, 'Course title is required'),
       description: z.string().min(1, 'Course description is required'),
-      category: z
-        .string()
-        .refine((val) => categoryOptions.includes(val), {
-          message: 'Please select a valid category',
-        }),
-      level: z
-        .string()
-        .refine((val) => levelOptions.includes(val), {
-          message: 'Please select a valid level',
-        }),
+      category: z.string().refine((val) => categoryOptions.includes(val), {
+        message: 'Please select a valid category',
+      }),
+      level: z.string().refine((val) => levelOptions.includes(val), {
+        message: 'Please select a valid level',
+      }),
       price: z.preprocess(
         (val) => parseFloat(val as string),
         z.number().nonnegative('Price must be non-negative')
@@ -264,7 +264,9 @@ export default function NewCourseForm() {
             label="Course Title"
             name="title"
             value={title}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setTitle(e.target.value)
+            }
             error={errors.title}
             inputRef={titleRef as RefObject<HTMLInputElement>}
             required
@@ -275,7 +277,9 @@ export default function NewCourseForm() {
             label="Course Description"
             name="description"
             value={description}
-            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+              setDescription(e.target.value)
+            }
             error={errors.description}
             textareaRef={descriptionRef as RefObject<HTMLTextAreaElement>}
             rows={4}
@@ -287,7 +291,9 @@ export default function NewCourseForm() {
             label="Category"
             name="category"
             value={category}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+              setCategory(e.target.value)
+            }
             options={categoryOptions}
             error={errors.category}
             selectRef={categoryRef as RefObject<HTMLSelectElement>}
@@ -299,7 +305,9 @@ export default function NewCourseForm() {
             label="Level"
             name="level"
             value={level}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) => setLevel(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+              setLevel(e.target.value)
+            }
             options={levelOptions}
             error={errors.level}
             selectRef={levelRef as RefObject<HTMLSelectElement>}
@@ -311,7 +319,9 @@ export default function NewCourseForm() {
             name="price"
             type="number"
             value={price}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setPrice(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setPrice(e.target.value)
+            }
             error={errors.price}
             inputRef={priceRef as RefObject<HTMLInputElement>}
             min="0"
@@ -332,7 +342,9 @@ export default function NewCourseForm() {
             label="Tags"
             name="tags"
             value={tags}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setTags(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setTags(e.target.value)
+            }
             error={errors.tags}
             inputRef={tagsRef as RefObject<HTMLInputElement>}
             placeholder="Comma separated tags"

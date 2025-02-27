@@ -46,7 +46,8 @@ export default function CoursePreview({
         )}
         {tags && (
           <p className="text-gray-500">
-            Tags: {tags
+            Tags:{' '}
+            {tags
               .split(',')
               .map((tag) => tag.trim())
               .join(', ')}

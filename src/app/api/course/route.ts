@@ -15,7 +15,10 @@ import CourseLevel from '@/models/CourseLevel';
 import type { ICategory, ILevel, ICourseFormData } from '@/types/course';
 
 // Promisify the pipeline function
-const pipelineAsync: (readable: NodeJS.ReadableStream, writable: NodeJS.WritableStream) => Promise<void> = promisify(pipeline);
+const pipelineAsync: (
+  readable: NodeJS.ReadableStream,
+  writable: NodeJS.WritableStream
+) => Promise<void> = promisify(pipeline);
 
 export async function POST(req: Request): Promise<Response> {
   try {
@@ -31,7 +34,7 @@ export async function POST(req: Request): Promise<Response> {
     // category
     const categoryDocs: ICategory[] = await CourseCategory.find({});
     const validCategories: string[] = categoryDocs[0].category;
-  
+
     if (validCategories.length === 0) {
       return NextResponse.json(
         { message: 'No valid categories found' },
@@ -42,7 +45,7 @@ export async function POST(req: Request): Promise<Response> {
     // level
     const levelDocs: ILevel[] = await CourseLevel.find({});
     const validLevels: string[] = levelDocs[0].level;
-    
+
     if (validLevels.length === 0) {
       return NextResponse.json(
         { message: 'No valid levels found' },
@@ -66,14 +69,16 @@ export async function POST(req: Request): Promise<Response> {
     const courseSchema = z.object({
       title: z.string().min(1, 'Course title is required'),
       description: z.string().min(1, 'Course description is required'),
-      category: z.string().refine(
-        (value) => validCategories.includes(value), 
-        { message: 'Invalid category' }
-      ),
-      level: z.string().refine(
-        (value) => validLevels.includes(value), 
-        { message: 'Invalid level' }
-      ),
+      category: z
+        .string()
+        .refine((value) => validCategories.includes(value), {
+          message: 'Invalid category',
+        }),
+      level: z
+        .string()
+        .refine((value) => validLevels.includes(value), {
+          message: 'Invalid level',
+        }),
       price: z.preprocess(
         (val) => parseFloat(val as string),
         z.number().nonnegative('Price must be non-negative')

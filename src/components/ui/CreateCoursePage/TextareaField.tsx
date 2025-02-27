@@ -27,9 +27,7 @@ export default function TextareaField({
 }: TextareaFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
       <textarea
         ref={textareaRef}
         name={name}
@@ -42,11 +40,7 @@ export default function TextareaField({
           error ? 'border-red-500' : ''
         }`}
       />
-      {error && (
-        <p className="text-red-600 text-sm mt-1">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );
-};
+}
