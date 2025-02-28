@@ -199,9 +199,12 @@ export default function InstructorCoursesPage() {
   async function handleDeleteCourse(courseId: string): Promise<void> {
     setIsDeleting(true);
     try {
-      const res: Response = await fetch(`/api/instructor/course?courseId=${courseId}`, {
-        method: 'DELETE',
-      });
+      const res: Response = await fetch(
+        `/api/instructor/course?courseId=${courseId}`,
+        {
+          method: 'DELETE',
+        }
+      );
       const data: { error?: string } = await res.json();
       if (!res.ok) {
         console.log(data.error);

@@ -73,7 +73,8 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     const searchParams: URLSearchParams = req.nextUrl.searchParams;
     const courseId: string | null = searchParams.get('courseId');
     await connectDB();
-    const deletedResult: ICourse | null = await Course.findByIdAndDelete(courseId);
+    const deletedResult: ICourse | null =
+      await Course.findByIdAndDelete(courseId);
     return NextResponse.json({ deletedResult });
   } catch (error: unknown) {
     return NextResponse.json(
@@ -82,4 +83,3 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     );
   }
 }
-
