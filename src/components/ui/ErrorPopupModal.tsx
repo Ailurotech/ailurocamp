@@ -7,7 +7,10 @@ interface ErrorPopupModalProps {
   onClose: () => void;
 }
 
-const ErrorPopupModal: React.FC<ErrorPopupModalProps> = ({ error, onClose }) => {
+const ErrorPopupModal: React.FC<ErrorPopupModalProps> = ({
+  error,
+  onClose,
+}) => {
   if (!error) return null;
 
   return (

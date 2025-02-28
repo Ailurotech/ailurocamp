@@ -27,8 +27,8 @@ const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
           Delete Confirmation
         </h3>
         <p className="text-sm text-gray-500 mb-6">
-          Are you sure you want to delete <strong>{courseToDelete.title}</strong>?
-          This action cannot be undone.
+          Are you sure you want to delete{' '}
+          <strong>{courseToDelete.title}</strong>? This action cannot be undone.
         </p>
         <div className="flex justify-end space-x-3">
           <button

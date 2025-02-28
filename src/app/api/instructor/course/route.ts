@@ -63,9 +63,12 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    // Check if the course belongs to the instructor    
+    // Check if the course belongs to the instructor
     if (course.instructor.toString() !== session.user.id) {
-      return NextResponse.json({ error: 'The course does not belong to you, you cannot update it.' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'The course does not belong to you, you cannot update it.' },
+        { status: 401 }
+      );
     }
 
     const updatedResult: ICourse | null = await Course.findByIdAndUpdate(
@@ -103,7 +106,10 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
     if (course.instructor.toString() !== session.user.id) {
-      return NextResponse.json({ error: 'The course does not belong to you, you cannot delete it.' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'The course does not belong to you, you cannot delete it.' },
+        { status: 401 }
+      );
     }
 
     const deletedResult: ICourse | null =

@@ -28,15 +28,23 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Get the course ID from the query parameters
     const searchParams: URLSearchParams = req.nextUrl.searchParams;
     const courseId: string | null = searchParams.get('courseId');
+    const page: number = parseInt(searchParams.get('page') || '1', 10);
+    const limit: number = 1;
+    const skip: number = (page - 1) * limit;
+
+    // Get total count of reviews for pagination controls
+    const totalReviews = await Review.countDocuments({ courseId });
 
     // Find reviews for the course
     const reviews = await Review.find({ courseId })
       .populate('userId', 'name')
       .select('_id comment rating updatedAt')
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
 
-    return NextResponse.json({ reviews });
+    return NextResponse.json({ reviews, totalReviews, page, limit });
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch reviews', message: (error as Error).message },
