@@ -1,5 +1,5 @@
 import Reviews from '@/components/ui/Reviews';
-import { Review } from '@/types/review';
+import { IReview } from '@/types/review';
 
 export default async function InstructorReviewsPage({
   params,
@@ -10,13 +10,13 @@ export default async function InstructorReviewsPage({
 
   // Get reviews for the course
   const res: Response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/review?courseId=${courseId}`
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/instructor/review?courseId=${courseId}`
   );
   if (!res.ok) {
     throw new Error('Failed to fetch reviews');
   }
 
-  const data: { reviews: Review[] } = await res.json();
+  const data: { reviews: IReview[] } = await res.json();
 
   return (
     <div className="p-6">

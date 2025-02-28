@@ -1,4 +1,4 @@
-export interface Review {
+export interface IReview {
   _id: string;
   userId: {
     _id: string;
