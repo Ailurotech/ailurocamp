@@ -43,7 +43,7 @@ export default function CourseCard({
             <p className="text-sm text-gray-600">Revenue: ${course.revenue}</p>
             <p className="text-sm text-gray-600">
               <button 
-                onClick={() => redirect(`/instructor/courses/${course._id}/reviews`)}
+                onClick={() => redirect(`/instructor/courses/${course._id}/review`)}
                 className="text-blue-500 hover:underline"
               >
               View Reviews
