@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import type { ICourse } from '@/types/course';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface CourseCardProps {
   course: ICourse | null;
@@ -19,6 +19,8 @@ export default function CourseCard({
   onDelete,
   isPublishing = false,
 }: CourseCardProps) {
+  const router = useRouter();
+
   return (
     <div className="h-full bg-white border-l shadow-md flex flex-col">
       {course ? (
@@ -51,7 +53,7 @@ export default function CourseCard({
             <p className="text-sm text-gray-600">
               <button
                 onClick={() =>
-                  redirect(`/instructor/courses/${course._id}/review`)
+                  router.push(`/instructor/courses/${course._id}/review`)
                 }
                 className="text-blue-500 hover:underline"
               >

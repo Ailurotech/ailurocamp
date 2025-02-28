@@ -5,6 +5,9 @@ import CourseList from '@/components/ui/InstructorCoursePage/CourseList';
 import CourseCard from '@/components/ui/InstructorCoursePage/CourseCard';
 import Loading from '@/components/ui/Loading';
 import type { ICourse } from '@/types/course';
+import {useSession} from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import PaginationControls from '@/components/ui/InstructorCoursePage/PaginationControls';
 
 export default function InstructorCoursesPage() {
   const [courses, setCourses] = useState<ICourse[]>([]);
@@ -29,25 +32,43 @@ export default function InstructorCoursesPage() {
   // State for error handling
   const [error, setError] = useState<string | undefined>(undefined);
 
+  // Session
+  const { data: session, status: sessionStatus } = useSession();
+
+  const router = useRouter();
+
+  // State for pagination
+  const [page, setPage] = useState<number>(1);
+  const [totalCourses, setTotalCourses] = useState<number>(0);
+  const [limit, setLimit] = useState<number>(10);
+
+  const totalPages: number = Math.ceil(totalCourses / limit);
+
   // Fetch all courses
   useEffect(() => {
     async function fetchCourses(): Promise<void> {
       setLoadingCourses(true);
       try {
-        const res: Response = await fetch('/api/course');
-        const data: { courses: ICourse[]; error?: string } = await res.json();
+        if (sessionStatus !== 'authenticated' || session?.user?.currentRole !== 'instructor') {
+          // Redirect to login page
+          router.push('auth/login');
+          return;
+        }
+
+        const res: Response = await fetch(`/api/instructor/course?instructorId=${session.user.id}&page=${page}`);
+        const data: { courses: ICourse[]; totalCourses: number; page: number; limit: number; error?: string } = await res.json();
         if (!res.ok) {
           console.error(data.error);
           setError('Failed to load courses, please try again.');
           return;
         }
-        const fetchedCourses: ICourse[] = data.courses.map(
-          (course: ICourse) => course
-        );
-        setCourses(fetchedCourses);
+        setLimit(data.limit);
+        setCourses(data.courses);
+        setTotalCourses(data.totalCourses);
+
         // Set the first course as the selected course as default
-        if (fetchedCourses.length > 0) {
-          setSelectedCourse(fetchedCourses[0]);
+        if (data.courses.length > 0) {
+          setSelectedCourse(data.courses[0]);
         }
       } catch (error: unknown) {
         console.error('Failed to fetch courses', error);
@@ -58,7 +79,7 @@ export default function InstructorCoursesPage() {
     }
 
     fetchCourses();
-  }, []);
+  }, [page, session, sessionStatus]);
 
   // Edit logic
   function openEditModal(course: ICourse): void {
@@ -91,7 +112,7 @@ export default function InstructorCoursesPage() {
     // If there are changes, update the course
     setIsSavingEdit(true);
     try {
-      const res: Response = await fetch(`/api/course/${editCourse._id}`, {
+      const res: Response = await fetch(`/api/instructor/course/${editCourse._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(changes),
@@ -130,7 +151,7 @@ export default function InstructorCoursesPage() {
       course.status === 'published' ? 'unpublished' : 'published';
     setIsPublishing(true);
     try {
-      const res: Response = await fetch(`/api/course/${course._id}`, {
+      const res: Response = await fetch(`/api/instructor/course/${course._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -171,7 +192,7 @@ export default function InstructorCoursesPage() {
   async function handleDeleteCourse(courseId: string): Promise<void> {
     setIsDeleting(true);
     try {
-      const res: Response = await fetch(`/api/course/${courseId}`, {
+      const res: Response = await fetch(`/api/instructor/course/${courseId}`, {
         method: 'DELETE',
       });
       const data: { error?: string } = await res.json();
@@ -211,6 +232,12 @@ export default function InstructorCoursesPage() {
           courses={courses}
           selectedCourseId={selectedCourse?._id || null}
           onSelectCourse={(course) => setSelectedCourse(course)}
+        />
+        {/* Pagination Controls */}
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       </div>
 
