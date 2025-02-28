@@ -17,6 +17,8 @@ export interface ICourse extends mongoose.Document {
   level: string;
   status: 'published' | 'unpublished';
   averageRating: number;
+  ratingCount: number; // Number of ratings
+  ratingSum: number; // Sum of ratings
   revenue: number;
   tags: string[];
   createdAt: Date;
@@ -96,6 +98,14 @@ const courseSchema = new mongoose.Schema<ICourse>(
     tags: {
       type: [String],
       default: [],
+    },
+    ratingCount: {
+      type: Number,
+      default: 0,
+    },
+    ratingSum: {
+      type: Number,
+      default: 0,
     },
   },
   {

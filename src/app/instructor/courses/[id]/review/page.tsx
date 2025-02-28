@@ -10,7 +10,7 @@ export default async function InstructorReviewsPage({
 
   // Get reviews for the course
   const res: Response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/instructor/review?courseId=${courseId}`
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/review?courseId=${courseId}`
   );
   if (!res.ok) {
     throw new Error('Failed to fetch reviews');

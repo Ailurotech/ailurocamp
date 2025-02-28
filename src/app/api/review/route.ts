@@ -4,6 +4,18 @@ import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Course from '@/models/Course';
 import Review from '@/models/Review';
+import { z } from 'zod';
+
+// Define a Zod schema for review input validation
+const reviewSchema = z.object({
+  courseId: z.string().nonempty({ message: 'Course ID is required.' }),
+  userId: z.string().nonempty({ message: 'User ID is required.' }),
+  rating: z.preprocess(
+    (value) => parseFloat(value as string),
+    z.number().min(0, { message: 'Rating must be at least 0.' }).max(10, { message: 'Rating cannot be greater than 5.' }),
+  ),
+  comment: z.string().optional().or(z.literal('')),
+})
 
 // Get all reviews
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -43,18 +55,30 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     // Parse the request body
-    const {
-      courseId,
-      userId,
-      rating,
-      comment,
-    }: { courseId: string; userId: string; rating: number; comment: string } =
-      await req.json();
+    const body = await req.json();
 
-    // Check if the required fields are present
-    if (!courseId || !rating || !comment) {
+    // Validate the request body
+    const parsedBody = reviewSchema.safeParse(body);
+    if (!parsedBody.success) {
       return NextResponse.json(
-        { error: 'Missing required fields courseId, rating or comment.' },
+        { error: parsedBody.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+    
+    const { courseId, userId, rating, comment } = parsedBody.data;
+    // const {
+    //   courseId,
+    //   userId,
+    //   rating,
+    //   comment,
+    // }: { courseId: string; userId: string; rating: number; comment: string } =
+    //   await req.json();
+
+    // Check if the required fields are present, comment is optional
+    if (!courseId || !rating ) {
+      return NextResponse.json(
+        { error: 'Missing required fields courseId or rating.' },
         { status: 400 }
       );
     }
@@ -69,10 +93,10 @@ export async function POST(req: NextRequest) {
     const review = new Review({ rating, comment, courseId, userId });
     await review.save();
 
-    // Recalculate the average rating for the course
-    const reviews = await Review.find({ courseId });
-    course.averageRating =
-      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+    // Update the course's rating
+    course.ratingCount = (course.ratingCount || 0) + 1;
+    course.ratingSum = (course.ratingSum || 0) + rating;
+    course.averageRating = course.ratingSum / course.ratingCount;
     await course.save();
 
     return NextResponse.json(
@@ -99,13 +123,23 @@ export async function PUT(req: NextRequest) {
     await connectDB();
 
     // Parse the request body
-    const {
-      courseId,
-      userId,
-      rating,
-      comment,
-    }: { courseId: string; userId: string; rating: number; comment: string } =
-      await req.json();
+    const body = await req.json();
+    const parsedBody = reviewSchema.safeParse(body);
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: parsedBody.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+
+    const { courseId, userId, rating, comment } = parsedBody.data;
+    // const {
+    //   courseId,
+    //   userId,
+    //   rating,
+    //   comment,
+    // }: { courseId: string; userId: string; rating: number; comment: string } =
+    //   await req.json();
 
     // Check if the required fields are present
     if (!courseId || !rating || !comment) {
@@ -126,16 +160,16 @@ export async function PUT(req: NextRequest) {
     if (!review) {
       return NextResponse.json({ error: 'Review not found.' }, { status: 404 });
     }
+    const oldRating = review.rating;
 
     // Update the review
     review.rating = rating;
     review.comment = comment;
     await review.save();
 
-    // Recalculate the average rating for the course
-    const reviews = await Review.find({ courseId: course._id });
-    course.averageRating =
-      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+    // Update the course's rating
+    course.ratingSum = (course.ratingSum || 0) + rating - oldRating;
+    course.averageRating = course.ratingSum / course.ratingCount;
     await course.save();
 
     return NextResponse.json(

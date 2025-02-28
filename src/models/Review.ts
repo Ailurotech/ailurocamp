@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 interface IReview extends mongoose.Document {
   courseId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
-  comment: string;
+  comment?: string;
   rating: number;
   createdAt: Date;
   updatedAt: Date;
@@ -23,7 +23,6 @@ const reviewSchema = new mongoose.Schema<IReview>(
     },
     comment: {
       type: String,
-      required: true,
     },
     rating: {
       type: Number,
