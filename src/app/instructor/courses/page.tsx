@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react';
 import CourseList from '@/components/ui/InstructorCoursePage/CourseList';
 import CourseCard from '@/components/ui/InstructorCoursePage/CourseCard';
+import EditCourseModal from '@/components/ui/InstructorCoursePage/EditCourseModal';
+import DeleteCourseModal from '@/components/ui/InstructorCoursePage/DeleteCourseModal';
+import ErrorPopupModal from '@/components/ui/InstructorCoursePage/ErrorPopupModal';
+import PaginationControls from '@/components/ui/InstructorCoursePage/PaginationControls';
 import Loading from '@/components/ui/Loading';
 import type { ICourse } from '@/types/course';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import PaginationControls from '@/components/ui/InstructorCoursePage/PaginationControls';
 
 export default function InstructorCoursesPage() {
   const [courses, setCourses] = useState<ICourse[]>([]);
@@ -264,111 +267,31 @@ export default function InstructorCoursesPage() {
       </div>
 
       {/* Error Popup Modal */}
-      {error && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black opacity-40"
-            onClick={() => setError(undefined)}
-          ></div>
-          {/* Modal */}
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full z-50">
-            <h3 className="text-lg font-bold text-red-600 mb-4">Error</h3>
-            <p className="text-gray-700">{error}</p>
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => setError(undefined)}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ErrorPopupModal error={error} onClose={() => setError(undefined)} />
 
       {/* EDIT MODAL */}
-      {isEditModalOpen && editCourse && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Edit Course
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Course Title
-                </label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="mt-1 w-full p-2 border rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Course Description
-                </label>
-                <textarea
-                  value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  className="mt-1 w-full p-2 border rounded-lg resize-none"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end mt-6 space-x-3">
-              <button
-                onClick={() => {
-                  setIsEditModalOpen(false);
-                  setEditCourse(null);
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                disabled={isSavingEdit}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                {isSavingEdit ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditCourseModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditCourse(null);
+        }}
+        onSaveEdit={handleSaveEdit}
+        isSavingEdit={isSavingEdit}
+        editTitle={editTitle}
+        setEditTitle={setEditTitle}
+        editDesc={editDesc}
+        setEditDesc={setEditDesc}
+      />
 
       {/* DELETE MODAL */}
-      {isDeleteModalOpen && courseToDelete && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Delete Confirmation
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to delete{' '}
-              <strong>{courseToDelete.title}</strong>? This action cannot be
-              undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDeleteCourse(courseToDelete._id)}
-                disabled={isDeleting}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteCourseModal
+        isOpen={isDeleteModalOpen}
+        courseToDelete={courseToDelete}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={handleDeleteCourse}
+        isDeleting={isDeleting}
+      />
     </main>
   );
 }
