@@ -38,7 +38,7 @@ export default function InstructorCoursesPage() {
         const data: { courses: ICourse[]; error?: string } = await res.json();
         if (!res.ok) {
           console.error(data.error);
-          setError("Failed to load courses, please try again.");
+          setError('Failed to load courses, please try again.');
           return;
         }
         const fetchedCourses: ICourse[] = data.courses.map(
@@ -99,7 +99,7 @@ export default function InstructorCoursesPage() {
       const data: { updatedResult: ICourse; error?: string } = await res.json();
       if (!res.ok) {
         console.log(data.error);
-        setError("Failed to update course, please try again.");
+        setError('Failed to update course, please try again.');
       } else {
         const updated: ICourse = data.updatedResult;
         // updated = {
@@ -116,7 +116,7 @@ export default function InstructorCoursesPage() {
       }
     } catch (error: unknown) {
       console.error('Error updating course:', error);
-      setError("Failed to update course, please try again.");
+      setError('Failed to update course, please try again.');
     } finally {
       setIsSavingEdit(false);
       setIsEditModalOpen(false);
@@ -230,7 +230,10 @@ export default function InstructorCoursesPage() {
       {error && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
-          <div className="fixed inset-0 bg-black opacity-40" onClick={() => setError(undefined)}></div>
+          <div
+            className="fixed inset-0 bg-black opacity-40"
+            onClick={() => setError(undefined)}
+          ></div>
           {/* Modal */}
           <div className="bg-white rounded-lg p-6 max-w-sm w-full z-50">
             <h3 className="text-lg font-bold text-red-600 mb-4">Error</h3>

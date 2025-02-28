@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { userId, roles } = await req.json() as UpdateUserRolesRequest;
+    const { userId, roles } = (await req.json()) as UpdateUserRolesRequest;
 
     // Validate roles
     const validRoles: UserRole[] = ['admin', 'instructor', 'student'];
@@ -53,7 +53,8 @@ export async function POST(req: Request) {
     });
   } catch (error: Error | unknown) {
     console.error('Update roles error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { message: 'Error updating user roles', error: errorMessage },
       { status: 500 }

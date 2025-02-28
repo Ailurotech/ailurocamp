@@ -13,9 +13,13 @@ export async function PATCH(
     await connectDB();
     const updatedContent: ICourse = await req.json();
 
-    const updatedResult: ICourse | null = await Course.findByIdAndUpdate(id, updatedContent, {
-      new: true,
-    });
+    const updatedResult: ICourse | null = await Course.findByIdAndUpdate(
+      id,
+      updatedContent,
+      {
+        new: true,
+      }
+    );
     return NextResponse.json({ updatedResult });
   } catch (error: unknown) {
     return NextResponse.json(

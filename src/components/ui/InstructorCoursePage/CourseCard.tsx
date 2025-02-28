@@ -26,7 +26,10 @@ export default function CourseCard({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">Course Details</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
               ✕
             </button>
           </div>
@@ -38,15 +41,21 @@ export default function CourseCard({
               <h4 className="font-medium mb-1">Description:</h4>
               <p className="text-gray-700 text-sm">{course.description}</p>
             </div>
-            <p className="text-sm text-gray-600">Students: {course.enrolledStudents.length}</p>
-            <p className="text-sm text-gray-600">Rating: {course.averageRating.toFixed(1)}</p>
+            <p className="text-sm text-gray-600">
+              Students: {course.enrolledStudents.length}
+            </p>
+            <p className="text-sm text-gray-600">
+              Rating: {course.averageRating.toFixed(1)}
+            </p>
             <p className="text-sm text-gray-600">Revenue: ${course.revenue}</p>
             <p className="text-sm text-gray-600">
-              <button 
-                onClick={() => redirect(`/instructor/courses/${course._id}/review`)}
+              <button
+                onClick={() =>
+                  redirect(`/instructor/courses/${course._id}/review`)
+                }
                 className="text-blue-500 hover:underline"
               >
-              View Reviews
+                View Reviews
               </button>
             </p>
             <div className="space-x-2 mt-4">
@@ -70,7 +79,11 @@ export default function CourseCard({
               disabled={isPublishing}
               className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              {isPublishing ? 'Processing...' : course.status === 'published' ? 'Unpublish' : 'Publish'}
+              {isPublishing
+                ? 'Processing...'
+                : course.status === 'published'
+                  ? 'Unpublish'
+                  : 'Publish'}
             </button>
             <button
               onClick={() => onEdit(course)}

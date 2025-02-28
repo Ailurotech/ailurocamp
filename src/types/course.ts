@@ -15,4 +15,4 @@ export interface ICourse {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
-};
+}
