@@ -12,10 +12,13 @@ const reviewSchema = z.object({
   userId: z.string().nonempty({ message: 'User ID is required.' }),
   rating: z.preprocess(
     (value) => parseFloat(value as string),
-    z.number().min(0, { message: 'Rating must be at least 0.' }).max(10, { message: 'Rating cannot be greater than 5.' }),
+    z
+      .number()
+      .min(0, { message: 'Rating must be at least 0.' })
+      .max(10, { message: 'Rating cannot be greater than 5.' })
   ),
   comment: z.string().optional().or(z.literal('')),
-})
+});
 
 // Get all reviews
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -65,18 +68,11 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     const { courseId, userId, rating, comment } = parsedBody.data;
-    // const {
-    //   courseId,
-    //   userId,
-    //   rating,
-    //   comment,
-    // }: { courseId: string; userId: string; rating: number; comment: string } =
-    //   await req.json();
 
     // Check if the required fields are present, comment is optional
-    if (!courseId || !rating ) {
+    if (!courseId || !rating) {
       return NextResponse.json(
         { error: 'Missing required fields courseId or rating.' },
         { status: 400 }
@@ -133,13 +129,6 @@ export async function PUT(req: NextRequest) {
     }
 
     const { courseId, userId, rating, comment } = parsedBody.data;
-    // const {
-    //   courseId,
-    //   userId,
-    //   rating,
-    //   comment,
-    // }: { courseId: string; userId: string; rating: number; comment: string } =
-    //   await req.json();
 
     // Check if the required fields are present
     if (!courseId || !rating || !comment) {
