@@ -11,10 +11,10 @@ export interface ICourse extends mongoose.Document {
     order: number;
     duration: number;
   }[];
-  enrolledStudents?: mongoose.Types.ObjectId[];
+  enrolledStudents: mongoose.Types.ObjectId[];
   price: number;
   category: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
+  level: string;
   status: 'published' | 'unpublished';
   averageRating: number;
   revenue: number;
@@ -78,8 +78,7 @@ const courseSchema = new mongoose.Schema<ICourse>(
     },
     level: {
       type: String,
-      enum: ['beginner', 'intermediate', 'advanced'],
-      default: 'beginner',
+      required: true,
     },
     status: {
       type: String,

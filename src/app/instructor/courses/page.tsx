@@ -5,7 +5,7 @@ import CourseList from '@/components/ui/InstructorCoursePage/CourseList';
 import CourseCard from '@/components/ui/InstructorCoursePage/CourseCard';
 import Loading from '@/components/ui/Loading';
 import type { ICourse } from '@/types/course';
-import {useSession} from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import PaginationControls from '@/components/ui/InstructorCoursePage/PaginationControls';
 
@@ -49,14 +49,25 @@ export default function InstructorCoursesPage() {
     async function fetchCourses(): Promise<void> {
       setLoadingCourses(true);
       try {
-        if (sessionStatus !== 'authenticated' || session?.user?.currentRole !== 'instructor') {
+        if (
+          sessionStatus !== 'authenticated' ||
+          session?.user?.currentRole !== 'instructor'
+        ) {
           // Redirect to login page
           router.push('auth/login');
           return;
         }
 
-        const res: Response = await fetch(`/api/instructor/course?instructorId=${session.user.id}&page=${page}`);
-        const data: { courses: ICourse[]; totalCourses: number; page: number; limit: number; error?: string } = await res.json();
+        const res: Response = await fetch(
+          `/api/instructor/course?instructorId=${session.user.id}&page=${page}`
+        );
+        const data: {
+          courses: ICourse[];
+          totalCourses: number;
+          page: number;
+          limit: number;
+          error?: string;
+        } = await res.json();
         if (!res.ok) {
           console.error(data.error);
           setError('Failed to load courses, please try again.');
@@ -112,11 +123,14 @@ export default function InstructorCoursesPage() {
     // If there are changes, update the course
     setIsSavingEdit(true);
     try {
-      const res: Response = await fetch(`/api/instructor/course/${editCourse._id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(changes),
-      });
+      const res: Response = await fetch(
+        `/api/instructor/course/${editCourse._id}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(changes),
+        }
+      );
       const data: { updatedResult: ICourse; error?: string } = await res.json();
       if (!res.ok) {
         console.log(data.error);
@@ -151,11 +165,14 @@ export default function InstructorCoursesPage() {
       course.status === 'published' ? 'unpublished' : 'published';
     setIsPublishing(true);
     try {
-      const res: Response = await fetch(`/api/instructor/course/${course._id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
+      const res: Response = await fetch(
+        `/api/instructor/course/${course._id}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
       const data: { updatedResult: ICourse; error?: string } = await res.json();
       if (!res.ok) {
         console.log(data.error);

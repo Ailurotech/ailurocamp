@@ -43,7 +43,13 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     // Parse the request body
-    const { courseId, userId, rating, comment } : { courseId: string, userId: string, rating: number, comment: string } = await req.json();
+    const {
+      courseId,
+      userId,
+      rating,
+      comment,
+    }: { courseId: string; userId: string; rating: number; comment: string } =
+      await req.json();
 
     // Check if the required fields are present
     if (!courseId || !rating || !comment) {
@@ -93,7 +99,13 @@ export async function PUT(req: NextRequest) {
     await connectDB();
 
     // Parse the request body
-    const { courseId, userId, rating, comment }: { courseId: string, userId: string, rating: number, comment: string } = await req.json();
+    const {
+      courseId,
+      userId,
+      rating,
+      comment,
+    }: { courseId: string; userId: string; rating: number; comment: string } =
+      await req.json();
 
     // Check if the required fields are present
     if (!courseId || !rating || !comment) {

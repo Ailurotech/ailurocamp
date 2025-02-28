@@ -31,7 +31,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .limit(limit);
 
     // Get the total count of courses for pagination controls
-    const totalCourses = await Course.countDocuments({ instructor: instructorId });
+    const totalCourses = await Course.countDocuments({
+      instructor: instructorId,
+    });
     return NextResponse.json({ courses, totalCourses, page, limit });
   } catch (error: unknown) {
     return NextResponse.json(
