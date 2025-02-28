@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { UserRole } from '@/app/types/user';
+
+interface SwitchRoleRequest {
+  newRole: UserRole;
+}
 
 export async function POST(req: Request) {
   try {
@@ -11,10 +16,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { newRole } = await req.json();
+    const { newRole } = await req.json() as SwitchRoleRequest;
 
     // Validate role
-    const validRoles = ['admin', 'instructor', 'student'];
+    const validRoles: UserRole[] = ['admin', 'instructor', 'student'];
     if (!validRoles.includes(newRole)) {
       return NextResponse.json({ message: 'Invalid role' }, { status: 400 });
     }
@@ -48,10 +53,11 @@ export async function POST(req: Request) {
         currentRole: user.currentRole,
       },
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Switch role error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { message: 'Error switching role' },
+      { message: 'Error switching role', error: errorMessage },
       { status: 500 }
     );
   }

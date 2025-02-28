@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { CallbackError } from 'mongoose';
 
 export interface IUser extends mongoose.Document {
   email: string;
@@ -49,7 +50,7 @@ const userSchema = new mongoose.Schema<IUser>(
       default: 'student',
       validate: {
         validator: function (this: IUser, role: string) {
-          return this.roles.includes(role);
+          return this.roles.includes(role as 'admin' | 'instructor' | 'student');
         },
         message: 'Current role must be one of the assigned roles',
       },
@@ -71,8 +72,8 @@ userSchema.pre('save', async function (next) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     return next();
-  } catch (err: any) {
-    return next(err);
+  } catch (err: Error | unknown) {
+    return next(err as CallbackError);
   }
 });
 

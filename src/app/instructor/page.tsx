@@ -2,13 +2,9 @@
 
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import {
-  BookOpenIcon,
-  ClipboardIcon,
-  ChartBarIcon,
-} from '@/components/ui/Icons';
+import { UsersIcon, BookOpenIcon, ClipboardIcon } from '@/components/ui/Icons';
 
-export default function DashboardPage() {
+export default function InstructorDashboard() {
   const { data: session } = useSession();
 
   return (
@@ -18,12 +14,48 @@ export default function DashboardPage() {
           Welcome back, {session?.user?.name}!
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Here&apos;s an overview of your learning progress
+          Here&apos;s an overview of your teaching activities
         </p>
       </div>
 
       {/* Stats */}
       <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <UsersIcon
+                  className="h-6 w-6 text-gray-400"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Active Students
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      128
+                    </div>
+                    <span className="ml-2 text-sm text-green-600">+12%</span>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-50 px-5 py-3">
+            <div className="text-sm">
+              <Link
+                href="/instructor/students"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                View all students
+              </Link>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -40,8 +72,9 @@ export default function DashboardPage() {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      3
+                      4
                     </div>
+                    <span className="ml-2 text-sm text-green-600">+2 new</span>
                   </dd>
                 </dl>
               </div>
@@ -50,7 +83,7 @@ export default function DashboardPage() {
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
               <Link
-                href="/dashboard/courses"
+                href="/instructor/courses"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
                 View all courses
@@ -75,8 +108,9 @@ export default function DashboardPage() {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      5
+                      23
                     </div>
+                    <span className="ml-2 text-sm text-yellow-600">8 new</span>
                   </dd>
                 </dl>
               </div>
@@ -85,45 +119,10 @@ export default function DashboardPage() {
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
               <Link
-                href="/dashboard/assignments"
+                href="/instructor/assignments"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
                 View assignments
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <ChartBarIcon
-                  className="h-6 w-6 text-gray-400"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Overall Progress
-                  </dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      75%
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-5 py-3">
-            <div className="text-sm">
-              <Link
-                href="/dashboard/progress"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                View details
               </Link>
             </div>
           </div>
@@ -150,6 +149,19 @@ export default function DashboardPage() {
                     </p>
                     <p className="text-sm text-gray-500">{activity.time}</p>
                   </div>
+                  <div>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        activity.type === 'student'
+                          ? 'bg-green-100 text-green-800'
+                          : activity.type === 'course'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
+                      {activity.type}
+                    </span>
+                  </div>
                 </div>
               </li>
             ))}
@@ -163,26 +175,30 @@ export default function DashboardPage() {
 const recentActivity = [
   {
     id: 1,
-    title: 'Completed Module 3: Advanced React Patterns',
+    type: 'student',
+    title: 'New student enrolled: Sarah Johnson',
     time: '2 hours ago',
-    icon: BookOpenIcon,
+    icon: UsersIcon,
   },
   {
     id: 2,
-    title: 'Submitted Assignment: API Integration',
+    type: 'course',
+    title: 'Updated course content: Advanced React Patterns',
     time: '4 hours ago',
-    icon: ClipboardIcon,
-  },
-  {
-    id: 3,
-    title: 'Started new course: Next.js Mastery',
-    time: '1 day ago',
     icon: BookOpenIcon,
   },
   {
+    id: 3,
+    type: 'assignment',
+    title: 'New assignment submissions: API Integration (8)',
+    time: '1 day ago',
+    icon: ClipboardIcon,
+  },
+  {
     id: 4,
-    title: 'Earned certificate: TypeScript Fundamentals',
+    type: 'course',
+    title: 'Published new module: State Management',
     time: '2 days ago',
-    icon: ChartBarIcon,
+    icon: BookOpenIcon,
   },
 ];

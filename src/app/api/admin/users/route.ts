@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+
+interface SessionUser {
+  roles: string[];
+}
 
 export async function GET() {
   try {
@@ -10,7 +14,7 @@ export async function GET() {
     if (
       !session ||
       !session.user ||
-      !(session.user as any).roles.includes('admin')
+      !(session.user as SessionUser).roles.includes('admin')
     ) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
@@ -33,10 +37,11 @@ export async function GET() {
         currentRole: user.currentRole,
       })),
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Fetch users error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { message: 'Error fetching users' },
+      { message: 'Error fetching users', error: errorMessage },
       { status: 500 }
     );
   }
