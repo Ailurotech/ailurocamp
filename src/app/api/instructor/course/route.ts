@@ -42,3 +42,44 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     );
   }
 }
+
+// Update a course by course ID
+export async function PATCH(req: NextRequest): Promise<NextResponse> {
+  try {
+    const searchParams: URLSearchParams = req.nextUrl.searchParams;
+    const courseId: string | null = searchParams.get('courseId');
+    await connectDB();
+    const updatedContent: ICourse = await req.json();
+
+    const updatedResult: ICourse | null = await Course.findByIdAndUpdate(
+      courseId,
+      updatedContent,
+      {
+        new: true,
+      }
+    );
+    return NextResponse.json({ updatedResult });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: 'Error updating course', message: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+// Delete a course by course ID
+export async function DELETE(req: NextRequest): Promise<NextResponse> {
+  try {
+    const searchParams: URLSearchParams = req.nextUrl.searchParams;
+    const courseId: string | null = searchParams.get('courseId');
+    await connectDB();
+    const deletedResult: ICourse | null = await Course.findByIdAndDelete(courseId);
+    return NextResponse.json({ deletedResult });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: 'Error deleting course', message: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+

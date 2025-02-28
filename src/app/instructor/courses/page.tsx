@@ -124,7 +124,7 @@ export default function InstructorCoursesPage() {
     setIsSavingEdit(true);
     try {
       const res: Response = await fetch(
-        `/api/instructor/course/${editCourse._id}`,
+        `/api/instructor/course?courseId=${editCourse._id}`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -137,11 +137,6 @@ export default function InstructorCoursesPage() {
         setError('Failed to update course, please try again.');
       } else {
         const updated: ICourse = data.updatedResult;
-        // updated = {
-        //   ...updated,
-        //   id: updated._id.toString(),
-        //   enrolledStudents: updated.enrolledStudents?.length ?? 0,
-        // };
         setCourses((prev: ICourse[]) =>
           prev.map((c) => (c._id === updated._id ? updated : c))
         );
@@ -166,7 +161,7 @@ export default function InstructorCoursesPage() {
     setIsPublishing(true);
     try {
       const res: Response = await fetch(
-        `/api/instructor/course/${course._id}`,
+        `/api/instructor/course?courseId=${course._id}`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -179,11 +174,6 @@ export default function InstructorCoursesPage() {
         setError(`Failed to ${newStatus} this course, please try again.`);
       } else {
         const updated: ICourse = data.updatedResult;
-        // updated = {
-        //   ...updated,
-        //   id: updated._id.toString(),
-        //   enrolledStudents: updated.enrolledStudents?.length ?? 0,
-        // };
         setCourses((prev: ICourse[]) =>
           prev.map((c) => (c._id === updated._id ? updated : c))
         );
@@ -209,7 +199,7 @@ export default function InstructorCoursesPage() {
   async function handleDeleteCourse(courseId: string): Promise<void> {
     setIsDeleting(true);
     try {
-      const res: Response = await fetch(`/api/instructor/course/${courseId}`, {
+      const res: Response = await fetch(`/api/instructor/course?courseId=${courseId}`, {
         method: 'DELETE',
       });
       const data: { error?: string } = await res.json();

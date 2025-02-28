@@ -1,13 +1,13 @@
-import { Review } from '@/types/review';
+import { IReview } from '@/types/review';
 
-export default function Reviews({ reviews }: { reviews: Review[] }) {
+export default function Reviews({ reviews }: { reviews: IReview[] }) {
   if (reviews.length === 0) {
     return <p className="text-gray-500">No reviews yet</p>;
   }
 
   return (
     <div>
-      {reviews.map((review: Review) => (
+      {reviews.map((review: IReview) => (
         <div key={review._id} className="mb-4 bg-white p-4 shadow rounded-lg">
           <p className="font-semibold">{review.userId.name}</p>
           <p className="text-gray-700">{review.comment}</p>
