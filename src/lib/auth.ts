@@ -54,7 +54,8 @@ export const authOptions: NextAuthOptions = {
             currentRole: user.currentRole,
           } as CustomUser;
         } catch (error: Error | unknown) {
-          const message = error instanceof Error ? error.message : 'Authentication failed';
+          const message =
+            error instanceof Error ? error.message : 'Authentication failed';
           throw new Error(message);
         }
       },
@@ -86,4 +87,4 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
-}; 
+};

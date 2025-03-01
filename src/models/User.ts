@@ -50,7 +50,9 @@ const userSchema = new mongoose.Schema<IUser>(
       default: 'student',
       validate: {
         validator: function (this: IUser, role: string) {
-          return this.roles.includes(role as 'admin' | 'instructor' | 'student');
+          return this.roles.includes(
+            role as 'admin' | 'instructor' | 'student'
+          );
         },
         message: 'Current role must be one of the assigned roles',
       },
