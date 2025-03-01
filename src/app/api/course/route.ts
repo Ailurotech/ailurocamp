@@ -20,6 +20,7 @@ const pipelineAsync: (
   writable: NodeJS.WritableStream
 ) => Promise<void> = promisify(pipeline);
 
+// Create a new course
 export async function POST(req: Request): Promise<Response> {
   try {
     // Authenticate the user
