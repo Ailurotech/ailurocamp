@@ -12,6 +12,11 @@ import type { ICourse } from '@/types/course';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
+interface PopupError {
+  errorMsg: string;
+  onClose?: () => void;
+}
+
 export default function InstructorCoursesPage() {
   const [courses, setCourses] = useState<ICourse[]>([]);
   const [loadingCourses, setLoadingCourses] = useState<boolean>(true);
@@ -33,7 +38,7 @@ export default function InstructorCoursesPage() {
   const [isPublishing, setIsPublishing] = useState(false);
 
   // State for error handling
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<PopupError | undefined>(undefined);
 
   // Session
   const { data: session, status: sessionStatus } = useSession();
@@ -72,8 +77,13 @@ export default function InstructorCoursesPage() {
           error?: string;
         } = await res.json();
         if (!res.ok) {
-          console.error(data.error);
-          setError('Failed to load courses, please try again.');
+          setError({
+            errorMsg: 'Failed to load courses, please try again.',
+            onClose: () => {
+              setError(undefined);
+              fetchCourses();
+            },
+          });
           return;
         }
         setLimit(data.limit);
@@ -84,9 +94,14 @@ export default function InstructorCoursesPage() {
         if (data.courses.length > 0) {
           setSelectedCourse(data.courses[0]);
         }
-      } catch (error: unknown) {
-        console.error('Failed to fetch courses', error);
-        setError('Failed to load courses, please try again.');
+      } catch {
+        setError({
+          errorMsg: 'Failed to load courses, please try again.',
+          onClose: () => {
+            setError(undefined);
+            fetchCourses();
+          },
+        });
       } finally {
         setLoadingCourses(false);
       }
@@ -136,8 +151,12 @@ export default function InstructorCoursesPage() {
       );
       const data: { updatedResult: ICourse; error?: string } = await res.json();
       if (!res.ok) {
-        console.log(data.error);
-        setError('Failed to update course, please try again.');
+        setError({
+          errorMsg: 'Failed to update course, please try again.',
+          onClose: () => {
+            setError(undefined);
+          },
+        });
       } else {
         const updated: ICourse = data.updatedResult;
         setCourses((prev: ICourse[]) =>
@@ -147,9 +166,13 @@ export default function InstructorCoursesPage() {
           setSelectedCourse(updated);
         }
       }
-    } catch (error: unknown) {
-      console.error('Error updating course:', error);
-      setError('Failed to update course, please try again.');
+    } catch {
+      setError({
+        errorMsg: 'Failed to update course, please try again.',
+        onClose: () => {
+          setError(undefined);
+        },
+      });
     } finally {
       setIsSavingEdit(false);
       setIsEditModalOpen(false);
@@ -173,8 +196,12 @@ export default function InstructorCoursesPage() {
       );
       const data: { updatedResult: ICourse; error?: string } = await res.json();
       if (!res.ok) {
-        console.log(data.error);
-        setError(`Failed to ${newStatus} this course, please try again.`);
+        setError({
+          errorMsg: `Failed to ${newStatus} this course, please try again.`,
+          onClose: () => {
+            setError(undefined);
+          },
+        });
       } else {
         const updated: ICourse = data.updatedResult;
         setCourses((prev: ICourse[]) =>
@@ -184,9 +211,13 @@ export default function InstructorCoursesPage() {
           setSelectedCourse(updated);
         }
       }
-    } catch (error: unknown) {
-      console.error('Error publishing course:', error);
-      setError(`Failed to ${newStatus} this course, please try again.`);
+    } catch {
+      setError({
+        errorMsg: `Failed to ${newStatus} this course, please try again.`,
+        onClose: () => {
+          setError(undefined);
+        },
+      });
     } finally {
       setIsPublishing(false);
     }
@@ -208,10 +239,13 @@ export default function InstructorCoursesPage() {
           method: 'DELETE',
         }
       );
-      const data: { error?: string } = await res.json();
       if (!res.ok) {
-        console.log(data.error);
-        setError('Failed to delete course, please try again.');
+        setError({
+          errorMsg: 'Failed to delete course, please try again.',
+          onClose: () => {
+            setError(undefined);
+          },
+        });
       } else {
         setCourses((prev: ICourse[]) => prev.filter((c) => c._id !== courseId));
         // Remove the deleted course from the selected course if it was selected
@@ -222,9 +256,13 @@ export default function InstructorCoursesPage() {
           setSelectedCourse(remaining.length > 0 ? remaining[0] : null);
         }
       }
-    } catch (error: unknown) {
-      console.error('Error deleting course:', error);
-      setError('Failed to delete course, please try again.');
+    } catch {
+      setError({
+        errorMsg: 'Failed to delete course, please try again.',
+        onClose: () => {
+          setError(undefined);
+        },
+      });
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
@@ -267,7 +305,10 @@ export default function InstructorCoursesPage() {
       </div>
 
       {/* Error Popup Modal */}
-      <ErrorPopupModal error={error} onClose={() => setError(undefined)} />
+      <ErrorPopupModal
+        error={error?.errorMsg}
+        onClose={error?.onClose || (() => {})}
+      />
 
       {/* EDIT MODAL */}
       <EditCourseModal
