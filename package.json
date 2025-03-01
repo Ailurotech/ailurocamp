@@ -11,6 +11,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.66.11",
     "@types/bcryptjs": "^2.4.6",
     "@types/mongoose": "^5.11.97",
     "bcryptjs": "^2.4.3",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@tanstack/react-query-devtools": "^5.66.11",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

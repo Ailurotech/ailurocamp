@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import PaginationControls from '@/components/ui/PaginationControls';
 import Reviews from '@/components/ui/ReviewsPage/Reviews';
 import ErrorPopupModal from '@/components/ui/ErrorPopupModal';
 import { IReview } from '@/types/review';
+import { useQuery } from '@tanstack/react-query';
 
 interface ReviewsResponse {
   reviews: IReview[];
@@ -17,39 +18,37 @@ interface ReviewsPageClientProps {
   courseId: string;
 }
 
+// Fetch reviews by courseId
+const fetchReviews = async (
+  courseId: string,
+  page: number
+): Promise<ReviewsResponse> => {
+  const res: Response = await fetch(
+    `/api/review?courseId=${courseId}&page=${page}`
+  );
+  if (!res.ok) {
+    throw new Error('Failed to fetch reviews');
+  }
+  const data: ReviewsResponse = await res.json();
+  return data;
+};
+
 export default function ReviewsPageClient({
   courseId,
 }: ReviewsPageClientProps) {
-  const [reviews, setReviews] = useState<IReview[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(1);
-  const [totalReviews, setTotalReviews] = useState<number>(0);
 
-  const totalPages: number = Math.ceil(totalReviews / limit);
+  const { data, error, isLoading, isFetching, refetch } = useQuery<
+    ReviewsResponse,
+    Error
+  >({
+    queryKey: ['reviews', courseId, currentPage],
+    queryFn: () => fetchReviews(courseId, currentPage),
+  });
 
-  // State for error handling
-  const [error, setError] = useState<string | undefined>(undefined);
-
-  // Fetch reviews on currentPage or courseId change
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const res: Response = await fetch(
-          `/api/review?courseId=${courseId}&page=${currentPage}`
-        );
-        const data: ReviewsResponse = await res.json();
-        setReviews(data.reviews);
-        setLimit(data.limit);
-        setCurrentPage(data.page);
-        setTotalReviews(data.totalReviews);
-      } catch {
-        setError('Failed to fetch reviews, please try again.');
-        return;
-      }
-    };
-
-    fetchReviews();
-  }, [courseId, currentPage]);
+  const totalPages: number = Math.ceil(
+    (data?.totalReviews || 0) / (data?.limit || 1)
+  );
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -58,22 +57,32 @@ export default function ReviewsPageClient({
   return (
     <>
       <div>
-        <Reviews reviews={reviews} />
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
+        {isLoading ? (
+          <div>Loading reviews...</div>
+        ) : error ? (
+          <div>Error loading reviews</div>
+        ) : (
+          <>
+            <Reviews reviews={data?.reviews || []} />
+            <PaginationControls
+              currentPage={data?.page || 1}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+            {isFetching && <div>Refreshing reviews...</div>}
+          </>
+        )}
       </div>
 
-      {/* Error Popup Modal */}
-      <ErrorPopupModal
-        error={error}
-        onClose={() => {
-          setError(undefined);
-          window.location.reload();
-        }}
-      />
+      {/* Display error popup if an error occurs */}
+      {error && (
+        <ErrorPopupModal
+          error={(error as Error).message}
+          onClose={() => {
+            refetch();
+          }}
+        />
+      )}
     </>
   );
 }
