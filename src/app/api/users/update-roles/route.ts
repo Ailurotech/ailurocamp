@@ -1,24 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { UserRole, UpdateUserRolesRequest } from '@/app/types/user';
 
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { userId, roles } = await req.json();
+    const { userId, roles } = (await req.json()) as UpdateUserRolesRequest;
 
     // Validate roles
-    const validRoles = ['admin', 'instructor', 'student'];
-    const invalidRoles = roles.filter((role: string) => !validRoles.includes(role));
+    const validRoles: UserRole[] = ['admin', 'instructor', 'student'];
+    const invalidRoles = roles.filter(
+      (role: UserRole) => !validRoles.includes(role)
+    );
     if (invalidRoles.length > 0) {
       return NextResponse.json(
         { message: `Invalid roles: ${invalidRoles.join(', ')}` },
@@ -30,10 +30,7 @@ export async function POST(req: Request) {
 
     const user = await User.findById(userId);
     if (!user) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
     // Update roles and ensure currentRole is still valid
@@ -54,11 +51,13 @@ export async function POST(req: Request) {
         currentRole: user.currentRole,
       },
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Update roles error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { message: 'Error updating user roles' },
+      { message: 'Error updating user roles', error: errorMessage },
       { status: 500 }
     );
   }
-} 
+}

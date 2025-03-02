@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { Metadata } from "next";
+import Link from 'next/link';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "AiluroCamp - Modern Learning Management System",
+  title: 'AiluroCamp - Modern Learning Management System',
   description:
-    "Transform your educational journey with AiluroCamp, a modern and intuitive learning management system.",
+    'Transform your educational journey with AiluroCamp, a modern and intuitive learning management system.',
 };
 
 export default function HomePage() {
@@ -90,32 +90,32 @@ export default function HomePage() {
 
 const features = [
   {
-    name: "Interactive Learning",
+    name: 'Interactive Learning',
     description:
-      "Engage with interactive content, quizzes, and assignments that make learning fun and effective.",
+      'Engage with interactive content, quizzes, and assignments that make learning fun and effective.',
     icon: BookOpenIcon,
   },
   {
-    name: "Progress Tracking",
+    name: 'Progress Tracking',
     description:
-      "Monitor your progress with detailed analytics and insights into your learning journey.",
+      'Monitor your progress with detailed analytics and insights into your learning journey.',
     icon: ChartBarIcon,
   },
   {
-    name: "Expert Instructors",
+    name: 'Expert Instructors',
     description:
-      "Learn from industry experts and experienced educators who are passionate about teaching.",
+      'Learn from industry experts and experienced educators who are passionate about teaching.',
     icon: UserGroupIcon,
   },
   {
-    name: "Flexible Learning",
+    name: 'Flexible Learning',
     description:
-      "Learn at your own pace with access to course materials anytime, anywhere.",
+      'Learn at your own pace with access to course materials anytime, anywhere.',
     icon: ClockIcon,
   },
 ];
 
-function BookOpenIcon(props: React.ComponentProps<"svg">) {
+function BookOpenIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -134,7 +134,7 @@ function BookOpenIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function ChartBarIcon(props: React.ComponentProps<"svg">) {
+function ChartBarIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -153,7 +153,7 @@ function ChartBarIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function UserGroupIcon(props: React.ComponentProps<"svg">) {
+function UserGroupIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -172,7 +172,7 @@ function UserGroupIcon(props: React.ComponentProps<"svg">) {
   );
 }
 
-function ClockIcon(props: React.ComponentProps<"svg">) {
+function ClockIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

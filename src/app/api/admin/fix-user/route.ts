@@ -6,16 +6,13 @@ export async function GET() {
   try {
     await connectDB();
 
-    const user = await User.findById("6780adc69f9049da2db4b851");
+    const user = await User.findById('6780adc69f9049da2db4b851');
     if (!user) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
     // Update user document
-    user.currentRole = "admin";
+    user.currentRole = 'admin';
     delete user.role;
     await user.save();
 
@@ -26,14 +23,16 @@ export async function GET() {
         name: user.name,
         email: user.email,
         roles: user.roles,
-        currentRole: user.currentRole
-      }
+        currentRole: user.currentRole,
+      },
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Fix user error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { message: 'Error fixing user', error: error.message },
+      { message: 'Error fixing user', error: errorMessage },
       { status: 500 }
     );
   }
-} 
+}

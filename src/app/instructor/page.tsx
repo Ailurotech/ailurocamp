@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
-import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { UsersIcon, BookOpenIcon, ClipboardIcon } from '@/components/ui/Icons';
 
 export default function InstructorDashboard() {
   const { data: session } = useSession();
@@ -10,51 +11,15 @@ export default function InstructorDashboard() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900">
-          Instructor Dashboard
+          Welcome back, {session?.user?.name}!
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Overview of your courses
+          Here&apos;s an overview of your teaching activities
         </p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats */}
       <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <BookOpenIcon
-                  className="h-6 w-6 text-gray-400"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Courses
-                  </dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      4
-                    </div>
-                    <span className="ml-2 text-sm text-green-600">+5%</span>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-5 py-3">
-            <div className="text-sm">
-              <Link
-                href="/admin/courses"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                View all courses
-              </Link>
-            </div>
-          </div>
-        </div>
-
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -67,13 +32,13 @@ export default function InstructorDashboard() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Students
+                    Active Students
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      230
+                      128
                     </div>
-                    <span className="ml-2 text-sm text-green-600">+8%</span>
+                    <span className="ml-2 text-sm text-green-600">+12%</span>
                   </dd>
                 </dl>
               </div>
@@ -82,10 +47,82 @@ export default function InstructorDashboard() {
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
               <Link
-                href="/admin/instructors"
+                href="/instructor/students"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
                 View all students
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <BookOpenIcon
+                  className="h-6 w-6 text-gray-400"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Active Courses
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      4
+                    </div>
+                    <span className="ml-2 text-sm text-green-600">+2 new</span>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-50 px-5 py-3">
+            <div className="text-sm">
+              <Link
+                href="/instructor/courses"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                View all courses
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ClipboardIcon
+                  className="h-6 w-6 text-gray-400"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Pending Assignments
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      23
+                    </div>
+                    <span className="ml-2 text-sm text-yellow-600">8 new</span>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-50 px-5 py-3">
+            <div className="text-sm">
+              <Link
+                href="/instructor/assignments"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                View assignments
               </Link>
             </div>
           </div>
@@ -114,12 +151,13 @@ export default function InstructorDashboard() {
                   </div>
                   <div>
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${activity.type === "user"
-                        ? "bg-green-100 text-green-800"
-                        : activity.type === "course"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-purple-100 text-purple-800"
-                        }`}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        activity.type === 'student'
+                          ? 'bg-green-100 text-green-800'
+                          : activity.type === 'course'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                      }`}
                     >
                       {activity.type}
                     </span>
@@ -137,61 +175,30 @@ export default function InstructorDashboard() {
 const recentActivity = [
   {
     id: 1,
-    type: "user",
-    title: "New student enrolled: Alice",
-    time: "3 hours ago",
-    icon: UsersIcon
+    type: 'student',
+    title: 'New student enrolled: Sarah Johnson',
+    time: '2 hours ago',
+    icon: UsersIcon,
   },
   {
     id: 2,
-    type: "course",
-    title: "Course updated: JavaScript Essentials",
-    time: "1 day ago",
-    icon: BookOpenIcon
+    type: 'course',
+    title: 'Updated course content: Advanced React Patterns',
+    time: '4 hours ago',
+    icon: BookOpenIcon,
   },
   {
     id: 3,
-    type: "course",
-    title: "New course published: Machine Learning Basics",
-    time: "2 days ago",
-    icon: BookOpenIcon
+    type: 'assignment',
+    title: 'New assignment submissions: API Integration (8)',
+    time: '1 day ago',
+    icon: ClipboardIcon,
+  },
+  {
+    id: 4,
+    type: 'course',
+    title: 'Published new module: State Management',
+    time: '2 days ago',
+    icon: BookOpenIcon,
   },
 ];
-
-function UsersIcon(props: React.ComponentProps<"svg">) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      {...props}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
-      />
-    </svg>
-  );
-}
-
-function BookOpenIcon(props: React.ComponentProps<"svg">) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      {...props}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-      />
-    </svg>
-  );
-}

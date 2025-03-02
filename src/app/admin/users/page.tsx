@@ -1,59 +1,62 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  roles: string[];
-  currentRole: string;
-}
+import {
+  User,
+  UserRole,
+  UpdateUserRolesRequest,
+  UsersResponse,
+} from '@/app/types/user';
+import { useState, useEffect } from 'react';
 
 export default function UsersPage() {
-  const { data: session } = useSession();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (): Promise<void> => {
     try {
-      const response = await fetch("/api/admin/users");
+      const response = await fetch('/api/admin/users');
       if (!response.ok) {
-        throw new Error("Failed to fetch users");
+        throw new Error('Failed to fetch users');
       }
-      const data = await response.json();
+      const data: UsersResponse = await response.json();
       setUsers(data.users);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'An unknown error occurred'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRoleChange = async (userId: string, roles: string[]) => {
+  const handleRoleChange = async (
+    userId: string,
+    roles: UserRole[]
+  ): Promise<void> => {
     try {
-      const response = await fetch("/api/users/update-roles", {
-        method: "POST",
+      const response = await fetch('/api/users/update-roles', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId, roles }),
+        body: JSON.stringify({ userId, roles } as UpdateUserRolesRequest),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update user roles");
+        throw new Error('Failed to update user roles');
       }
 
       // Refresh the users list
       fetchUsers();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'An unknown error occurred'
+      );
     }
   };
 
@@ -158,11 +161,11 @@ export default function UsersPage() {
                         <span
                           key={role}
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            role === "admin"
-                              ? "bg-red-100 text-red-800"
-                              : role === "instructor"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-green-100 text-green-800"
+                            role === 'admin'
+                              ? 'bg-red-100 text-red-800'
+                              : role === 'instructor'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-green-100 text-green-800'
                           }`}
                         >
                           {role}
@@ -178,27 +181,31 @@ export default function UsersPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center space-x-2">
-                        {["admin", "instructor", "student"].map((role) => (
-                          <label
-                            key={role}
-                            className="inline-flex items-center"
-                          >
-                            <input
-                              type="checkbox"
-                              className="form-checkbox h-4 w-4 text-indigo-600"
-                              checked={user.roles.includes(role)}
-                              onChange={(e) => {
-                                const newRoles = e.target.checked
-                                  ? [...user.roles, role]
-                                  : user.roles.filter((r) => r !== role);
-                                handleRoleChange(user.id, newRoles);
-                              }}
-                            />
-                            <span className="ml-2 text-sm text-gray-700">
-                              {role}
-                            </span>
-                          </label>
-                        ))}
+                        {(['admin', 'instructor', 'student'] as UserRole[]).map(
+                          (role) => (
+                            <label
+                              key={role}
+                              className="inline-flex items-center"
+                            >
+                              <input
+                                type="checkbox"
+                                className="form-checkbox h-4 w-4 text-indigo-600"
+                                checked={user.roles.includes(role)}
+                                onChange={(e) => {
+                                  const newRoles = e.target.checked
+                                    ? ([...user.roles, role] as UserRole[])
+                                    : (user.roles.filter(
+                                        (r) => r !== role
+                                      ) as UserRole[]);
+                                  handleRoleChange(user.id, newRoles);
+                                }}
+                              />
+                              <span className="ml-2 text-sm text-gray-700">
+                                {role}
+                              </span>
+                            </label>
+                          )
+                        )}
                       </div>
                     </div>
                   </td>
