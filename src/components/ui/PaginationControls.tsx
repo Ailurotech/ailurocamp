@@ -3,12 +3,14 @@ import React from 'react';
 interface PaginationControlsProps {
   currentPage: number;
   totalPages: number;
+  isPlaceholderData: boolean;
   onPageChange: (newPage: number) => void;
 }
 
 const PaginationControls: React.FC<PaginationControlsProps> = ({
   currentPage,
   totalPages,
+  isPlaceholderData,
   onPageChange,
 }) => {
   const handlePrevious = (): void => {
@@ -16,7 +18,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   };
 
   const handleNext = (): void => {
-    if (currentPage < totalPages) onPageChange(currentPage + 1);
+    if (!isPlaceholderData && currentPage < totalPages) onPageChange(currentPage + 1);
   };
 
   return (
@@ -33,7 +35,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
       </span>
       <button
         onClick={handleNext}
-        disabled={currentPage === totalPages}
+        disabled={isPlaceholderData || currentPage === totalPages}
         className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
       >
         Next

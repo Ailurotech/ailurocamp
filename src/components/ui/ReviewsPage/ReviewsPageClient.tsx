@@ -5,7 +5,7 @@ import PaginationControls from '@/components/ui/PaginationControls';
 import Reviews from '@/components/ui/ReviewsPage/Reviews';
 import ErrorPopupModal from '@/components/ui/ErrorPopupModal';
 import { IReview } from '@/types/review';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 interface ReviewsResponse {
   reviews: IReview[];
@@ -38,16 +38,17 @@ export default function ReviewsPageClient({
 }: ReviewsPageClientProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const { data, error, isLoading, isFetching, refetch } = useQuery<
+  const { data, error, isPending, isPlaceholderData, refetch } = useQuery<
     ReviewsResponse,
     Error
   >({
     queryKey: ['reviews', courseId, currentPage],
     queryFn: () => fetchReviews(courseId, currentPage),
+    placeholderData: keepPreviousData,
   });
 
   const totalPages: number = Math.ceil(
-    (data?.totalReviews || 0) / (data?.limit || 1)
+    (data?.totalReviews || 1) / (data?.limit || 1)
   );
 
   const handlePageChange = (newPage: number) => {
@@ -57,7 +58,7 @@ export default function ReviewsPageClient({
   return (
     <>
       <div>
-        {isLoading ? (
+        {isPending ? (
           <div>Loading reviews...</div>
         ) : error ? (
           <div>Error loading reviews</div>
@@ -67,9 +68,9 @@ export default function ReviewsPageClient({
             <PaginationControls
               currentPage={data?.page || 1}
               totalPages={totalPages}
+              isPlaceholderData={isPlaceholderData}
               onPageChange={handlePageChange}
             />
-            {isFetching && <div>Refreshing reviews...</div>}
           </>
         )}
       </div>
