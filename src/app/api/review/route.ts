@@ -15,7 +15,7 @@ const reviewSchema = z.object({
     z
       .number()
       .min(0, { message: 'Rating must be at least 0.' })
-      .max(10, { message: 'Rating cannot be greater than 5.' })
+      .max(10, { message: 'Rating cannot be greater than 10.' })
   ),
   comment: z.string().optional().or(z.literal('')),
 });
