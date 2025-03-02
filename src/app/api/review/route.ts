@@ -29,7 +29,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const searchParams: URLSearchParams = req.nextUrl.searchParams;
     const courseId: string | null = searchParams.get('courseId');
     const page: number = parseInt(searchParams.get('page') || '1', 10);
-    const limit: number = 1;
+    const limit: number = 10;
     const skip: number = (page - 1) * limit;
 
     // Get total count of reviews for pagination controls
