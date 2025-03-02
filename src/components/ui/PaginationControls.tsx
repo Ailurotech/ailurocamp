@@ -18,7 +18,8 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   };
 
   const handleNext = (): void => {
-    if (!isPlaceholderData && currentPage < totalPages) onPageChange(currentPage + 1);
+    if (!isPlaceholderData && currentPage < totalPages)
+      onPageChange(currentPage + 1);
   };
 
   return (
