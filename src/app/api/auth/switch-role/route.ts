@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { newRole } = await req.json() as SwitchRoleRequest;
+    const { newRole } = (await req.json()) as SwitchRoleRequest;
 
     // Validate role
     const validRoles: UserRole[] = ['admin', 'instructor', 'student'];
@@ -55,7 +55,8 @@ export async function POST(req: Request) {
     });
   } catch (error: Error | unknown) {
     console.error('Switch role error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { message: 'Error switching role', error: errorMessage },
       { status: 500 }

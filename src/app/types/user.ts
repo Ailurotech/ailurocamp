@@ -15,4 +15,4 @@ export interface UpdateUserRolesRequest {
 
 export interface UsersResponse {
   users: User[];
-} 
+}

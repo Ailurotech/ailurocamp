@@ -54,7 +54,8 @@ export const authOptions: NextAuthOptions = {
             currentRole: user.currentRole,
           } as CustomUser;
         } catch (error: Error | unknown) {
-          const message = error instanceof Error ? error.message : 'Authentication failed';
+          const message =
+            error instanceof Error ? error.message : 'Authentication failed';
           throw new Error(message);
         }
       },
@@ -65,12 +66,18 @@ export const authOptions: NextAuthOptions = {
     newUser: '/auth/register',
   },
   callbacks: {
-    async jwt({ token, user }): Promise<CustomToken> {
+    async jwt({ token, user, trigger, session }): Promise<CustomToken> {
       if (user) {
         token.id = (user as CustomUser).id;
         token.roles = (user as CustomUser).roles;
         token.currentRole = (user as CustomUser).currentRole;
       }
+
+      // Update token from a session update
+      if (trigger === 'update' && session?.currentRole) {
+        token.currentRole = session.currentRole;
+      }
+
       return token as CustomToken;
     },
     async session({ session, token }): Promise<CustomSession> {
@@ -86,4 +93,4 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
-}; 
+};
