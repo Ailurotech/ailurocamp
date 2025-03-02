@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import type { ICourse } from '@/types/course';
 import { useRouter } from 'next/navigation';
+import React from 'react';
 
 interface CourseCardProps {
   course: ICourse | null;
@@ -11,7 +12,7 @@ interface CourseCardProps {
   isPublishing?: boolean;
 }
 
-export default function CourseCard({
+function CourseCard({
   course,
   onClose,
   onPublishToggle,
@@ -109,3 +110,5 @@ export default function CourseCard({
     </div>
   );
 }
+
+export default React.memo(CourseCard);
