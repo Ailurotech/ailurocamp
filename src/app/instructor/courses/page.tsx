@@ -11,6 +11,18 @@ import Loading from '@/components/ui/Loading';
 import type { ICourse } from '@/types/course';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import {
+  useQuery,
+  useMutation,
+  keepPreviousData,
+  useQueryClient,
+} from '@tanstack/react-query';
+import {
+  fetchCourses,
+  updateCourse,
+  updateCourseStatus,
+  deleteCourse,
+} from '@/lib/instructor/CourseRequest';
 
 interface PopupError {
   errorMsg: string;
@@ -18,8 +30,7 @@ interface PopupError {
 }
 
 export default function InstructorCoursesPage() {
-  const [courses, setCourses] = useState<ICourse[]>([]);
-  const [loadingCourses, setLoadingCourses] = useState<boolean>(true);
+  // State for a selected course
   const [selectedCourse, setSelectedCourse] = useState<ICourse | null>(null);
 
   // State for editing
@@ -27,15 +38,10 @@ export default function InstructorCoursesPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   // State for deleting
   const [courseToDelete, setCourseToDelete] = useState<ICourse | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // State for publish/unpublish
-  const [isPublishing, setIsPublishing] = useState(false);
 
   // State for error handling
   const [error, setError] = useState<PopupError | undefined>(undefined);
@@ -45,70 +51,138 @@ export default function InstructorCoursesPage() {
 
   const router = useRouter();
 
+  const queryClient = useQueryClient();
+
   // State for pagination
   const [page, setPage] = useState<number>(1);
-  const [totalCourses, setTotalCourses] = useState<number>(0);
-  const [limit, setLimit] = useState<number>(10);
 
-  const totalPages: number = Math.ceil(totalCourses / limit);
+  // Check if user is authenticated and is an instructor
+  useEffect(() => {
+    if (
+      sessionStatus !== 'authenticated' ||
+      session?.user?.currentRole !== 'instructor'
+    ) {
+      // Redirect to login page
+      router.push('auth/login');
+      return;
+    }
+  }, [session, sessionStatus, router]);
 
   // Fetch all courses
+  const {
+    data: fetchedCourses,
+    isPending,
+    isSuccess,
+    isError,
+    isPlaceholderData,
+  } = useQuery({
+    queryKey: ['instructor-courses', session?.user?.id, page],
+    queryFn: () => fetchCourses(session?.user?.id, page),
+    enabled:
+      sessionStatus === 'authenticated' &&
+      session?.user?.currentRole === 'instructor',
+    placeholderData: keepPreviousData,
+  });
+
+  const totalPages: number = fetchedCourses
+    ? Math.ceil(fetchedCourses.totalCourses / fetchedCourses.limit)
+    : 1;
+
+  // Set the first course as the selected course as default
   useEffect(() => {
-    async function fetchCourses(): Promise<void> {
-      setLoadingCourses(true);
-      try {
-        if (
-          sessionStatus !== 'authenticated' ||
-          session?.user?.currentRole !== 'instructor'
-        ) {
-          // Redirect to login page
-          router.push('auth/login');
-          return;
-        }
-
-        const res: Response = await fetch(
-          `/api/instructor/course?instructorId=${session.user.id}&page=${page}`
-        );
-        const data: {
-          courses: ICourse[];
-          totalCourses: number;
-          page: number;
-          limit: number;
-          error?: string;
-        } = await res.json();
-        if (!res.ok) {
-          setError({
-            errorMsg: 'Failed to load courses, please try again.',
-            onClose: () => {
-              setError(undefined);
-              fetchCourses();
-            },
-          });
-          return;
-        }
-        setLimit(data.limit);
-        setCourses(data.courses);
-        setTotalCourses(data.totalCourses);
-
-        // Set the first course as the selected course as default
-        if (data.courses.length > 0) {
-          setSelectedCourse(data.courses[0]);
-        }
-      } catch {
-        setError({
-          errorMsg: 'Failed to load courses, please try again.',
-          onClose: () => {
-            setError(undefined);
-            fetchCourses();
-          },
-        });
-      } finally {
-        setLoadingCourses(false);
+    if (isSuccess) {
+      if (fetchedCourses.courses.length > 0) {
+        setSelectedCourse(fetchedCourses.courses[0]);
+      } else {
+        setSelectedCourse(null);
       }
     }
+  }, [isSuccess, fetchedCourses]);
 
-    fetchCourses();
-  }, [page, session, sessionStatus]);
+  // Error handling for fetch courses
+  useEffect(() => {
+    if (isError) {
+      setError({
+        errorMsg: 'Failed to load courses, please try again.',
+        onClose: () => {
+          setError(undefined);
+          fetchCourses(session?.user?.id, page);
+        },
+      });
+    }
+  }, [isError, session?.user?.id, page]);
+
+  // Edit Course Mutation
+  const updateCourseMutation = useMutation({
+    mutationFn: (variables: {
+      courseId: string;
+      changes: { title?: string; description?: string };
+    }) => {
+      const { courseId, changes } = variables;
+      return updateCourse(courseId, changes);
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({
+        queryKey: ['instructor-courses'],
+      });
+      if (selectedCourse?._id === res.updatedResult._id) {
+        setSelectedCourse(res.updatedResult);
+      }
+    },
+    onError: () => {
+      setError({
+        errorMsg: 'Failed to update course, please try again.',
+        onClose: () => {
+          setError(undefined);
+        },
+      });
+    },
+  });
+
+  // Publish/Unpublish Course Mutation
+  const updateCourseStatusMutation = useMutation({
+    mutationFn: (variables: { courseId: string; newStatus: string }) => {
+      const { courseId, newStatus } = variables;
+      return updateCourseStatus(courseId, newStatus);
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({
+        queryKey: ['instructor-courses'],
+      });
+      if (selectedCourse?._id === res.updatedResult._id) {
+        setSelectedCourse(res.updatedResult);
+      }
+    },
+    onError: () => {
+      setError({
+        errorMsg: 'Failed to update course status, please try again.',
+        onClose: () => {
+          setError(undefined);
+        },
+      });
+    },
+  });
+
+  // Delete Course Mutation
+  const deleteCourseMutation = useMutation({
+    mutationFn: (courseId: string) => deleteCourse(courseId),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({
+        queryKey: ['instructor-courses'],
+      });
+      if (selectedCourse?._id === res.deletedResult._id) {
+        setSelectedCourse(null);
+      }
+    },
+    onError: () => {
+      setError({
+        errorMsg: 'Failed to delete course, please try again.',
+        onClose: () => {
+          setError(undefined);
+        },
+      });
+    },
+  });
 
   // Edit logic
   function openEditModal(course: ICourse): void {
@@ -138,89 +212,27 @@ export default function InstructorCoursesPage() {
       return;
     }
 
-    // If there are changes, update the course
-    setIsSavingEdit(true);
-    try {
-      const res: Response = await fetch(
-        `/api/instructor/course?courseId=${editCourse._id}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(changes),
-        }
-      );
-      const data: { updatedResult: ICourse; error?: string } = await res.json();
-      if (!res.ok) {
-        setError({
-          errorMsg: 'Failed to update course, please try again.',
-          onClose: () => {
-            setError(undefined);
-          },
-        });
-      } else {
-        const updated: ICourse = data.updatedResult;
-        setCourses((prev: ICourse[]) =>
-          prev.map((c) => (c._id === updated._id ? updated : c))
-        );
-        if (selectedCourse?._id === updated._id) {
-          setSelectedCourse(updated);
-        }
-      }
-    } catch {
-      setError({
-        errorMsg: 'Failed to update course, please try again.',
-        onClose: () => {
-          setError(undefined);
-        },
-      });
-    } finally {
-      setIsSavingEdit(false);
-      setIsEditModalOpen(false);
-      setEditCourse(null);
-    }
+    // Send update request
+    updateCourseMutation.mutate({
+      courseId: editCourse._id,
+      changes: changes,
+    });
+
+    // Close the modal
+    setIsEditModalOpen(false);
+    setEditCourse(null);
   }
 
   // Publish/unpublish logic
   async function handlePublishToggle(course: ICourse): Promise<void> {
     const newStatus: string =
       course.status === 'published' ? 'unpublished' : 'published';
-    setIsPublishing(true);
-    try {
-      const res: Response = await fetch(
-        `/api/instructor/course?courseId=${course._id}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
-      const data: { updatedResult: ICourse; error?: string } = await res.json();
-      if (!res.ok) {
-        setError({
-          errorMsg: `Failed to ${newStatus} this course, please try again.`,
-          onClose: () => {
-            setError(undefined);
-          },
-        });
-      } else {
-        const updated: ICourse = data.updatedResult;
-        setCourses((prev: ICourse[]) =>
-          prev.map((c) => (c._id === updated._id ? updated : c))
-        );
-        if (selectedCourse?._id === updated._id) {
-          setSelectedCourse(updated);
-        }
-      }
-    } catch {
-      setError({
-        errorMsg: `Failed to ${newStatus} this course, please try again.`,
-        onClose: () => {
-          setError(undefined);
-        },
-      });
-    } finally {
-      setIsPublishing(false);
-    }
+
+    // Send update course status request
+    updateCourseStatusMutation.mutate({
+      courseId: course._id,
+      newStatus,
+    });
   }
 
   // Delete logic
@@ -231,47 +243,16 @@ export default function InstructorCoursesPage() {
 
   // Send delete request
   async function handleDeleteCourse(courseId: string): Promise<void> {
-    setIsDeleting(true);
-    try {
-      const res: Response = await fetch(
-        `/api/instructor/course?courseId=${courseId}`,
-        {
-          method: 'DELETE',
-        }
-      );
-      if (!res.ok) {
-        setError({
-          errorMsg: 'Failed to delete course, please try again.',
-          onClose: () => {
-            setError(undefined);
-          },
-        });
-      } else {
-        setCourses((prev: ICourse[]) => prev.filter((c) => c._id !== courseId));
-        // Remove the deleted course from the selected course if it was selected
-        if (selectedCourse?._id === courseId) {
-          const remaining: ICourse[] = courses.filter(
-            (c) => c._id !== courseId
-          );
-          setSelectedCourse(remaining.length > 0 ? remaining[0] : null);
-        }
-      }
-    } catch {
-      setError({
-        errorMsg: 'Failed to delete course, please try again.',
-        onClose: () => {
-          setError(undefined);
-        },
-      });
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteModalOpen(false);
-      setCourseToDelete(null);
-    }
+    // Send delete request
+    deleteCourseMutation.mutate(courseId);
+
+    // Close the modal
+    setIsDeleteModalOpen(false);
+    setCourseToDelete(null);
   }
 
   // Show loading component if courses are being fetched
-  if (loadingCourses) {
+  if (isPending) {
     return <Loading />;
   }
 
@@ -279,15 +260,18 @@ export default function InstructorCoursesPage() {
     <main className="flex h-screen overflow-hidden">
       {/* Course List */}
       <div className="w-1/2 overflow-y-auto">
-        <CourseList
-          courses={courses}
-          selectedCourseId={selectedCourse?._id || null}
-          onSelectCourse={(course) => setSelectedCourse(course)}
-        />
+        {fetchedCourses && (
+          <CourseList
+            courses={fetchedCourses.courses}
+            selectedCourseId={selectedCourse?._id || null}
+            onSelectCourse={(course) => setSelectedCourse(course)}
+          />
+        )}
         {/* Pagination Controls */}
         <PaginationControls
           currentPage={page}
           totalPages={totalPages}
+          isPlaceholderData={isPlaceholderData}
           onPageChange={setPage}
         />
       </div>
@@ -300,7 +284,7 @@ export default function InstructorCoursesPage() {
           onPublishToggle={handlePublishToggle}
           onEdit={openEditModal}
           onDelete={openDeleteConfirm}
-          isPublishing={isPublishing}
+          isPublishing={updateCourseStatusMutation.isPending}
         />
       </div>
 
@@ -318,7 +302,7 @@ export default function InstructorCoursesPage() {
           setEditCourse(null);
         }}
         onSaveEdit={handleSaveEdit}
-        isSavingEdit={isSavingEdit}
+        isSavingEdit={updateCourseMutation.isPending}
         editTitle={editTitle}
         setEditTitle={setEditTitle}
         editDesc={editDesc}
@@ -331,7 +315,7 @@ export default function InstructorCoursesPage() {
         courseToDelete={courseToDelete}
         onClose={() => setIsDeleteModalOpen(false)}
         onDelete={handleDeleteCourse}
-        isDeleting={isDeleting}
+        isDeleting={deleteCourseMutation.isPending}
       />
     </main>
   );
