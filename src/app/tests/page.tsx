@@ -2,11 +2,13 @@
 
 import React, { useEffect } from 'react';
 import { fetchAllRepos } from '@/pages/api/fetchAllProjects';
+import { fetchProjectIssues } from '@/pages/api/fetchIssuesWithinProject';
 
 export default function Tests() {
   useEffect(() => {
-    // change the test function here
-    FetchAllProjectsTest();
+    // Change the test function here
+    // FetchAllProjectsTest();
+    // FetchIssuesWithinProjectTest('ailurocamp');
   }, []);
 
   return (
@@ -19,7 +21,6 @@ export default function Tests() {
   );
 }
 
-// fetching all projects
 const FetchAllProjectsTest = () => {
   const fetchData = async () => {
     try {
@@ -29,5 +30,18 @@ const FetchAllProjectsTest = () => {
       console.error('Error fetching repositories:', error);
     }
   };
+  fetchData();
+};
+
+const FetchIssuesWithinProjectTest = (repo: string) => {
+  const fetchData = async () => {
+    try {
+      const issues = await fetchProjectIssues(repo);
+      console.log('Fetched Issues:', issues);
+    } catch (error) {
+      console.error('Error fetching issues:', error);
+    }
+  };
+
   fetchData();
 };
