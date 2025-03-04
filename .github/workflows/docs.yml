@@ -1,0 +1,116 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install Docusaurus
+        run: |
+          cd docs
+          npm init -y
+          npm install @docusaurus/core @docusaurus/preset-classic
+
+      - name: Create necessary directories
+        run: |
+          mkdir -p docs/static/img
+          mkdir -p docs/src/css
+          mkdir -p docs/docs
+
+      - name: Create placeholder files
+        run: |
+          # Create a simple logo
+          echo '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>' > docs/static/img/logo.svg
+
+          # Create favicon
+          cp docs/static/img/logo.svg docs/static/img/favicon.ico
+
+          # Create custom CSS
+          echo ':root {
+            --ifm-color-primary: #3578e5;
+            --ifm-color-primary-dark: #1d68e1;
+            --ifm-color-primary-darker: #1b62d4;
+            --ifm-color-primary-darkest: #1751af;
+            --ifm-color-primary-light: #4e89e8;
+            --ifm-color-primary-lighter: #5a91ea;
+            --ifm-color-primary-lightest: #80aaef;
+          }' > docs/src/css/custom.css
+
+      - name: Prepare documentation files
+        run: |
+          # Copy and rename markdown files to docs directory
+          cp docs/SETUP.md docs/docs/setup.md
+          cp docs/USER_GUIDE.md docs/docs/user-guide.md
+          cp docs/API.md docs/docs/api.md
+          cp docs/ARCHITECTURE.md docs/docs/architecture.md
+
+          # Create index.md
+          echo '---
+          slug: /
+          sidebar_position: 1
+          ---
+
+          # AiluroCamp Documentation
+
+          Welcome to the AiluroCamp Learning Management System documentation.
+
+          ## Available Documentation
+
+          - [Setup Guide](setup.md) - How to set up and deploy AiluroCamp
+          - [User Guide](user-guide.md) - Instructions for students, instructors, and administrators
+          - [API Documentation](api.md) - Details about the available API endpoints
+          - [Architecture](architecture.md) - Technical architecture and design
+
+          ' > docs/docs/index.md
+
+      - name: Build documentation
+        run: |
+          cd docs
+          npx @docusaurus/init@latest init temp-site classic
+          cp -r temp-site/node_modules .
+          cp -r temp-site/package.json .
+          cp -r temp-site/babel.config.js .
+          npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./docs/build
+
+  deploy:
+    environment:
+      name: deployment
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
