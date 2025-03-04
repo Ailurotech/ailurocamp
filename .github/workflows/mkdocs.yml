@@ -1,4 +1,4 @@
-name: Deploy MkDocs
+name: Deploy Documentation
 
 on:
   push:
@@ -37,4 +37,5 @@ jobs:
       - name: Deploy documentation
         run: |
           cd docs
-          mkdocs gh-deploy --force --site-dir site --no-directory-urls
+          # Clean up any existing files in gh-pages branch
+          mkdocs gh-deploy --force --no-directory-urls
