@@ -12,7 +12,7 @@ export default function Tests() {
     // fetchAllProjects();
     // fetchIssuesWithinProjects('ailurocamp');
     // checkRateLimit();
-    listProjectColumns('PVT_kwDOCWE1Yc4AwAI5'); // this is the project_id for 'ailurocamp'
+    // listProjectColumns('PVT_kwDOCWE1Yc4AwAI5'); // this is the project_id for 'ailurocamp'
   }, []);
 
   return (

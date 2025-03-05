@@ -1,8 +1,8 @@
 const GITHUB_GRAPHQL_API = 'https://api.github.com/graphql';
 const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
-export async function fetchIssuesWithinProjects(repo: string) {
-  const query = `
+function fetchfetchIssuesWithinProjectsQuery() {
+  return `
   query FetchIssues($repo: String!) {
     repository(owner: "Ailurotech", name: $repo) {
       issues(first: 100, states: OPEN) {
@@ -25,7 +25,9 @@ export async function fetchIssuesWithinProjects(repo: string) {
     }
   }
   `;
+}
 
+export async function fetchIssuesWithinProjects(repo: string) {
   try {
     const response = await fetch(GITHUB_GRAPHQL_API, {
       method: 'POST',
@@ -33,7 +35,10 @@ export async function fetchIssuesWithinProjects(repo: string) {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query, variables: { repo } }),
+      body: JSON.stringify({
+        query: fetchfetchIssuesWithinProjectsQuery(),
+        variables: { repo },
+      }),
     });
 
     const data = await response.json();
