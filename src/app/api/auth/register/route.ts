@@ -12,7 +12,12 @@ interface RegisterRequest {
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password, roles: initialRoles } = await req.json() as RegisterRequest;
+    const {
+      name,
+      email,
+      password,
+      roles: initialRoles,
+    } = (await req.json()) as RegisterRequest;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -22,9 +27,10 @@ export async function POST(req: Request) {
     }
 
     // Ensure roles is an array and contains at least 'student'
-    const roles = !Array.isArray(initialRoles) || initialRoles.length === 0
-      ? ['student' as UserRole]
-      : initialRoles;
+    const roles =
+      !Array.isArray(initialRoles) || initialRoles.length === 0
+        ? ['student' as UserRole]
+        : initialRoles;
 
     // Validate roles
     const validRoles: UserRole[] = ['admin', 'instructor', 'student'];
@@ -69,7 +75,8 @@ export async function POST(req: Request) {
     );
   } catch (error: Error | unknown) {
     console.error('Registration error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { message: 'Error registering user', error: errorMessage },
       { status: 500 }

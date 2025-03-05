@@ -1,0 +1,102 @@
+site_name: AiluroCamp Documentation
+site_description: Documentation for the AiluroCamp Learning Management System
+site_author: AiluroCamp Team
+site_url: https://ailurotech.github.io/ailurocamp/
+
+# Repository
+repo_name: ailurocamp
+repo_url: https://github.com/ailurotech/ailurocamp
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2023 - 2024 AiluroCamp
+
+# Configuration
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  favicon: assets/favicon.png
+  logo: assets/logo.svg
+  icon:
+    repo: fontawesome/brands/github
+
+# Set docs_dir to the source directory
+docs_dir: source
+
+# Plugins
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight:
+      linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Setup Guide: setup.md
+  - User Guides:
+      - User Guide: user-guide.md
+  - Technical Documentation:
+      - API Documentation: api.md
+      - Architecture: architecture.md
+      - TypeScript Type System: typescript.md
+
+# Extra
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ailurotech/ailurocamp
