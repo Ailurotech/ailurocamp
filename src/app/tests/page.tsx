@@ -11,12 +11,12 @@ import {
 export default function Tests() {
   useEffect(() => {
     // Change the test function here
-    // FetchAllProjectsTest();
+    FetchAllProjectsTest();
     // FetchIssuesWithinProjectTest('ailurocamp');
     // FetchProjectPermissionsTest('7', 'Ailurotech');
-    // addProjectCollaboratorTest({  // project_id is not correct
+    // addProjectCollaboratorTest({
     //   // this project is not right, dont
-    //   projectId: '916372666',
+    //   projectId: '916372666',  // this is the aliproject_id is not correct
     //   username: 'Ailurotech',
     //   permission: 'write',
     // });
