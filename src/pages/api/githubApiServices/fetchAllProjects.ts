@@ -1,7 +1,7 @@
 const GITHUB_GRAPHQL_API = 'https://api.github.com/graphql';
 const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
-export function fetchAllProjectsQuery() {
+function fetchAllProjectsQuery() {
   return `
   {
     organization(login: "Ailurotech") {

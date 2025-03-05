@@ -1,22 +1,52 @@
-const GITHUB_API_URL = 'https://api.github.com';
+const GITHUB_GRAPHQL_API = 'https://api.github.com/graphql';
 const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
-export const fetchProjectIssues = async (repo: string) => {
-  const owner = 'Ailurotech';
-  const response = await fetch(
-    `${GITHUB_API_URL}/repos/${owner}/${repo}/issues`,
-    {
-      method: 'GET',
+export async function fetchIssuesWithinProjects(repo: string) {
+  const query = `
+  query FetchIssues($repo: String!) {
+    repository(owner: "Ailurotech", name: $repo) {
+      issues(first: 100, states: OPEN) {
+        nodes {
+          id
+          title
+          url
+          state
+          createdAt
+          author {
+            login
+          }
+          assignees(first: 5) {
+            nodes {
+              login
+            }
+          }
+        }
+      }
+    }
+  }
+  `;
+
+  try {
+    const response = await fetch(GITHUB_GRAPHQL_API, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
-        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ query, variables: { repo } }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(data.data.repository.issues.nodes);
+      return data.data.repository.issues.nodes;
+    } else {
+      console.error('Error fetching issues:', data);
+      return null;
     }
-  );
-
-  if (!response.ok) {
-    throw new Error(`GitHub API Error: ${response.statusText}`);
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return null;
   }
-
-  return await response.json();
-};
+}
