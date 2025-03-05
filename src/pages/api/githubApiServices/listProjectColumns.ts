@@ -49,8 +49,8 @@ export async function listProjectColumns(projectId: string) {
     const data = await response.json();
 
     if (response.ok) {
-      console.log(data.data.node.fields.nodes[2]); // index=2 stands for kanban board status field
-      return data.data.node.fields.nodes[2].options;
+      console.log(data.data.node.fields.nodes); // only index=2 column has todo, doing and done
+      return data.data.node.fields.nodes;
     } else {
       console.error('Error listing project columns:', data);
       return null;
