@@ -3,6 +3,7 @@
 import { fetchAllProjects } from '@/pages/api/githubApiServices/fetchAllProjects';
 import { fetchIssuesWithinProjects } from '@/pages/api/githubApiServices/fetchIssuesWithinProject';
 import { checkRateLimit } from '@/pages/api/githubApiServices/handleApiRateLimiting';
+import { listProjectColumns } from '@/pages/api/githubApiServices/listProjectColumn';
 import React, { useEffect } from 'react';
 
 export default function Tests() {
@@ -10,7 +11,8 @@ export default function Tests() {
     // Change the test function here
     // fetchAllProjects();
     // fetchIssuesWithinProjects('ailurocamp');
-    checkRateLimit();
+    // checkRateLimit();
+    listProjectColumns('PVT_kwDOCWE1Yc4AwAI5'); // this is the project_id for 'ailurocamp'
   }, []);
 
   return (
