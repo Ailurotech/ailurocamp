@@ -225,7 +225,7 @@ export default function NewCourseForm() {
     formData.append('instructor', session.user.id);
 
     // API request to create a course
-    const res = await fetch('/api/course', {
+    const res = await fetch('/api/instructor/course', {
       method: 'POST',
       body: formData,
     });

@@ -37,7 +37,18 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     const { level }: { level: string[] } = await req.json();
     await connectDB();
-    const levelRes: ILevel = await CourseLevel.create({ level });
+
+    // Check if there is a level exists
+    const existingLevel = await CourseLevel.findOne();
+    let levelRes: ILevel;
+    if (existingLevel) {
+      // Replace the existing level with the new one
+      existingLevel.level = level;
+      levelRes = await existingLevel.save();
+    } else {
+      // Create a new level
+      levelRes = await CourseLevel.create({ level });
+    }
     return NextResponse.json({ levelRes });
   } catch (error: unknown) {
     return NextResponse.json(

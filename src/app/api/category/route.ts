@@ -36,7 +36,18 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     const { category }: { category: string[] } = await req.json();
     await connectDB();
-    const categoryRes: ICategory = await CourseCategory.create({ category });
+
+    // Check if there is a category exists
+    const existingCategory = await CourseCategory.findOne();
+    let categoryRes: ICategory;
+    if (existingCategory) {
+      // Replace the existing category with the new one
+      existingCategory.category = category;
+      categoryRes = await existingCategory.save();
+    } else {
+      // Create a new category
+      categoryRes = await CourseCategory.create({ category });
+    }
     return NextResponse.json({ categoryRes });
   } catch (error: unknown) {
     return NextResponse.json(
