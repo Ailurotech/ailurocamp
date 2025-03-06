@@ -1,7 +1,7 @@
 const GITHUB_GRAPHQL_API = 'https://api.github.com/graphql';
 const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
-function getProjectColumnQuery() {
+function getStatusColumnQuery() {
   return `
   query GetProjectColumn($columnId: ID!) {
     node(id: $columnId) {
@@ -19,7 +19,7 @@ function getProjectColumnQuery() {
   `;
 }
 
-export async function getProjectColumn(columnId: string) {
+export async function getStatusColumn(columnId: string) {
   try {
     const response = await fetch(GITHUB_GRAPHQL_API, {
       method: 'POST',
@@ -28,7 +28,7 @@ export async function getProjectColumn(columnId: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: getProjectColumnQuery(),
+        query: getStatusColumnQuery(),
         variables: { columnId },
       }),
     });

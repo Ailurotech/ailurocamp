@@ -3,11 +3,10 @@ import React, { useEffect } from 'react';
 
 import { fetchAllProjects } from '@/pages/api/githubApiServices/fetchAllProjects';
 import { fetchIssuesWithinProjects } from '@/pages/api/githubApiServices/fetchIssuesWithinProject';
-import { getProjectColumn } from '@/pages/api/githubApiServices/getProjectColumn';
+import { getStatusColumn } from '@/pages/api/githubApiServices/projectColumnManagement/getStatusColumn';
 import { checkRateLimit } from '@/pages/api/githubApiServices/checkApiRateLimiting';
-import { listProjectColumns } from '@/pages/api/githubApiServices/listProjectColumns';
-import { listProjectCards } from '@/pages/api/githubApiServices/listProjectCards';
-import { addDraftIssueToProject } from '@/pages/api/githubApiServices/addDraftIssueToProject';
+import { listProjectColumns } from '@/pages/api/githubApiServices/projectColumnManagement/listProjectColumns';
+import { updateStatusColumn } from '@/pages/api/githubApiServices/projectColumnManagement/updateStatusColumn';
 
 export default function Tests() {
   useEffect(() => {
@@ -16,14 +15,13 @@ export default function Tests() {
     // fetchIssuesWithinProjects('ailurocamp');
     // checkRateLimit();
     // listProjectColumns('PVT_kwDOCWE1Yc4AwAI5'); // this is the project_id for 'ailurocamp'
-    // getProjectColumn('PVTSSF_lADOCWE1Yc4AwAI5zgmV0nY'); // PVTSSF_lADOCWE1Yc4AwAI5zgmV0nY is column_id for todo, doing and done
-    // listProjectCards('PVTSSF_lADOCWE1Yc4AwAI5zgmV0nY');
-    // updateProjectColumn('In Progress', 'Doing');
-    // addDraftIssueToProject(
-    //   'PVT_kwDOCWE1Yc4AwAI5',
-    //   'New Draft Issue Test',
-    //   'This is the body of the draft issue'
-    // ); // go check kanban board of ailurocamp under 'no status' column
+    // getStatusColumn('PVTSSF_lADOCWE1Yc4AwAI5zgmV0nY'); // this is the column_id for todo, doing and dones
+    updateStatusColumn(
+      'PVT_kwDOCWE1Yc4AwAI5',
+      'PVTSSF_lADOCWE1Yc4AwAI5zgmV0nY',
+      '47fc9ee4',
+      'Doing'
+    );
   }, []);
 
   return (
