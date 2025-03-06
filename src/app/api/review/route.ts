@@ -89,7 +89,10 @@ export async function POST(req: NextRequest) {
     // Find the course by ID
     const course = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found.' },
+        { status: 404 }
+      );
     }
 
     // Create a new review
@@ -149,13 +152,19 @@ export async function PUT(req: NextRequest) {
     // Ensure the course exists
     const course = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found.' },
+        { status: 404 }
+      );
     }
 
     // Find the existing review
     const review = await Review.findOne({ courseId, userId });
     if (!review) {
-      return NextResponse.json({ message: 'Review not found.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Review not found.' },
+        { status: 404 }
+      );
     }
     const oldRating = review.rating;
 

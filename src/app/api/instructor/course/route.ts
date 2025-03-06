@@ -60,7 +60,10 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     // Check if the course exists
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     // Check if the course belongs to the instructor
@@ -78,7 +81,10 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
         new: true,
       }
     );
-    return NextResponse.json({ message: 'Course updated successfully', updatedResult });
+    return NextResponse.json({
+      message: 'Course updated successfully',
+      updatedResult,
+    });
   } catch (error: unknown) {
     return NextResponse.json(
       { message: 'Error updating course', error: (error as Error).message },
@@ -103,7 +109,10 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     // Check if the course belongs to the instructor
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
     if (course.instructor.toString() !== session.user.id) {
       return NextResponse.json(
@@ -114,7 +123,10 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
 
     const deletedResult: ICourse | null =
       await Course.findByIdAndDelete(courseId);
-    return NextResponse.json({ message: 'Course deleted successfully', deletedResult });
+    return NextResponse.json({
+      message: 'Course deleted successfully',
+      deletedResult,
+    });
   } catch (error: unknown) {
     return NextResponse.json(
       { message: 'Error deleting course', error: (error as Error).message },
