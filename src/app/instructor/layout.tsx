@@ -34,8 +34,13 @@ export default function InstructorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status, update } = useSession();
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
+
+  // If the session is still loading, show a loading message
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
 
   // Redirect if not instructor
   if (session?.user?.currentRole !== 'instructor') {
@@ -59,6 +64,9 @@ export default function InstructorLayout({
       if (!response.ok) {
         throw new Error('Failed to switch role');
       }
+
+      // update the session
+      await update({ currentRole: role });
 
       // Refresh the page to update the session
       window.location.href =
