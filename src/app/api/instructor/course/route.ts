@@ -11,7 +11,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Authenticate the user
     const session: Session | null = await getServerSession(authOptions);
     if (!session?.user || session?.user?.currentRole !== 'instructor') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     // Get the instructor ID from the search parameters
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ courses, totalCourses, page, limit });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: 'Failed to fetch courses', message: (error as Error).message },
+      { message: 'Failed to fetch courses', error: (error as Error).message },
       { status: 500 }
     );
   }
@@ -49,7 +49,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     // Authenticate the user
     const session: Session | null = await getServerSession(authOptions);
     if (!session?.user || session?.user?.currentRole !== 'instructor') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const searchParams: URLSearchParams = req.nextUrl.searchParams;
@@ -60,13 +60,13 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     // Check if the course exists
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
     }
 
     // Check if the course belongs to the instructor
     if (course.instructor.toString() !== session.user.id) {
       return NextResponse.json(
-        { error: 'The course does not belong to you, you cannot update it.' },
+        { message: 'The course does not belong to you, you cannot update it.' },
         { status: 401 }
       );
     }
@@ -78,10 +78,10 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
         new: true,
       }
     );
-    return NextResponse.json({ updatedResult });
+    return NextResponse.json({ message: 'Course updated successfully', updatedResult });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: 'Error updating course', message: (error as Error).message },
+      { message: 'Error updating course', error: (error as Error).message },
       { status: 500 }
     );
   }
@@ -93,7 +93,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     // Authenticate the user
     const session: Session | null = await getServerSession(authOptions);
     if (!session?.user || session?.user?.currentRole !== 'instructor') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const searchParams: URLSearchParams = req.nextUrl.searchParams;
@@ -103,21 +103,21 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     // Check if the course belongs to the instructor
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
     }
     if (course.instructor.toString() !== session.user.id) {
       return NextResponse.json(
-        { error: 'The course does not belong to you, you cannot delete it.' },
+        { message: 'The course does not belong to you, you cannot delete it.' },
         { status: 401 }
       );
     }
 
     const deletedResult: ICourse | null =
       await Course.findByIdAndDelete(courseId);
-    return NextResponse.json({ deletedResult });
+    return NextResponse.json({ message: 'Course deleted successfully', deletedResult });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: 'Error deleting course', message: (error as Error).message },
+      { message: 'Error deleting course', error: (error as Error).message },
       { status: 500 }
     );
   }

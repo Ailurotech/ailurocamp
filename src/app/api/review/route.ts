@@ -47,7 +47,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ reviews, totalReviews, page, limit });
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to fetch reviews', message: (error as Error).message },
+      { message: 'Failed to fetch reviews', error: (error as Error).message },
       { status: 500 }
     );
   }
@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
     const session: Session | null = await getServerSession(authOptions);
 
     // Authenticate the user
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user || session?.user?.currentRole !== 'student') {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
@@ -68,21 +68,20 @@ export async function POST(req: NextRequest) {
     // Parse the request body
     const body = await req.json();
 
-    // Validate the request body
-    const parsedBody = reviewSchema.safeParse(body);
-    if (!parsedBody.success) {
+    // Check if the required fields are present, comment is optional
+    const { courseId, userId, rating, comment } = body;
+    if (!courseId || !userId || !rating) {
       return NextResponse.json(
-        { error: parsedBody.error.errors[0].message },
+        { message: 'Missing required fields courseId, uerId or rating.' },
         { status: 400 }
       );
     }
 
-    const { courseId, userId, rating, comment } = parsedBody.data;
-
-    // Check if the required fields are present, comment is optional
-    if (!courseId || !rating) {
+    // Validate the request body
+    const parsedBody = reviewSchema.safeParse(body);
+    if (!parsedBody.success) {
       return NextResponse.json(
-        { error: 'Missing required fields courseId or rating.' },
+        { message: parsedBody.error.errors[0].message },
         { status: 400 }
       );
     }
@@ -90,7 +89,7 @@ export async function POST(req: NextRequest) {
     // Find the course by ID
     const course = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ error: 'Course not found.' }, { status: 404 });
+      return NextResponse.json({ message: 'Course not found.' }, { status: 404 });
     }
 
     // Create a new review
@@ -104,12 +103,12 @@ export async function POST(req: NextRequest) {
     await course.save();
 
     return NextResponse.json(
-      { error: 'Review added successfully.', review },
+      { message: 'Review added successfully.', review },
       { status: 201 }
     );
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: 'Error adding review.', message: (error as Error).message },
+      { message: 'Error adding review.', error: (error as Error).message },
       { status: 500 }
     );
   }
@@ -120,28 +119,29 @@ export async function PUT(req: NextRequest) {
   try {
     // Authenticate the user
     const session: Session | null = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user || session?.user?.currentRole !== 'student') {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
 
     // Parse the request body
     const body = await req.json();
-    const parsedBody = reviewSchema.safeParse(body);
-    if (!parsedBody.success) {
+
+    // Check if the required fields are present, comment is optional
+    const { courseId, userId, rating, comment } = body;
+    if (!courseId || !userId || !rating) {
       return NextResponse.json(
-        { error: parsedBody.error.errors[0].message },
+        { message: 'Missing required fields courseId, userId or rating.' },
         { status: 400 }
       );
     }
 
-    const { courseId, userId, rating, comment } = parsedBody.data;
-
-    // Check if the required fields are present
-    if (!courseId || !rating || !comment) {
+    const parsedBody = reviewSchema.safeParse(body);
+    if (!parsedBody.success) {
+      console.log(parsedBody.error.errors[0].message);
       return NextResponse.json(
-        { error: 'Missing required fields courseId, rating or comment.' },
+        { message: parsedBody.error.errors[0].message },
         { status: 400 }
       );
     }
@@ -149,13 +149,13 @@ export async function PUT(req: NextRequest) {
     // Ensure the course exists
     const course = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ error: 'Course not found.' }, { status: 404 });
+      return NextResponse.json({ message: 'Course not found.' }, { status: 404 });
     }
 
     // Find the existing review
     const review = await Review.findOne({ courseId, userId });
     if (!review) {
-      return NextResponse.json({ error: 'Review not found.' }, { status: 404 });
+      return NextResponse.json({ message: 'Review not found.' }, { status: 404 });
     }
     const oldRating = review.rating;
 
@@ -170,12 +170,12 @@ export async function PUT(req: NextRequest) {
     await course.save();
 
     return NextResponse.json(
-      { error: 'Review updated successfully.', review },
+      { message: 'Review updated successfully.', review },
       { status: 200 }
     );
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: 'Error updating review.', message: (error as Error).message },
+      { message: 'Error updating review.', error: (error as Error).message },
       { status: 500 }
     );
   }
