@@ -49,3 +49,44 @@ The application will be available at [http://localhost:3000](http://localhost:30
 ## Deployment
 
 For deployment instructions, please refer to the [GitHub Pages deployment guide](https://nextjs.org/docs/deployment#github-pages).
+
+## Deploying to Vercel
+
+AiluroCamp is configured for deployment on Vercel, which offers excellent support for Next.js applications including API routes and server components.
+
+### Deployment Steps
+
+1. **Push your code to GitHub**
+   - Ensure your repository is up to date on GitHub
+
+2. **Connect to Vercel**
+   - Go to [Vercel](https://vercel.com) and sign up or log in
+   - Click "Add New..." and select "Project" 
+   - Import your GitHub repository
+   - Vercel will automatically detect Next.js settings
+
+3. **Configure Project Settings**
+   - Configure environment variables if needed
+   - Leave build settings as default (Vercel auto-detects Next.js)
+   - Click "Deploy"
+
+4. **Access Your Deployed Site**
+   - Once deployment is complete, Vercel provides a URL to access your site
+   - You can configure a custom domain in the Vercel project settings
+
+### Benefits of Vercel Deployment
+
+- Full support for Next.js features including API routes and server components
+- Automatic HTTPS
+- Preview deployments for pull requests
+- Easy rollbacks
+- Performance monitoring and analytics
+- Global CDN for fast content delivery
+
+### Continuous Deployment
+
+Vercel automatically deploys your site when changes are pushed to your main branch. To enable this:
+
+1. Ensure your GitHub repository is connected to Vercel
+2. Push changes to your main branch
+3. Vercel will automatically build and deploy the changes
