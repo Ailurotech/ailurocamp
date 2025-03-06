@@ -119,46 +119,43 @@ Create a new course (instructor only).
 **Request Body:**
 
 Form-data
-| key         | type | value |
+| key | type | value |
 |-------------|------|-------|
-| title       | text | Introduction to Programming |
+| title | text | Introduction to Programming |
 | description | text | Learn the basics of programming |
-| category    | text | Backend |
-| level       | text | beginner |
-| price       | text | 23 |
-| thumbnail   | File | File |
-| tags        | text | language, C |
-| status      | text | published |
-| instructor  | text | instructor_id |
+| category | text | Backend |
+| level | text | beginner |
+| price | text | 23 |
+| thumbnail | File | File |
+| tags | text | language, C |
+| status | text | published |
+| instructor | text | instructor_id |
 
 **Response:**
 
 ```json
 {
-    "savedCourse": {
-        "title": "Introduction to Programming",
-        "description": "Learn the basics of programming",
-        "instructor": "67a339173c989ad84f1603bc",
-        "thumbnail": "public/images/Introduction to Programming_67c972de1d086dfbf3cc9e2d.png",
-        "modules": [],
-        "enrolledStudents": [],
-        "price": 23,
-        "category": "Backend",
-        "level": "beginner",
-        "status": "published",
-        "averageRating": 0,
-        "revenue": 0,
-        "tags": [
-            "language",
-            "C"
-        ],
-        "ratingCount": 0,
-        "ratingSum": 0,
-        "_id": "67c972de1d086dfbf3cc9e2d",
-        "createdAt": "2025-03-06T10:03:10.189Z",
-        "updatedAt": "2025-03-06T10:03:10.208Z",
-        "__v": 0
-    }
+  "savedCourse": {
+    "title": "Introduction to Programming",
+    "description": "Learn the basics of programming",
+    "instructor": "67a339173c989ad84f1603bc",
+    "thumbnail": "public/images/Introduction to Programming_67c972de1d086dfbf3cc9e2d.png",
+    "modules": [],
+    "enrolledStudents": [],
+    "price": 23,
+    "category": "Backend",
+    "level": "beginner",
+    "status": "published",
+    "averageRating": 0,
+    "revenue": 0,
+    "tags": ["language", "C"],
+    "ratingCount": 0,
+    "ratingSum": 0,
+    "_id": "67c972de1d086dfbf3cc9e2d",
+    "createdAt": "2025-03-06T10:03:10.189Z",
+    "updatedAt": "2025-03-06T10:03:10.208Z",
+    "__v": 0
+  }
 }
 ```
 
@@ -167,18 +164,16 @@ Form-data
 Get all categories.
 
 **Response:**
+
 ```json
 {
-    "categories": [
-        {
-            "_id": "67c06924f17bc6772b934dae",
-            "category": [
-                "Frontend",
-                "Backend"
-            ],
-            "__v": 0
-        }
-    ]
+  "categories": [
+    {
+      "_id": "67c06924f17bc6772b934dae",
+      "category": ["Frontend", "Backend"],
+      "__v": 0
+    }
+  ]
 }
 ```
 
@@ -190,7 +185,7 @@ Create a new category (admin only)
 
 ```json
 {
-    "category": ["Frontend", "Backend", "Fullstack"]
+  "category": ["Frontend", "Backend", "Fullstack"]
 }
 ```
 
@@ -198,15 +193,11 @@ Create a new category (admin only)
 
 ```json
 {
-    "categoryRes": {
-        "category": [
-            "Frontend",
-            "Backend",
-            "Fullstack"
-        ],
-        "_id": "67c94cf41d086dfbf3cc9e1e",
-        "__v": 0
-    }
+  "categoryRes": {
+    "category": ["Frontend", "Backend", "Fullstack"],
+    "_id": "67c94cf41d086dfbf3cc9e1e",
+    "__v": 0
+  }
 }
 ```
 
@@ -215,19 +206,16 @@ Create a new category (admin only)
 Get all levels.
 
 **Response:**
+
 ```json
 {
-    "levels": [
-        {
-            "_id": "67c06940f17bc6772b934db0",
-            "level": [
-                "beginner",
-                "middle",
-                "advanced"
-            ],
-            "__v": 0
-        }
-    ]
+  "levels": [
+    {
+      "_id": "67c06940f17bc6772b934db0",
+      "level": ["beginner", "middle", "advanced"],
+      "__v": 0
+    }
+  ]
 }
 ```
 
@@ -239,11 +227,7 @@ Create a new category (admin only)
 
 ```json
 {
-    "level" : [
-        "beginner",
-        "middle",
-        "advanced"
-    ]
+  "level": ["beginner", "middle", "advanced"]
 }
 ```
 
@@ -251,15 +235,11 @@ Create a new category (admin only)
 
 ```json
 {
-    "levelRes": {
-        "level": [
-            "beginner",
-            "middle",
-            "advanced"
-        ],
-        "_id": "67c94ec51d086dfbf3cc9e23",
-        "__v": 0
-    }
+  "levelRes": {
+    "level": ["beginner", "middle", "advanced"],
+    "_id": "67c94ec51d086dfbf3cc9e23",
+    "__v": 0
+  }
 }
 ```
 
