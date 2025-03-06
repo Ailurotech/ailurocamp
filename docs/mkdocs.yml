@@ -94,6 +94,8 @@ nav:
       - API Documentation: api.md
       - Architecture: architecture.md
       - TypeScript Type System: typescript.md
+  - Development:
+      - Code Review Process: code-review.md
 
 # Extra
 extra:
