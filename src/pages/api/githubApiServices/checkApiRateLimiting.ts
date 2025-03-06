@@ -14,9 +14,7 @@ export async function checkRateLimit() {
     const data = await response.json();
 
     if (response.ok) {
-      console.log(`Rate Limit: ${data.rate.limit}`);
-      console.log(`Remaining: ${data.rate.remaining}`);
-      console.log(`Resets At: ${new Date(data.rate.reset * 1000)}`);
+      console.log(data.rate);
       return data.rate;
     } else {
       console.error('Error checking rate limit:', data);
