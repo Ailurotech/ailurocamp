@@ -1,13 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable static exports for GitHub Pages
-  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
+  // Disable static exports for now since we have API routes
+  output: undefined,
 
   // Set the base path for GitHub Pages
   basePath: process.env.NODE_ENV === 'production' ? '/ailurocamp' : '',
 
-  // Disable image optimization for static export
-  images: process.env.NODE_ENV === 'production' ? { unoptimized: true } : {},
+  // Configure images
+  // images: {
+  //   domains: ['ailurotech.com'], // Add any image domains you need
+  // },
 
   // Other Next.js config options
   reactStrictMode: true,
