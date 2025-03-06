@@ -7,16 +7,11 @@ import { getStatusColumn } from '@/pages/api/githubApiServices/projectColumnMana
 import { checkRateLimit } from '@/pages/api/githubApiServices/checkApiRateLimiting';
 import { listProjectColumns } from '@/pages/api/githubApiServices/projectColumnManagement/listProjectColumns';
 import { updateStatusColumn } from '@/pages/api/githubApiServices/projectColumnManagement/updateStatusColumn';
-import {
-  addDraftIssueToProject,
-  addIssueToProject,
-  createIssue,
-  getRepositoryId,
-} from '@/pages/api/githubApiServices/projectTicketManagement/addTicketToProject';
+import { addIssueToProject } from '@/pages/api/githubApiServices/projectTicketManagement/addTicketToProject';
 
 export default function Tests() {
+  // Change the test function here
   useEffect(() => {
-    // Change the test function here
     // fetchAllProjects();
     // fetchIssuesWithinProjects('ailurocamp');
     // checkRateLimit();
@@ -24,7 +19,7 @@ export default function Tests() {
     // getStatusColumn('PVTSSF_lADOCWE1Yc4AwAI5zgmV0nY'); // this is the column_id for todo, doing and dones
     // createIssue('R_kgDONp68ug', 'Test: add issue', 'Test issue body'); // this is the repoId for 'ailurocamp', fetched by getRepoId func
     // addTicketToProject('PVT_kwDOCWE1Yc4AwAI5', 'Test: add ticket', 'Test body');
-    addIssueToProject('PVT_kwDOCWE1Yc4AwAI5', 'I_kwDONp68us6s51EL');
+    // addIssueToProject('PVT_kwDOCWE1Yc4AwAI5', 'I_kwDONp68us6s51EL');
   }, []);
 
   return (
