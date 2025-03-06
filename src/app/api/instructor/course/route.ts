@@ -159,10 +159,10 @@ export async function POST(req: Request): Promise<Response> {
       await savedCourse.save();
     }
 
-    return NextResponse.json({ savedCourse }, { status: 201 });
+    return NextResponse.json({ message: 'Course created successfully', savedCourse }, { status: 201 });
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: 'Failed to create course', message: (error as Error).message },
+      { message: 'Failed to create course', error: (error as Error).message },
       { status: 500 }
     );
   }

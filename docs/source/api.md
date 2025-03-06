@@ -121,25 +121,26 @@ Create a new course (instructor only).
 Form-data
 | key | type | value |
 |-------------|------|-------|
-| title | text | Introduction to Programming |
-| description | text | Learn the basics of programming |
-| category | text | Backend |
-| level | text | beginner |
-| price | text | 23 |
+| title | Text | Introduction to Programming |
+| description | Text | Learn the basics of programming |
+| category | Text | Backend |
+| level | Text | beginner |
+| price | Text | 23 |
 | thumbnail | File | File |
-| tags | text | language, C |
-| status | text | published |
-| instructor | text | instructor_id |
+| tags | Text | language, C |
+| status | Text | published |
+| instructor | Text | instructor_id |
 
 **Response:**
 
 ```json
 {
+  "message": "Course created successfully",
   "savedCourse": {
     "title": "Introduction to Programming",
     "description": "Learn the basics of programming",
-    "instructor": "67a339173c989ad84f1603bc",
-    "thumbnail": "public/images/Introduction to Programming_67c972de1d086dfbf3cc9e2d.png",
+    "instructor": "instructor_id",
+    "thumbnail": "image path",
     "modules": [],
     "enrolledStudents": [],
     "price": 23,
@@ -151,7 +152,7 @@ Form-data
     "tags": ["language", "C"],
     "ratingCount": 0,
     "ratingSum": 0,
-    "_id": "67c972de1d086dfbf3cc9e2d",
+    "_id": "course_id",
     "createdAt": "2025-03-06T10:03:10.189Z",
     "updatedAt": "2025-03-06T10:03:10.208Z",
     "__v": 0
@@ -169,7 +170,7 @@ Get all categories.
 {
   "categories": [
     {
-      "_id": "67c06924f17bc6772b934dae",
+      "_id": "category_id",
       "category": ["Frontend", "Backend"],
       "__v": 0
     }
@@ -193,9 +194,10 @@ Create a new category (admin only)
 
 ```json
 {
+  "message": "Category created successfully",
   "categoryRes": {
     "category": ["Frontend", "Backend", "Fullstack"],
-    "_id": "67c94cf41d086dfbf3cc9e1e",
+    "_id": "category_id",
     "__v": 0
   }
 }
@@ -211,7 +213,7 @@ Get all levels.
 {
   "levels": [
     {
-      "_id": "67c06940f17bc6772b934db0",
+      "_id": "level_id",
       "level": ["beginner", "middle", "advanced"],
       "__v": 0
     }
@@ -221,7 +223,7 @@ Get all levels.
 
 ### POST /api/level
 
-Create a new category (admin only)
+Create a new level (admin only)
 
 **Request Body:**
 
@@ -235,9 +237,10 @@ Create a new category (admin only)
 
 ```json
 {
+  "message": "Level created successfully",
   "levelRes": {
     "level": ["beginner", "middle", "advanced"],
-    "_id": "67c94ec51d086dfbf3cc9e23",
+    "_id": "level_id",
     "__v": 0
   }
 }

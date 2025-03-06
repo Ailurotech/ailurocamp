@@ -48,7 +48,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       // Create a new category
       categoryRes = await CourseCategory.create({ category });
     }
-    return NextResponse.json({ categoryRes });
+    return NextResponse.json({ message:"Category created successfully", categoryRes });
   } catch (error: unknown) {
     return NextResponse.json(
       { message: 'Error creating category', error: (error as Error).message },
