@@ -49,7 +49,10 @@ export async function POST(req: Request): Promise<NextResponse> {
       // Create a new level
       levelRes = await CourseLevel.create({ level });
     }
-    return NextResponse.json({ message: 'Level created successfully', levelRes });
+    return NextResponse.json({
+      message: 'Level created successfully',
+      levelRes,
+    });
   } catch (error: unknown) {
     return NextResponse.json(
       { message: 'Error creating level', error: (error as Error).message },
