@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
-import Course from '@/models/Course';
+import Course, { ICourse } from '@/models/Course';
 import { z } from 'zod';
 import path from 'path';
 import fs from 'fs';
@@ -12,7 +12,9 @@ import { promisify } from 'util';
 import { Readable } from 'stream';
 import CourseCategory from '@/models/CourseCategory';
 import CourseLevel from '@/models/CourseLevel';
-import type { ICategory, ILevel, ICourseFormData } from '@/types/course';
+import type { ICourseFormData } from '@/types/course';
+import type { ICategory } from '@/models/CourseCategory';
+import type { ILevel } from '@/models/CourseLevel';
 
 // Promisify the pipeline function
 const pipelineAsync: (
@@ -133,8 +135,8 @@ export async function POST(req: Request): Promise<Response> {
     };
 
     // Create a new course
-    const newCourse = new Course(courseData);
-    const savedCourse = await newCourse.save();
+    const newCourse: ICourse = new Course(courseData);
+    const savedCourse: ICourse = await newCourse.save();
 
     // If a thumbnail is provided, store it in public/images with a name based on the courseId
     if (thumbnail && thumbnail.size > 0) {

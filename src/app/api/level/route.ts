@@ -4,7 +4,7 @@ import connectDB from '@/lib/mongodb';
 import CourseLevel from '@/models/CourseLevel';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import type { ILevel } from '@/types/course';
+import type { ILevel } from '@/models/CourseLevel';
 
 // Fetch all levels
 export async function GET(): Promise<NextResponse> {
@@ -39,7 +39,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     await connectDB();
 
     // Check if there is a level exists
-    const existingLevel = await CourseLevel.findOne();
+    const existingLevel: ILevel | null = await CourseLevel.findOne();
     let levelRes: ILevel;
     if (existingLevel) {
       // Replace the existing level with the new one

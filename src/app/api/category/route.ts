@@ -3,7 +3,7 @@ import connectDB from '@/lib/mongodb';
 import CourseCategory from '@/models/CourseCategory';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import type { ICategory } from '@/types/course';
+import type { ICategory } from '@/models/CourseCategory';
 
 // Fetch all categories
 export async function GET(): Promise<NextResponse> {
@@ -38,7 +38,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     await connectDB();
 
     // Check if there is a category exists
-    const existingCategory = await CourseCategory.findOne();
+    const existingCategory: ICategory | null = await CourseCategory.findOne();
     let categoryRes: ICategory;
     if (existingCategory) {
       // Replace the existing category with the new one
