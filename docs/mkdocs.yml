@@ -90,6 +90,7 @@ nav:
       - Setup Guide: setup.md
   - User Guides:
       - User Guide: user-guide.md
+      - Kanban Board: board-guide.md
   - Technical Documentation:
       - API Documentation: api.md
       - Architecture: architecture.md

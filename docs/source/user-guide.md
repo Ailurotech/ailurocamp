@@ -31,3 +31,7 @@ This guide provides instructions for using the AiluroCamp Learning Management Sy
 - Notifications
 - Messaging
 - Mobile access
+
+## Project Management
+
+- [Kanban Board](board-guide.md) - Track projects and issues using GitHub Projects integration
