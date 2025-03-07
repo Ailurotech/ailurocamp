@@ -87,7 +87,10 @@ export async function POST(req: Request) {
         },
       });
     } catch (error) {
-      console.error('Error creating project:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        'Error creating project:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       return NextResponse.json(
         {
           error: 'Error creating project',
@@ -97,7 +100,10 @@ export async function POST(req: Request) {
       );
     }
   } catch (error) {
-    console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      'Error:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

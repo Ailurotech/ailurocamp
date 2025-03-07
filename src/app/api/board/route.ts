@@ -150,12 +150,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json() as RequestBody;
+    const body = (await req.json()) as RequestBody;
     const { action, ...params } = body;
 
     switch (action) {
       case 'moveCard': {
-        const { cardId, columnId, position, isV2, fieldId } = params as MoveCardParams;
+        const { cardId, columnId, position, isV2, fieldId } =
+          params as MoveCardParams;
         const result = await githubService.moveCard(
           cardId,
           columnId,
