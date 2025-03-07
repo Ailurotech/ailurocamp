@@ -295,6 +295,118 @@ Create a new assignment (instructor only).
 }
 ```
 
+## Kanban Board Endpoints
+
+### GET /api/board
+
+Get all GitHub projects for the authenticated user.
+
+**Response:**
+
+```json
+{
+  "projects": [
+    {
+      "id": 12345678,
+      "name": "Development Project",
+      "isV2": true,
+      "orgProject": true
+    }
+  ]
+}
+```
+
+### GET /api/board?projectId=12345678
+
+Get columns and cards for a specific GitHub project.
+
+**Query Parameters:**
+
+- `projectId` (required): The ID of the GitHub project to retrieve
+
+**Response:**
+
+```json
+{
+  "columns": [
+    {
+      "id": "1234",
+      "name": "To Do",
+      "cards": [
+        {
+          "id": "5678",
+          "title": "Fix login bug",
+          "note": "Users are experiencing issues with login on mobile devices",
+          "content_url": "https://github.com/owner/repo/issues/123",
+          "created_at": "2023-07-01T10:00:00Z",
+          "number": 123
+        }
+      ]
+    },
+    {
+      "id": "2345",
+      "name": "In Progress",
+      "cards": []
+    },
+    {
+      "id": "3456",
+      "name": "Done",
+      "cards": []
+    }
+  ]
+}
+```
+
+### POST /api/board
+
+Create a new issue or move a card between columns.
+
+**Request Body for Creating an Issue:**
+
+```json
+{
+  "action": "createIssue",
+  "title": "Fix navigation menu",
+  "body": "The navigation menu is not responsive on mobile devices",
+  "labels": ["bug", "frontend"]
+}
+```
+
+**Response for Creating an Issue:**
+
+```json
+{
+  "success": true,
+  "issue": {
+    "id": 987654321,
+    "number": 124,
+    "title": "Fix navigation menu",
+    "url": "https://github.com/owner/repo/issues/124"
+  }
+}
+```
+
+**Request Body for Moving a Card:**
+
+```json
+{
+  "action": "moveCard",
+  "cardId": "5678",
+  "columnId": "2345",
+  "position": "top",
+  "isV2": true,
+  "fieldId": "field_123"
+}
+```
+
+**Response for Moving a Card:**
+
+```json
+{
+  "success": true
+}
+```
+
 ## Error Handling
 
 All API endpoints follow a consistent error response format:
