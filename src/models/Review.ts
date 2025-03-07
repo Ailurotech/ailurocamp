@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-interface IReview extends mongoose.Document {
+export interface IReview extends mongoose.Document {
   courseId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   comment?: string;

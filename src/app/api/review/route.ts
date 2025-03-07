@@ -4,7 +4,17 @@ import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Course from '@/models/Course';
 import Review from '@/models/Review';
+import type { ICourse } from '@/models/Course';
+import type { IReview } from '@/models/Review';
 import { z } from 'zod';
+
+// Define a type for review request
+interface IReviewApiRequest {
+  courseId: string;
+  userId: string;
+  rating: number;
+  comment?: string;
+}
 
 // Define a Zod schema for review input validation
 const reviewSchema = z.object({
@@ -33,7 +43,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const skip: number = (page - 1) * limit;
 
     // Get total count of reviews for pagination controls
-    const totalReviews = await Review.countDocuments({ courseId });
+    const totalReviews: number = await Review.countDocuments({ courseId });
 
     // Find reviews for the course
     const reviews = await Review.find({ courseId })
@@ -66,10 +76,10 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     // Parse the request body
-    const body = await req.json();
+    const body: IReviewApiRequest = await req.json();
 
     // Check if the required fields are present, comment is optional
-    const { courseId, userId, rating, comment } = body;
+    const { courseId, userId, rating, comment }: IReviewApiRequest = body;
     if (!courseId || !userId || !rating) {
       return NextResponse.json(
         { message: 'Missing required fields courseId, uerId or rating.' },
@@ -87,7 +97,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Find the course by ID
-    const course = await Course.findById(courseId);
+    const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
       return NextResponse.json(
         { message: 'Course not found.' },
@@ -96,7 +106,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create a new review
-    const review = new Review({ rating, comment, courseId, userId });
+    const review: IReview = new Review({ rating, comment, courseId, userId });
     await review.save();
 
     // Update the course's rating
@@ -129,7 +139,7 @@ export async function PUT(req: NextRequest) {
     await connectDB();
 
     // Parse the request body
-    const body = await req.json();
+    const body: IReview = await req.json();
 
     // Check if the required fields are present, comment is optional
     const { courseId, userId, rating, comment } = body;
@@ -140,9 +150,9 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Validate the request body
     const parsedBody = reviewSchema.safeParse(body);
     if (!parsedBody.success) {
-      console.log(parsedBody.error.errors[0].message);
       return NextResponse.json(
         { message: parsedBody.error.errors[0].message },
         { status: 400 }
@@ -150,7 +160,7 @@ export async function PUT(req: NextRequest) {
     }
 
     // Ensure the course exists
-    const course = await Course.findById(courseId);
+    const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
       return NextResponse.json(
         { message: 'Course not found.' },
@@ -159,14 +169,14 @@ export async function PUT(req: NextRequest) {
     }
 
     // Find the existing review
-    const review = await Review.findOne({ courseId, userId });
+    const review: IReview | null = await Review.findOne({ courseId, userId });
     if (!review) {
       return NextResponse.json(
         { message: 'Review not found.' },
         { status: 404 }
       );
     }
-    const oldRating = review.rating;
+    const oldRating: number = review.rating;
 
     // Update the review
     review.rating = rating;
