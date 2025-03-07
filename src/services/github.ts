@@ -39,11 +39,11 @@ export async function getProjects() {
     console.log(
       `Attempting to fetch projects for ${owner} organization and ${repo} repository...`
     );
-    
+
     // New: Try fetching organization projects v2 first (this is likely what the user has)
     try {
       console.log(`Querying organization projects V2 for ${owner}...`);
-      
+
       const graphqlQuery = `
       query {
         organization(login: "${owner}") {
@@ -56,30 +56,42 @@ export async function getProjects() {
           }
         }
       }`;
-      
-      const response = await octokit.graphql(graphqlQuery) as OrgProjectsResponse;
+
+      const response = (await octokit.graphql(
+        graphqlQuery
+      )) as OrgProjectsResponse;
       console.log('GraphQL response:', JSON.stringify(response, null, 2));
-      
-      if (response?.organization?.projectsV2?.nodes && response.organization.projectsV2.nodes.length > 0) {
-        console.log(`Found ${response.organization.projectsV2.nodes.length} organization projects v2`);
-        
+
+      if (
+        response?.organization?.projectsV2?.nodes &&
+        response.organization.projectsV2.nodes.length > 0
+      ) {
+        console.log(
+          `Found ${response.organization.projectsV2.nodes.length} organization projects v2`
+        );
+
         // Format projects to match the classic projects API format
-        const formattedProjects = response.organization.projectsV2.nodes.map((project: ProjectNode) => ({
-          id: project.number, // Use number as ID since it's more accessible
-          name: project.title,
-          body: '',
-          isV2: true,
-          orgProject: true
-        }));
-        
+        const formattedProjects = response.organization.projectsV2.nodes.map(
+          (project: ProjectNode) => ({
+            id: project.number, // Use number as ID since it's more accessible
+            name: project.title,
+            body: '',
+            isV2: true,
+            orgProject: true,
+          })
+        );
+
         return formattedProjects;
       } else {
         console.log('No organization projects v2 found');
       }
     } catch (graphqlError) {
-      console.error('Error fetching organization projects v2:', graphqlError instanceof Error ? graphqlError.message : 'Unknown error');
+      console.error(
+        'Error fetching organization projects v2:',
+        graphqlError instanceof Error ? graphqlError.message : 'Unknown error'
+      );
     }
-    
+
     // Fallback to classic projects API if no v2 projects found
     try {
       console.log('Attempting to fetch repository classic projects (v1)...');
@@ -131,7 +143,10 @@ export async function getProjects() {
     console.log('No projects found after all attempts');
     return [];
   } catch (error: any) {
-    console.error('Error in getProjects:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      'Error in getProjects:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return [];
   }
 }
@@ -289,7 +304,9 @@ export async function getProjectColumns(projectId: number) {
         }
       }`;
 
-      const projectData = await octokit.graphql(projectQuery) as ProjectV2Response;
+      const projectData = (await octokit.graphql(
+        projectQuery
+      )) as ProjectV2Response;
 
       // Save the raw project data for debugging
       console.log(
@@ -304,13 +321,16 @@ export async function getProjectColumns(projectId: number) {
 
       // 1. Log all fields to help debug
       console.log('Project fields:');
-      const allFields = projectData?.organization?.projectV2?.fields?.nodes || [];
-      allFields.forEach(field => {
-        console.log(`  Field: ${field.name} (${field.dataType || 'unknown type'})`);
+      const allFields =
+        projectData?.organization?.projectV2?.fields?.nodes || [];
+      allFields.forEach((field) => {
+        console.log(
+          `  Field: ${field.name} (${field.dataType || 'unknown type'})`
+        );
         if (field.options) {
           console.log(
             '    Options:',
-            field.options.map(option => option.name).join(', ')
+            field.options.map((option) => option.name).join(', ')
           );
         }
       });
@@ -326,10 +346,10 @@ export async function getProjectColumns(projectId: number) {
       // Collect all field names that have single select values
       const fieldValueCounts: Record<string, Set<string>> = {};
 
-      projectData?.organization?.projectV2?.items?.nodes?.forEach(item => {
+      projectData?.organization?.projectV2?.items?.nodes?.forEach((item) => {
         if (!item.fieldValues?.nodes) return;
-        
-        item.fieldValues.nodes.forEach(value => {
+
+        item.fieldValues.nodes.forEach((value) => {
           // Only interested in fields with names and single select values
           if (value && value.field && value.field.name && value.name) {
             const fieldName = value.field.name;
@@ -476,7 +496,10 @@ export async function getProjectColumns(projectId: number) {
         'CRITICAL: Could not find any usable fields to build columns!'
       );
     } catch (graphqlError: any) {
-      console.error('Error fetching Project V2 data:', graphqlError instanceof Error ? graphqlError.message : 'Unknown error');
+      console.error(
+        'Error fetching Project V2 data:',
+        graphqlError instanceof Error ? graphqlError.message : 'Unknown error'
+      );
       console.error('GraphQL Error Details:', graphqlError);
     }
 
@@ -484,25 +507,27 @@ export async function getProjectColumns(projectId: number) {
     console.log('Fallback to classic projects API...');
     try {
       console.log('Attempting to fetch project columns for classic project...');
-      
+
       const columnsResponse = await octokit.rest.projects.listColumns({
         project_id: projectId,
       });
-      
+
       console.log(`Found ${columnsResponse.data.length} columns`);
-      
+
       // Get cards for each column
       const columns = await Promise.all(
         columnsResponse.data.map(async (column: any) => {
           console.log(`Fetching cards for column: ${column.name}`);
-          
+
           // Get cards for this column
           const cardsResponse = await octokit.rest.projects.listCards({
             column_id: column.id,
           });
-          
-          console.log(`Found ${cardsResponse.data.length} cards in column ${column.name}`);
-          
+
+          console.log(
+            `Found ${cardsResponse.data.length} cards in column ${column.name}`
+          );
+
           // Process cards to extract note and url
           const cards = await Promise.all(
             cardsResponse.data.map(async (card: any) => {
@@ -511,7 +536,7 @@ export async function getProjectColumns(projectId: number) {
                 if (card.content_url) {
                   const parts = new URL(card.content_url).pathname.split('/');
                   const issue_number = parts[parts.length - 1];
-                  
+
                   try {
                     // Try to get issue details
                     const issueResponse = await octokit.rest.issues.get({
@@ -519,64 +544,75 @@ export async function getProjectColumns(projectId: number) {
                       repo,
                       issue_number: parseInt(issue_number),
                     });
-                    
+
                     const issue = issueResponse.data;
-                    
+
                     return {
                       id: card.id,
                       note: issue.body || '',
                       content_url: card.content_url,
                       title: issue.title,
                       created_at: issue.created_at,
-                      number: issue.number
+                      number: issue.number,
                     };
                   } catch (issueError) {
-                    console.error(`Error getting issue details: ${card.content_url}`, 
-                      issueError instanceof Error ? issueError.message : 'Unknown error');
-                    
+                    console.error(
+                      `Error getting issue details: ${card.content_url}`,
+                      issueError instanceof Error
+                        ? issueError.message
+                        : 'Unknown error'
+                    );
+
                     // Return basic card info if issue details can't be fetched
                     return {
                       id: card.id,
                       note: card.note || '',
                       content_url: card.content_url || '',
-                      created_at: new Date().toISOString()
+                      created_at: new Date().toISOString(),
                     };
                   }
                 }
-                
+
                 // Return note card (non-issue)
                 return {
                   id: card.id,
                   note: card.note || '',
                   content_url: card.content_url || '',
-                  created_at: new Date().toISOString()
+                  created_at: new Date().toISOString(),
                 };
               } catch (cardError) {
-                console.error('Error processing card:', 
-                  cardError instanceof Error ? cardError.message : 'Unknown error');
-                
+                console.error(
+                  'Error processing card:',
+                  cardError instanceof Error
+                    ? cardError.message
+                    : 'Unknown error'
+                );
+
                 // Fallback to basic card info
                 return {
                   id: card.id,
                   note: card.note || '',
                   content_url: card.content_url || '',
-                  created_at: new Date().toISOString()
+                  created_at: new Date().toISOString(),
                 };
               }
             })
           );
-          
+
           return {
             id: column.id,
             name: column.name,
-            cards
+            cards,
           };
         })
       );
 
       return columns;
     } catch (restError) {
-      console.error('Error fetching classic project columns:', restError instanceof Error ? restError.message : 'Unknown error');
+      console.error(
+        'Error fetching classic project columns:',
+        restError instanceof Error ? restError.message : 'Unknown error'
+      );
 
       // Last resort - create some default columns
       console.log('Creating default columns as last resort...');
@@ -587,7 +623,10 @@ export async function getProjectColumns(projectId: number) {
       ];
     }
   } catch (error: any) {
-    console.error('Error fetching project columns:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      'Error fetching project columns:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
 
     // Always return some default columns as absolute last resort
     console.log('ERROR RECOVERY: Creating default columns');
@@ -611,7 +650,10 @@ export async function getColumnCards(columnId: number) {
     );
     return response.data;
   } catch (error) {
-    console.error('Error fetching column cards:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      'Error fetching column cards:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return [];
   }
 }
@@ -625,11 +667,11 @@ export async function moveCard(
 ) {
   try {
     console.log(`Moving card ${cardId} to column ${columnId}, isV2: ${isV2}`);
-    
+
     if (isV2 && fieldId) {
       // For Projects V2, update the status field
       console.log('Using GraphQL to update ProjectV2 item field');
-      
+
       const graphqlMutation = `
       mutation {
         updateProjectV2ItemFieldValue(
@@ -647,7 +689,7 @@ export async function moveCard(
           }
         }
       }`;
-      
+
       const response = await octokit.graphql(graphqlMutation);
       console.log('GraphQL update response:', response);
       return response;
@@ -657,13 +699,16 @@ export async function moveCard(
       const response = await octokit.rest.projects.moveCard({
         card_id: Number(cardId),
         column_id: Number(columnId),
-        position
+        position,
       });
       console.log('REST API response:', response.status);
       return response.data;
     }
   } catch (error) {
-    console.error('Error moving card:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      'Error moving card:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     throw error;
   }
 }
@@ -675,20 +720,23 @@ export async function createIssue(
 ) {
   try {
     console.log(`Creating issue: ${title}`);
-    
+
     // Create the issue
     const response = await octokit.rest.issues.create({
       owner,
       repo,
       title,
       body,
-      labels
+      labels,
     });
-    
+
     console.log(`Issue created: #${response.data.number}`);
     return response.data;
   } catch (error) {
-    console.error('Error creating issue:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      'Error creating issue:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     throw error;
   }
 }
