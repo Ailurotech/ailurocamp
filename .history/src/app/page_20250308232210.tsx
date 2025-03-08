@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import LoadingController from '@/components/ui/LoadingController';
 
 export const metadata: Metadata = {
   title: 'AiluroCamp - Modern Learning Management System',

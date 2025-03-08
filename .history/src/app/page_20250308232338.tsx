@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import LoadingController from '@/components/ui/LoadingController';
 
 export const metadata: Metadata = {
   title: 'AiluroCamp - Modern Learning Management System',
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
+    <LoadingController  />
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
       {/* Hero Section */}
       <div className="relative px-6 lg:px-8">

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export const metadata: Metadata = {
   title: 'AiluroCamp - Modern Learning Management System',
@@ -8,6 +9,12 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
+  if (loading) {
+    <div className="flex item-center justify-center min-h-screen">
+      <LoadingSpinner />
+    </div>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white">
       {/* Hero Section */}
@@ -28,10 +35,9 @@ export default function HomePage() {
                   className="inline-block rounded-lg bg-indigo-600 px-4 py-1.5 text-base font-semibold leading-7 text-white shadow-sm hover:bg-indigo-500 transition-colors duration-200"
                 >
                   Get started
-                  <span
-                    className="text-indigo-200 ml-2"
-                    aria-hidden="true"
-                  ></span>
+                  <span className="text-indigo-200 ml-2" aria-hidden="true">
+                    →
+                  </span>
                 </Link>
                 <Link
                   href="/courses"
