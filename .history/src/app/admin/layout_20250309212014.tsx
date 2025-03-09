@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import LoadingController from '@/components/ui/LoadingController';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const navigation = [

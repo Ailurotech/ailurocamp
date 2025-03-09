@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import LoadingController from '@/components/ui/LoadingController';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const navigation = [
@@ -161,36 +162,9 @@ export default function AdminLayout({
                     <div className="absolute bottom-full mb-2 right-0 left-0 z-10 w-full origin-bottom-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <div className="py-1">
                         {roleSwitchLoading ? (
-                          <div className="flex item-center justify-center py-2">
-                            <LoadingSpinner size="small" label="Switching..." />
-                          </div>
+                          
                         ) : (
-                          <>
-                            {session?.user?.roles?.includes('instructor') &&
-                              session?.user?.currentRole !== 'instructor' && (
-                                <button
-                                  onClick={() => switchToRole('instructor')}
-                                  className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                                >
-                                  Switch to Instructor
-                                </button>
-                              )}
-                            {session?.user?.roles?.includes('student') &&
-                              session?.user?.currentRole !== 'student' && (
-                                <button
-                                  onClick={() => switchToRole('student')}
-                                  className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                                >
-                                  Switch to Student
-                                </button>
-                              )}
-                            <button
-                              onClick={handleSignOut}
-                              className="block w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100 text-left"
-                            >
-                              Sign out
-                            </button>
-                          </>
+                          
                         )}
                         {/* {session?.user?.roles?.includes('instructor') &&
                           session?.user?.currentRole !== 'instructor' && (
