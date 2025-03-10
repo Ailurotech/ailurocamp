@@ -42,6 +42,7 @@ export default function AdminLayout({
 
   const switchToRole = async (role: string) => {
     try {
+      setRoleSwitchLoading(true);
       const response = await fetch('/api/auth/switch-role', {
         method: 'POST',
         headers: {
@@ -63,6 +64,8 @@ export default function AdminLayout({
       router.push(link);
     } catch (error) {
       console.error('Error switching role:', error);
+    } finally {
+      setRoleSwitchLoading(false);
     }
   };
 
