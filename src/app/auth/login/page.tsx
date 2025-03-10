@@ -1,7 +1,7 @@
-import AuthForm from '@/components/ui/AuthForm';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import LoadingController from '@/components/ui/LoadingController';
+import LoginForm from '@/components/auth/LoginForm';
 
 export const metadata: Metadata = {
   title: 'Sign In - LMS',
@@ -12,6 +12,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={<LoadingController />}>
       <AuthForm mode="login" />
+      <LoginForm />
     </Suspense>
   );
 }
