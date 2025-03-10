@@ -8,8 +8,8 @@ interface LoadingSpinnerProps {
 
 const sizeClass = {
   small: 'w-6 h-6 border-2',
-  medium: 'w-12 h-12 border-4',
-  large: 'w-18 h-18 border-6',
+  medium: 'w-10 h-10 border-3',
+  large: 'w-16 h-16 border-4',
 };
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({

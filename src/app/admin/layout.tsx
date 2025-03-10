@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import LoadingController from '@/components/ui/LoadingController';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
@@ -28,7 +28,7 @@ export default function AdminLayout({
 
   // If the session is still loading, show a loading message
   if (status === 'loading') {
-    return <div>Loading...</div>;
+    return <LoadingController />;
   }
 
   // Redirect if not admin
@@ -42,7 +42,6 @@ export default function AdminLayout({
 
   const switchToRole = async (role: string) => {
     try {
-      setRoleSwitchLoading(true);
       const response = await fetch('/api/auth/switch-role', {
         method: 'POST',
         headers: {
@@ -64,8 +63,6 @@ export default function AdminLayout({
       router.push(link);
     } catch (error) {
       console.error('Error switching role:', error);
-    } finally {
-      setRoleSwitchLoading(false);
     }
   };
 
@@ -162,7 +159,7 @@ export default function AdminLayout({
                       <div className="py-1">
                         {roleSwitchLoading ? (
                           <div className="flex item-center justify-center py-2">
-                            <LoadingSpinner size="small" label="Switching..." />
+                            <LoadingController />
                           </div>
                         ) : (
                           <>

@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     await connectDB();
 
     const user = await User.findById(session.user.id);
+
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
