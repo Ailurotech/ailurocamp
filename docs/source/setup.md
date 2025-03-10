@@ -57,15 +57,18 @@ AiluroCamp is configured for deployment on Vercel, which offers excellent suppor
 ### Deployment Steps
 
 1. **Push your code to GitHub**
+
    - Ensure your repository is up to date on GitHub
 
 2. **Connect to Vercel**
+
    - Go to [Vercel](https://vercel.com) and sign up or log in
-   - Click "Add New..." and select "Project" 
+   - Click "Add New..." and select "Project"
    - Import your GitHub repository
    - Vercel will automatically detect Next.js settings
 
 3. **Configure Project Settings**
+
    - Configure environment variables if needed
    - Leave build settings as default (Vercel auto-detects Next.js)
    - Click "Deploy"

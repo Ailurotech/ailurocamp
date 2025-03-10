@@ -132,3 +132,4 @@ dist
 # MkDocs generated site
 docs/site/
 
+.history
