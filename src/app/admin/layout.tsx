@@ -24,7 +24,6 @@ export default function AdminLayout({
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [roleSwitchLoading, setRoleSwitchLoading] = useState(false);
 
   // If the session is still loading, show a loading message
   if (status === 'loading') {
@@ -42,7 +41,6 @@ export default function AdminLayout({
 
   const switchToRole = async (role: string) => {
     try {
-      setRoleSwitchLoading(true);
       const response = await fetch('/api/auth/switch-role', {
         method: 'POST',
         headers: {
@@ -64,8 +62,6 @@ export default function AdminLayout({
       router.push(link);
     } catch (error) {
       console.error('Error switching role:', error);
-    } finally {
-      setRoleSwitchLoading(false);
     }
   };
 
