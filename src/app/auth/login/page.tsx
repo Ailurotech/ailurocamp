@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import LoadingController from '@/components/ui/LoadingController';
 import LoginForm from '@/components/auth/LoginForm';
+import AuthForm from '@/components/ui/AuthForm';
 
 export const metadata: Metadata = {
   title: 'Sign In - LMS',
