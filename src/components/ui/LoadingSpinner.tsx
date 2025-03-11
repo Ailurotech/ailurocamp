@@ -12,11 +12,11 @@ const sizeClass = {
   large: 'w-16 h-16 border-4',
 };
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+function LoadingSpinner({
   size = 'medium',
   color = 'border-blue-500',
   label,
-}) => {
+}: LoadingSpinnerProps) {
   return (
     <div className="flex flex-col items-center">
       <div
@@ -25,6 +25,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       {label && <p className="mt-2 text-gray-600">{label}</p>}
     </div>
   );
-};
+}
 
 export default React.memo(LoadingSpinner);

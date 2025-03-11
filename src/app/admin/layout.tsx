@@ -192,30 +192,6 @@ export default function AdminLayout({
                             </button>
                           </>
                         )}
-                        {/* {session?.user?.roles?.includes('instructor') &&
-                          session?.user?.currentRole !== 'instructor' && (
-                            <button
-                              onClick={() => switchToRole('instructor')}
-                              className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                            >
-                              Switch to Instructor
-                            </button>
-                          )}
-                        {session?.user?.roles?.includes('student') &&
-                          session?.user?.currentRole !== 'student' && (
-                            <button
-                              onClick={() => switchToRole('student')}
-                              className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                            >
-                              Switch to Student
-                            </button>
-                          )}
-                        <button
-                          onClick={handleSignOut}
-                          className="block w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100 text-left"
-                        >
-                          Sign out
-                        </button> */}
                       </div>
                     </div>
                   )}
