@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
 import LoadingSpinner from './LoadingSpinner';
 
-export default function LoadingController() {
+function LoadingControllerBase() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <LoadingSpinner
@@ -13,3 +14,7 @@ export default function LoadingController() {
     </div>
   );
 }
+
+const LoadingController = React.memo(LoadingControllerBase);
+
+export default LoadingController;
