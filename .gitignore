@@ -132,4 +132,5 @@ dist
 # MkDocs generated site
 docs/site/
 
-.history
+# local folder for storing thumbnail
+public/images
