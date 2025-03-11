@@ -112,22 +112,81 @@ Get all courses.
 }
 ```
 
-### POST /api/courses
+### POST /api/instructor/course
 
 Create a new course (instructor only).
 
 **Request Body:**
 
+Form-data
+| key | type | value |
+|-------------|------|-------|
+| title | Text | Introduction to Programming |
+| description | Text | Learn the basics of programming |
+| category | Text | Backend |
+| level | Text | beginner |
+| price | Text | 23 |
+| thumbnail | File | File |
+| tags | Text | language, C |
+| status | Text | published |
+| instructor | Text | instructor_id |
+
+**Response:**
+
 ```json
 {
-  "title": "Introduction to Programming",
-  "description": "Learn the basics of programming",
-  "modules": [
+  "message": "Course created successfully",
+  "savedCourse": {
+    "title": "Introduction to Programming",
+    "description": "Learn the basics of programming",
+    "instructor": "instructor_id",
+    "thumbnail": "image path",
+    "modules": [],
+    "enrolledStudents": [],
+    "price": 23,
+    "category": "Backend",
+    "level": "beginner",
+    "status": "published",
+    "averageRating": 0,
+    "revenue": 0,
+    "tags": ["language", "C"],
+    "ratingCount": 0,
+    "ratingSum": 0,
+    "_id": "course_id",
+    "createdAt": "2025-03-06T10:03:10.189Z",
+    "updatedAt": "2025-03-06T10:03:10.208Z",
+    "__v": 0
+  }
+}
+```
+
+### GET /api/category
+
+Get all categories.
+
+**Response:**
+
+```json
+{
+  "categories": [
     {
-      "title": "Module 1",
-      "content": "Content for module 1"
+      "_id": "category_id",
+      "category": ["Frontend", "Backend"],
+      "__v": 0
     }
   ]
+}
+```
+
+### POST /api/category
+
+Create a new category (admin only)
+
+**Request Body:**
+
+```json
+{
+  "category": ["Frontend", "Backend", "Fullstack"]
 }
 ```
 
@@ -135,16 +194,55 @@ Create a new course (instructor only).
 
 ```json
 {
-  "id": "course_id",
-  "title": "Introduction to Programming",
-  "description": "Learn the basics of programming",
-  "instructor": "instructor_id",
-  "modules": [
+  "message": "Category created successfully",
+  "categoryRes": {
+    "category": ["Frontend", "Backend", "Fullstack"],
+    "_id": "category_id",
+    "__v": 0
+  }
+}
+```
+
+### GET /api/level
+
+Get all levels.
+
+**Response:**
+
+```json
+{
+  "levels": [
     {
-      "title": "Module 1",
-      "content": "Content for module 1"
+      "_id": "level_id",
+      "level": ["beginner", "middle", "advanced"],
+      "__v": 0
     }
   ]
+}
+```
+
+### POST /api/level
+
+Create a new level (admin only)
+
+**Request Body:**
+
+```json
+{
+  "level": ["beginner", "middle", "advanced"]
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Level created successfully",
+  "levelRes": {
+    "level": ["beginner", "middle", "advanced"],
+    "_id": "level_id",
+    "__v": 0
+  }
 }
 ```
 
