@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import type { ICourse } from '@/types/course';
+import Link from 'next/link';
 
 interface CourseListProps {
   courses: ICourse[];
@@ -14,7 +15,14 @@ export default function CourseList({
 }: CourseListProps) {
   return (
     <div className="h-full border-r border-gray-200 bg-white overflow-y-auto">
-      <h2 className="p-4 font-semibold text-lg border-b">Courses</h2>
+      <div className="p-4 flex items-center justify-between border-b">
+        <h2 className="font-semibold text-lg">Courses</h2>
+        <Link href="/instructor/courses/new">
+          <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
+            New Course
+          </button>
+        </Link>
+      </div>
       <ul>
         {courses.map((course) => (
           <li
