@@ -13,6 +13,8 @@ export interface ICourse {
   averageRating: number;
   revenue: number;
   tags: string[];
+  ratingCount: number;
+  ratingSum: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -92,9 +92,9 @@ Get a specific user.
 
 ## Course Management Endpoints
 
-### GET /api/courses
+### GET /api/instructor/course?instructorId={instructorId}&page={page}
 
-Get all courses.
+Get all courses by instructor Id and page number (instructor only).
 
 **Response:**
 
@@ -102,13 +102,72 @@ Get all courses.
 {
   "courses": [
     {
-      "id": "course_id",
+      "_id": "course_id",
       "title": "Introduction to Programming",
       "description": "Learn the basics of programming",
       "instructor": "instructor_id",
-      "enrolledStudents": ["student_id"]
+      "thumbnail": "image path",
+      "modules": [],
+      "enrolledStudents": [],
+      "price": 34,
+      "category": "Backend",
+      "level": "beginner",
+      "status": "unpublished",
+      "averageRating": 0,
+      "revenue": 0,
+      "tags": ["Language", "C"],
+      "ratingCount": 0,
+      "ratingSum": 0,
+      "createdAt": "2025-03-06T10:26:28.534Z",
+      "updatedAt": "2025-03-06T10:26:28.544Z",
+      "__v": 0
+    },
+    {
+      "_id": "course_id",
+      "title": "test2",
+      "description": "test2",
+      "instructor": "instructor_id",
+      "thumbnail": "image path",
+      "modules": [],
+      "enrolledStudents": [],
+      "price": 33.99,
+      "category": "Frontend",
+      "level": "middle",
+      "status": "unpublished",
+      "averageRating": 0,
+      "revenue": 0,
+      "tags": ["tag1", "tag2", "tag3"],
+      "ratingCount": 0,
+      "ratingSum": 0,
+      "createdAt": "2025-03-01T14:15:28.796Z",
+      "updatedAt": "2025-03-02T11:02:58.536Z",
+      "__v": 0
+    },
+    {
+      "_id": "course_id",
+      "title": "test1",
+      "description": "test1",
+      "instructor": "instructor_id",
+      "thumbnail": "image path",
+      "modules": [],
+      "enrolledStudents": [],
+      "price": 34,
+      "category": "Frontend",
+      "level": "middle",
+      "status": "published",
+      "averageRating": 7,
+      "revenue": 0,
+      "tags": ["tag1", "tag2", "tag3"],
+      "createdAt": "2025-02-27T14:57:32.584Z",
+      "updatedAt": "2025-03-02T11:02:52.958Z",
+      "__v": 0,
+      "ratingCount": 2,
+      "ratingSum": 14
     }
-  ]
+  ],
+  "totalCourses": 3,
+  "page": 1,
+  "limit": 10
 }
 ```
 
@@ -155,6 +214,81 @@ Form-data
     "_id": "course_id",
     "createdAt": "2025-03-06T10:03:10.189Z",
     "updatedAt": "2025-03-06T10:03:10.208Z",
+    "__v": 0
+  }
+}
+```
+
+### PATCH /api/instructor/course?courseId={courseId}
+
+Update a course by courseId (instructor only)
+
+**Request Body:**
+
+```json
+{
+  "title": "new title",
+  "description": "new description"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Course updated successfully",
+  "updatedResult": {
+    "_id": "course_id",
+    "title": "new title",
+    "description": "new description",
+    "instructor": "instructor_id",
+    "thumbnail": "image path",
+    "modules": [],
+    "enrolledStudents": [],
+    "price": 34,
+    "category": "Frontend",
+    "level": "middle",
+    "status": "published",
+    "averageRating": 7.666666666666667,
+    "revenue": 0,
+    "tags": ["tag1", "tag2", "tag3"],
+    "createdAt": "2025-02-27T14:57:32.584Z",
+    "updatedAt": "2025-03-06T13:27:02.385Z",
+    "__v": 0,
+    "ratingCount": 3,
+    "ratingSum": 23
+  }
+}
+```
+
+### DELETE /api/instructor/course?courseId={courseId}
+
+Delete a course by courseId (instructor only)
+
+**Response:**
+
+```json
+{
+  "message": "Course deleted successfully",
+  "deletedResult": {
+    "_id": "deleted course_id",
+    "title": "test2",
+    "description": "test2",
+    "instructor": "instructor_id",
+    "thumbnail": "image path",
+    "modules": [],
+    "enrolledStudents": [],
+    "price": 33.99,
+    "category": "Frontend",
+    "level": "middle",
+    "status": "unpublished",
+    "averageRating": 0,
+    "revenue": 0,
+    "tags": ["tag1", "tag2", "tag3"],
+    "ratingCount": 0,
+    "ratingSum": 0,
+    "createdAt": "2025-03-01T14:15:28.796Z",
+    "updatedAt": "2025-03-02T11:02:58.536Z",
     "__v": 0
   }
 }
@@ -241,6 +375,108 @@ Create a new level (admin only)
   "levelRes": {
     "level": ["beginner", "middle", "advanced"],
     "_id": "level_id",
+    "__v": 0
+  }
+}
+```
+
+### GET /api/review?courseId={courseId}&page={page}
+
+Get all reviews by courseId and page number
+
+**Response:**
+
+```json
+{
+  "reviews": [
+    {
+      "_id": "review_id",
+      "userId": {
+        "_id": "user_id",
+        "name": "Jerry"
+      },
+      "comment": "Very helpful",
+      "rating": 9,
+      "updatedAt": "2025-03-06T13:00:16.726Z"
+    },
+    {
+      "_id": "review_id",
+      "userId": {
+        "_id": "user_id",
+        "name": "Allen"
+      },
+      "comment": "Not bad",
+      "rating": 6,
+      "updatedAt": "2025-02-28T10:33:59.743Z"
+    }
+  ],
+  "totalReviews": 2,
+  "page": 1,
+  "limit": 10
+}
+```
+
+### POST /api/review
+
+Create a review (student only)
+
+**Request Body:**
+
+```json
+{
+  "courseId": "course_id",
+  "userId": "user_id",
+  "rating": "9",
+  "comment": "Very helpful"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Review added successfully.",
+  "review": {
+    "courseId": "course_id",
+    "userId": "user_id",
+    "comment": "Very helpful",
+    "rating": 9,
+    "_id": "67c9a73213d0f684715f5f1d",
+    "createdAt": "2025-03-06T13:46:26.582Z",
+    "updatedAt": "2025-03-06T13:46:26.582Z",
+    "__v": 0
+  }
+}
+```
+
+### PUT /api/review
+
+Update a review (student only)
+
+**Request Body:**
+
+```json
+{
+  "courseId": "course_id",
+  "userId": "user_id",
+  "rating": "8",
+  "comment": "Good"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Review updated successfully.",
+  "review": {
+    "_id": "review_id",
+    "courseId": "course_id",
+    "userId": "user_id",
+    "comment": "Good",
+    "rating": 8,
+    "createdAt": "2025-03-06T13:00:16.726Z",
+    "updatedAt": "2025-03-06T13:58:46.042Z",
     "__v": 0
   }
 }
