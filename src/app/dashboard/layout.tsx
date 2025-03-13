@@ -30,9 +30,12 @@ export default function DashboardLayout({
   }
 
   // Redirect if not student
-  if (session?.user?.currentRole !== 'student') {
+  // ##########################################################
+
+  if (!session?.user?.roles.includes('student')) {
     return <div>Access Denied. Student only.</div>;
   }
+  // ##########################################################
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/' });
@@ -54,6 +57,10 @@ export default function DashboardLayout({
 
       // update the session
       await update({ currentRole: role });
+
+      if (session?.user?.currentRole !== 'student') {
+        return <div>Access Denied. Student only.</div>;
+      }
 
       // Refresh the page to update the session
       router.push(`/${role.toLowerCase()}`);

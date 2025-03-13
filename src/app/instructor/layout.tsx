@@ -39,9 +39,12 @@ export default function InstructorLayout({
   }
 
   // Redirect if not instructor
-  if (session?.user?.currentRole !== 'instructor') {
+  // ##########################################################
+
+  if (!session?.user?.roles.includes('instructor')) {
     return <div>Access Denied. Instructor only.</div>;
   }
+  // ##########################################################
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/auth/login' });
@@ -63,6 +66,10 @@ export default function InstructorLayout({
 
       // update the session
       await update({ currentRole: role });
+
+      if (session?.user?.currentRole !== 'instructor') {
+        return <div>Access Denied. Instructor only.</div>;
+      }
 
       // Refresh the page to update the session
       window.location.href =
