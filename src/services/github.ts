@@ -905,3 +905,32 @@ export async function getStatusColumn(columnId: string) {
     return null;
   }
 }
+
+export async function getPermissionForUser(
+  projectId: string,
+  username: string
+) {
+  try {
+    const numericProjectId = Number(projectId);
+
+    if (isNaN(numericProjectId)) {
+      console.error(
+        `Error: projectId "${projectId}" is not a valid numeric ID. Projects V2 are not supported.`
+      );
+      return null;
+    }
+
+    const response = await octokit.rest.projects.getPermissionForUser({
+      project_id: numericProjectId,
+      username,
+    });
+
+    console.log(
+      `User ${username} has '${response.data.permission}' permission on project ${numericProjectId}`
+    );
+    return response.data.permission;
+  } catch (error) {
+    console.error('Error fetching user permission:', error);
+    return null;
+  }
+}
