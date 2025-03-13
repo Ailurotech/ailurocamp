@@ -30,12 +30,9 @@ export default function DashboardLayout({
   }
 
   // Redirect if not student
-  // ##########################################################
-
   if (!session?.user?.roles.includes('student')) {
     return <div>Access Denied. Student only.</div>;
   }
-  // ##########################################################
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/' });

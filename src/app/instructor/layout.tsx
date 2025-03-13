@@ -39,12 +39,9 @@ export default function InstructorLayout({
   }
 
   // Redirect if not instructor
-  // ##########################################################
-
   if (!session?.user?.roles.includes('instructor')) {
     return <div>Access Denied. Instructor only.</div>;
   }
-  // ##########################################################
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/auth/login' });

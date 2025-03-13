@@ -30,14 +30,9 @@ export default function AdminLayout({
   }
 
   // Redirect if not admin
-  // ##########################################################
-  // if (session?.user?.roles !== 'admin') {
-  //   return <div>Access Denied. Admin only.</div>;
-  // }
   if (!session?.user?.roles.includes('admin')) {
     return <div>Access Denied. Admin only</div>;
   }
-  // ##########################################################
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/' });
