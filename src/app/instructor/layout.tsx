@@ -14,6 +14,7 @@ import {
   ChevronUpDownIcon,
   LogoutIcon,
 } from '@/components/ui/Icons';
+import AccessDenied from '@/components/auth/AccessDenied';
 
 const navigation = [
   { name: 'Overview', href: '/instructor', icon: HomeIcon },
@@ -40,7 +41,7 @@ export default function InstructorLayout({
 
   // Redirect if not instructor
   if (!session?.user?.roles.includes('instructor')) {
-    return <div>Access Denied.</div>; // Instructor only.
+    return <AccessDenied />; // Instructor only.
   }
 
   const handleSignOut = async () => {
@@ -65,7 +66,7 @@ export default function InstructorLayout({
       await update({ currentRole: role });
 
       if (session?.user?.currentRole !== 'instructor') {
-        return <div>Access Denied.</div>; // Instructor only.
+        return <AccessDenied />; // Instructor only.
       }
 
       // Refresh the page to update the session
