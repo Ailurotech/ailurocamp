@@ -31,7 +31,7 @@ export default function AdminLayout({
 
   // Redirect if not admin
   if (!session?.user?.roles.includes('admin')) {
-    return <div>Access Denied. Admin only</div>;
+    return <div>Access Denied.</div>; // Admin only.
   }
 
   const handleSignOut = async () => {
@@ -56,7 +56,7 @@ export default function AdminLayout({
       await update({ currentRole: role });
 
       if (session?.user?.currentRole !== 'admin') {
-        return <div>Access Denied. Admin only.......</div>;
+        return <div>Access Denied.</div>; // Admin only.
       }
 
       // Refresh the page to update the session
