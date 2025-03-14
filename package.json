@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@octokit/rest": "^21.1.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/mongoose": "^5.11.97",
     "bcryptjs": "^2.4.3",
@@ -36,6 +37,7 @@
     "postcss": "^8",
     "prettier": "^3.5.1",
     "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

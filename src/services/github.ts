@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+const GITHUB_RATE_LIMIT_API = 'https://api.github.com/rate_limit';
+const GITHUB_GRAPHQL_API = 'https://api.github.com/graphql';
+const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
 import { Octokit } from 'octokit';
 
@@ -10,15 +13,6 @@ const octokit = new Octokit({
 // Define the repository owner and name
 const owner = process.env.GITHUB_OWNER || 'Ailurotech';
 const repo = process.env.GITHUB_REPO || 'ailurocamp';
-
-// For debugging
-console.log('GitHub Service Initialized with:', {
-  token: process.env.GITHUB_TOKEN
-    ? `${process.env.GITHUB_TOKEN.substring(0, 4)}...`
-    : 'Not set',
-  owner,
-  repo,
-});
 
 interface ProjectNode {
   id: string;
@@ -739,4 +733,249 @@ export async function createIssue(
     );
     throw error;
   }
+}
+
+export async function fetchAllProjects() {
+  const query = `
+  {
+    organization(login: "Ailurotech") {
+      projectsV2(first: 100) {
+        nodes {
+          id
+          title
+          url
+        }
+      }
+    }
+  }
+  `;
+
+  try {
+    const response = await fetch(GITHUB_GRAPHQL_API, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log('data: ', data.data.organization.projectsV2.nodes);
+      return data.data.organization.projectsV2.nodes;
+    } else {
+      console.error('Error fetching projects:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return null;
+  }
+}
+
+export async function checkRateLimit() {
+  try {
+    const response = await fetch(GITHUB_RATE_LIMIT_API, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(data.rate);
+      return data.rate;
+    } else {
+      console.error('Error checking rate limit:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return null;
+  }
+}
+
+export async function fetchIssuesWithinProjects(repo: string) {
+  const query = `
+    query FetchIssues($repo: String!) {
+      repository(owner: "Ailurotech", name: $repo) {
+        issues(first: 100, states: OPEN) {
+          nodes {
+            id
+            title
+            url
+            state
+            createdAt
+            author {
+              login
+            }
+            assignees(first: 5) {
+              nodes {
+                login
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(GITHUB_GRAPHQL_API, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query, variables: { repo } }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(data.data.repository.issues.nodes);
+      return data.data.repository.issues.nodes;
+    } else {
+      console.error('Error fetching issues:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return null;
+  }
+}
+
+export async function getStatusColumn(columnId: string) {
+  const query = `
+    query GetProjectColumn($columnId: ID!) {
+      node(id: $columnId) {
+        ... on ProjectV2SingleSelectField {
+          id
+          name
+          dataType
+          options {
+            id
+            name
+          }
+        }
+      }
+    }
+  `;
+  try {
+    const response = await fetch(GITHUB_GRAPHQL_API, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: query,
+        variables: { columnId },
+      }),
+    });
+
+    const data = await response.json();
+
+    console.log('GraphQL Response:', JSON.stringify(data, null, 2));
+
+    if (!data?.data?.node) {
+      console.error("Error: Missing 'node' in API response. Check column ID.");
+      console.error('Full Response:', data);
+      return null;
+    }
+
+    console.log('Project Column:', data.data.node);
+    return data.data.node;
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return null;
+  }
+}
+
+export async function getPermissionForUser(
+  projectId: string,
+  username: string
+) {
+  try {
+    const numericProjectId = Number(projectId);
+
+    if (isNaN(numericProjectId)) {
+      console.error(
+        `Error: projectId "${projectId}" is not a valid numeric ID. Projects V2 are not supported.`
+      );
+      return null;
+    }
+
+    const response = await octokit.rest.projects.getPermissionForUser({
+      project_id: numericProjectId,
+      username,
+    });
+
+    console.log(
+      `User ${username} has '${response.data.permission}' permission on project ${numericProjectId}`
+    );
+    return response.data.permission;
+  } catch (error) {
+    console.error('Error fetching user permission:', error);
+    return null;
+  }
+}
+
+export async function getRepositoryId(owner: string, repo: string) {
+  const query = `
+    query GetRepoId($owner: String!, $repo: String!) {
+      repository(owner: $owner, name: $repo) {
+        id
+      }
+    }
+  `;
+
+  const response = await fetch(GITHUB_GRAPHQL_API, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables: { owner, repo } }),
+  });
+
+  const data = await response.json();
+  console.log('Repository ID:', data?.data?.repository?.id);
+  return data?.data?.repository?.id || null;
+}
+
+export async function addIssueToProjectBoard(
+  projectId: string,
+  issueId: string
+) {
+  const query = `
+    mutation AddIssueToProject($projectId: ID!, $contentId: ID!) {
+      addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+        item {
+          id
+        }
+      }
+    }
+  `;
+
+  const response = await fetch(GITHUB_GRAPHQL_API, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      variables: { projectId, contentId: issueId },
+    }),
+  });
+
+  const data = await response.json();
+  console.log('Added Issue to Project:', data);
+  return data?.data?.addProjectV2ItemById?.item?.id || null;
 }
