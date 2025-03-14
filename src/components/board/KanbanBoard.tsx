@@ -41,6 +41,9 @@ export default function KanbanBoard() {
   const [isNewIssueModalOpen, setIsNewIssueModalOpen] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
+  const [expandedColumns, setExpandedColumns] = useState<
+    Record<string, boolean>
+  >({});
 
   const { status } = useSession();
   const router = useRouter();
@@ -284,57 +287,83 @@ export default function KanbanBoard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[...columns].reverse().map((column) => (
-            <div
-              key={column.id.toString()}
-              className="bg-gray-100 rounded-lg p-2"
-            >
-              <h2 className="font-semibold text-lg mb-2 px-2">{column.name}</h2>
-              <div className="min-h-[500px]">
-                {column.cards.map((card) => (
-                  <Card
-                    key={card.id.toString()}
-                    className="mb-2 cursor-pointer"
-                    onClick={() => handleCardClick(card)}
-                  >
-                    {card.title && (
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">
-                          {card.title}
-                          {card.number && (
-                            <span className="ml-2 text-gray-500 text-sm">
-                              #{card.number}
-                            </span>
-                          )}
-                        </CardTitle>
-                      </CardHeader>
-                    )}
+          {[...columns].reverse().map((column) => {
+            const toggleExpand = (columnId: string) => {
+              setExpandedColumns((prev) => ({
+                ...prev,
+                [columnId]: !prev[columnId],
+              }));
+            };
 
-                    {card.note && (
-                      <CardContent className="py-0 px-4 text-xs text-gray-600">
-                        {card.note.length > 100
-                          ? `${card.note.substring(0, 100)}...`
-                          : card.note}
-                      </CardContent>
-                    )}
+            const isExpanded = expandedColumns[column.id.toString()];
+            const visibleCards = isExpanded
+              ? column.cards
+              : column.cards.slice(0, 5);
 
-                    <CardContent className="py-2 px-4 flex items-center justify-between">
-                      <div className="flex items-center text-xs text-gray-500">
-                        <CalendarIcon className="w-3 h-3 mr-1" />
-                        {new Date(card.created_at).toLocaleDateString()}
-                      </div>
-
-                      {card.content_url && (
-                        <div className="text-blue-500">
-                          <LinkIcon className="w-3 h-3" />
-                        </div>
+            return (
+              <div
+                key={column.id.toString()}
+                className="bg-gray-100 rounded-lg p-2"
+              >
+                <h2 className="font-semibold text-lg mb-2 px-2">
+                  {column.name}
+                </h2>
+                <div className="min-h-[500px]">
+                  {visibleCards.map((card) => (
+                    <Card
+                      key={card.id.toString()}
+                      className="mb-2 cursor-pointer"
+                      onClick={() => handleCardClick(card)}
+                    >
+                      {card.title && (
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm">
+                            {card.title}
+                            {card.number && (
+                              <span className="ml-2 text-gray-500 text-sm">
+                                #{card.number}
+                              </span>
+                            )}
+                          </CardTitle>
+                        </CardHeader>
                       )}
-                    </CardContent>
-                  </Card>
-                ))}
+
+                      {card.note && (
+                        <CardContent className="py-0 px-4 text-xs text-gray-600">
+                          {card.note.length > 100
+                            ? `${card.note.substring(0, 100)}...`
+                            : card.note}
+                        </CardContent>
+                      )}
+
+                      <CardContent className="py-2 px-4 flex items-center justify-between">
+                        <div className="flex items-center text-xs text-gray-500">
+                          <CalendarIcon className="w-3 h-3 mr-1" />
+                          {new Date(card.created_at).toLocaleDateString()}
+                        </div>
+
+                        {card.content_url && (
+                          <div className="text-blue-500">
+                            <LinkIcon className="w-3 h-3" />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Expand/Collapse Button */}
+                {column.cards.length > 5 && (
+                  <button
+                    className="w-full text-blue-500 text-sm mt-2"
+                    onClick={() => toggleExpand(column.id.toString())}
+                  >
+                    {isExpanded ? 'Show Less' : 'Show More'}
+                  </button>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
