@@ -14,15 +14,6 @@ const octokit = new Octokit({
 const owner = process.env.GITHUB_OWNER || 'Ailurotech';
 const repo = process.env.GITHUB_REPO || 'ailurocamp';
 
-// For debugging
-console.log('GitHub Service Initialized with:', {
-  token: process.env.GITHUB_TOKEN
-    ? `${process.env.GITHUB_TOKEN.substring(0, 4)}...`
-    : 'Not set',
-  owner,
-  repo,
-});
-
 interface ProjectNode {
   id: string;
   number: number;

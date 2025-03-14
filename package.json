@@ -11,6 +11,8 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@octokit/rest": "^21.1.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/mongoose": "^5.11.97",
     "bcryptjs": "^2.4.3",
@@ -18,13 +20,17 @@
     "mongoose": "^8.9.4",
     "next": "15.1.4",
     "next-auth": "^4.24.11",
+    "octokit": "^4.1.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-beautiful-dnd": "^13.1.1",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",
+    "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.1.4",

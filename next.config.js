@@ -1,13 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable static exports for GitHub Pages
-  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
+  // Remove static exports since we're deploying to Vercel
+  output: undefined,
 
-  // Set the base path for GitHub Pages
-  basePath: process.env.NODE_ENV === 'production' ? '/ailurocamp' : '',
-
-  // Disable image optimization for static export
-  images: process.env.NODE_ENV === 'production' ? { unoptimized: true } : {},
+  // Configure images as needed
+  images: {
+    domains: [], // Add any image domains you need
+  },
 
   // Other Next.js config options
   reactStrictMode: true,

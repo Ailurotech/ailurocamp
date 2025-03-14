@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 
 const navigation = [
@@ -20,8 +20,19 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // If the session is still loading, show a loading message
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
+
+  // Redirect if not student
+  if (session?.user?.currentRole !== 'student') {
+    return <div>Access Denied. Student only.</div>;
+  }
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/' });
@@ -41,8 +52,11 @@ export default function DashboardLayout({
         throw new Error('Failed to switch role');
       }
 
+      // update the session
+      await update({ currentRole: role });
+
       // Refresh the page to update the session
-      window.location.href = `/${role.toLowerCase()}`;
+      router.push(`/${role.toLowerCase()}`);
     } catch (error) {
       console.error('Error switching role:', error);
     }
@@ -136,7 +150,7 @@ export default function DashboardLayout({
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 left-0 z-10 mt-2 w-full origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <div className="absolute bottom-full mb-2 right-0 left-0 z-10 w-full origin-bottom-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="py-1">
                       {session?.user?.roles?.includes('admin') &&
                         session?.user?.currentRole !== 'admin' && (

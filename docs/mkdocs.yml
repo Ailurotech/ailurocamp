@@ -90,10 +90,13 @@ nav:
       - Setup Guide: setup.md
   - User Guides:
       - User Guide: user-guide.md
+      - Kanban Board: board-guide.md
   - Technical Documentation:
       - API Documentation: api.md
       - Architecture: architecture.md
       - TypeScript Type System: typescript.md
+  - Development:
+      - Code Review Process: code-review.md
 
 # Extra
 extra:
