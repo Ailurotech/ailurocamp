@@ -925,3 +925,57 @@ export async function getPermissionForUser(
     return null;
   }
 }
+
+export async function getRepositoryId(owner: string, repo: string) {
+  const query = `
+    query GetRepoId($owner: String!, $repo: String!) {
+      repository(owner: $owner, name: $repo) {
+        id
+      }
+    }
+  `;
+
+  const response = await fetch(GITHUB_GRAPHQL_API, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables: { owner, repo } }),
+  });
+
+  const data = await response.json();
+  console.log('Repository ID:', data?.data?.repository?.id);
+  return data?.data?.repository?.id || null;
+}
+
+export async function addIssueToProjectBoard(
+  projectId: string,
+  issueId: string
+) {
+  const query = `
+    mutation AddIssueToProject($projectId: ID!, $contentId: ID!) {
+      addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+        item {
+          id
+        }
+      }
+    }
+  `;
+
+  const response = await fetch(GITHUB_GRAPHQL_API, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      variables: { projectId, contentId: issueId },
+    }),
+  });
+
+  const data = await response.json();
+  console.log('Added Issue to Project:', data);
+  return data?.data?.addProjectV2ItemById?.item?.id || null;
+}
