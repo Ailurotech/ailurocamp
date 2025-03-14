@@ -66,7 +66,10 @@ export default function KanbanBoard() {
 
   const fetchProjects = async () => {
     try {
+      console.log(1);
       const response = await fetch('/api/board');
+
+      console.log(2);
       const data = await response.json();
 
       if (response.status === 401) {
@@ -245,6 +248,7 @@ export default function KanbanBoard() {
       </div>
     );
   }
+  console.log('columns: ', columns);
 
   return (
     <div className="p-4">

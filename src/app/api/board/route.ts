@@ -81,6 +81,7 @@ export async function GET(req: Request) {
           );
           console.log(`  Cards: ${col.cards?.length || 0}`);
         });
+        console.log(4);
 
         return NextResponse.json({ columns });
       } else {
