@@ -284,7 +284,7 @@ export default function KanbanBoard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {columns.map((column) => (
+          {[...columns].reverse().map((column) => (
             <div
               key={column.id.toString()}
               className="bg-gray-100 rounded-lg p-2"
