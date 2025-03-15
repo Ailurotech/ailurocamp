@@ -176,10 +176,18 @@ export default function KanbanBoard() {
     labels: string[]
   ) => {
     try {
+      const repoName = selectedProjectName.toLowerCase().replace(/\s+/g, '-');
+
       await fetch('/api/board', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'createIssue', title, body, labels }),
+        body: JSON.stringify({
+          action: 'createIssue',
+          title,
+          body,
+          labels,
+          repo: repoName,
+        }),
       });
 
       if (selectedProject) {

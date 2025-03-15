@@ -117,6 +117,7 @@ interface CreateIssueParams {
   title: string;
   body: string;
   labels?: string[];
+  repo: string;
 }
 
 interface RequestBody {
@@ -169,8 +170,13 @@ export async function POST(req: Request) {
       }
 
       case 'createIssue': {
-        const { title, body, labels = [] } = params as CreateIssueParams;
-        const issue = await githubService.createIssue(title, body, labels);
+        const { title, body, labels = [], repo } = params as CreateIssueParams;
+        const issue = await githubService.createIssue(
+          title,
+          body,
+          labels,
+          repo
+        );
         return NextResponse.json({ success: true, data: issue });
       }
 

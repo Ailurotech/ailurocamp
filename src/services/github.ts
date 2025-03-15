@@ -710,7 +710,8 @@ export async function moveCard(
 export async function createIssue(
   title: string,
   body: string,
-  labels: string[] = []
+  labels: string[] = [],
+  repo: string
 ) {
   try {
     console.log(`Creating issue: ${title}`);
