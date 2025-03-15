@@ -963,6 +963,8 @@ export async function addIssueToProjectBoard(
     }
   `;
 
+  console.log('projectId: ', projectId, 'issueId: ', issueId);
+
   const response = await fetch(GITHUB_GRAPHQL_API, {
     method: 'POST',
     headers: {

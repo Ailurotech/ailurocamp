@@ -8,12 +8,23 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon, LinkIcon, CalendarIcon } from '@heroicons/react/20/solid';
 import CreateProjectModal from './CreateProjectModal';
 import NewIssueModal from './NewIssueModal';
+import {
+  addIssueToProjectBoard,
+  fetchAllProjects,
+  fetchIssuesWithinProjects,
+} from '@/services/github';
 
 interface Project {
   id: number;
   name: string;
   isV2?: boolean;
   orgProject?: boolean;
+}
+
+interface UniqueProject {
+  id: string;
+  title: string;
+  url: string;
 }
 
 interface Card {
@@ -35,7 +46,11 @@ interface Column {
 
 export default function KanbanBoard() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [uniqueProjects, setUniqueProjects] = useState<UniqueProject[]>([]);
+  const [uniqueProjectId, setUniqueProjectId] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
+  const [selectedProjectName, setSelectedProjectName] = useState<string>('');
+  const [newIssueId, setNewIssueId] = useState<string>('');
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
   const [isNewIssueModalOpen, setIsNewIssueModalOpen] = useState(false);
@@ -58,6 +73,7 @@ export default function KanbanBoard() {
   useEffect(() => {
     if (status === 'authenticated') {
       fetchProjects();
+      fetchUniqueProjects();
     }
   }, [status]);
 
@@ -69,10 +85,7 @@ export default function KanbanBoard() {
 
   const fetchProjects = async () => {
     try {
-      console.log(1);
       const response = await fetch('/api/board');
-
-      console.log(2);
       const data = await response.json();
 
       if (response.status === 401) {
@@ -85,6 +98,7 @@ export default function KanbanBoard() {
 
         if (data.projects.length > 0) {
           setSelectedProject(data.projects[0].id);
+          setSelectedProjectName(data.projects[0].name);
         }
       } else {
         setProjects([]);
@@ -94,6 +108,18 @@ export default function KanbanBoard() {
     } catch (error) {
       console.error('Error fetching projects:', error);
       setLoading(false);
+    }
+  };
+
+  const fetchUniqueProjects = async () => {
+    const projects = await fetchAllProjects();
+    setUniqueProjects(projects);
+
+    if (selectedProjectName) {
+      const matchedProject = projects.find(
+        (p) => p.title === selectedProjectName
+      );
+      setUniqueProjectId(matchedProject?.id || '');
     }
   };
 
@@ -152,26 +178,49 @@ export default function KanbanBoard() {
     try {
       await fetch('/api/board', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'createIssue',
-          title,
-          body,
-          labels,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'createIssue', title, body, labels }),
       });
 
-      // Refresh the board after creating a new issue
       if (selectedProject) {
         fetchProjectColumns(selectedProject);
+
+        const issues = await fetchIssuesWithinProjects(selectedProjectName);
+        const lastIssueId = issues.at(-1)?.id || '';
+
+        const matchedProject = uniqueProjects.find(
+          (p) => p.title === selectedProjectName
+        );
+        const projectId = matchedProject?.id || '';
+
+        if (projectId && lastIssueId) {
+          console.log(
+            'Executing addIssueToProjectBoard with:',
+            projectId,
+            lastIssueId
+          );
+          addIssueToProjectBoard(projectId, lastIssueId);
+        }
+
+        setNewIssueId(lastIssueId);
+        setUniqueProjectId(projectId);
       }
 
       setIsNewIssueModalOpen(false);
     } catch (error) {
       console.error('Error creating issue:', error);
     }
+  };
+
+  const handleProjectSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const projectId = Number(e.target.value);
+    const projectName = projects.find((p) => p.id === projectId)?.name || '';
+
+    setSelectedProject(projectId);
+    setSelectedProjectName(projectName);
+
+    const matchedProject = uniqueProjects.find((p) => p.title === projectName);
+    setUniqueProjectId(matchedProject?.id || '');
   };
 
   const handleProjectCreated = () => {
@@ -251,7 +300,6 @@ export default function KanbanBoard() {
       </div>
     );
   }
-  console.log('columns: ', columns);
 
   return (
     <div className="p-4">
@@ -262,7 +310,7 @@ export default function KanbanBoard() {
           <select
             className="px-3 py-2 border rounded-md"
             value={selectedProject || ''}
-            onChange={(e) => setSelectedProject(Number(e.target.value))}
+            onChange={handleProjectSelection}
           >
             {projects.map((project) => (
               <option key={project.id} value={project.id}>
