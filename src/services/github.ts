@@ -778,59 +778,31 @@ export async function moveCard(
 }
 
 // export async function moveCard(
-//   cardId: string,
-//   projectId: string,
-//   toColumnId: string
+//   cardId: string | number,
+//   columnId?: string | number,
+//   position: string = 'top'
 // ) {
 //   try {
 //     console.log(
-//       `Moving card ${cardId} to column ${toColumnId} in project ${projectId}`
+//       `Moving card ${cardId} to column ${columnId || 'same column'}, position: ${position}`
 //     );
 
-//     const moveIssueQuery = `
-//       mutation MoveProjectV2Item($projectId: ID!, $itemId: ID!, $toColumnId: ID!) {
-//         moveProjectV2Item(
-//           input: {
-//             projectId: $projectId,
-//             itemId: $itemId,
-//             destinationColumnId: $toColumnId
-//           }
-//         ) {
-//           clientMutationId
-//         }
-//       }
-//     `;
+//     const params: any = {
+//       card_id: Number(cardId),
+//       position,
+//     };
 
-//     const response = await fetch(GITHUB_GRAPHQL_API, {
-//       method: 'POST',
-//       headers: {
-//         Authorization: `Bearer ${GITHUB_TOKEN}`,
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({
-//         query: moveIssueQuery,
-//         variables: {
-//           projectId,
-//           itemId: cardId,
-//           toColumnId,
-//         },
-//       }),
-//     });
-
-//     const data = await response.json();
-
-//     if (!response.ok) {
-//       console.error('Error moving card:', data);
-//       throw new Error(`GitHub API error: ${data.message || 'Unknown error'}`);
+//     if (columnId) {
+//       params.column_id = Number(columnId);
 //     }
 
-//     console.log(
-//       `✅ Card ${cardId} successfully moved to column ${toColumnId} in project ${projectId}`
-//     );
-//     return data;
+//     const response = await octokit.rest.projects.moveCard(params);
+
+//     console.log('REST API Response:', response.status);
+//     return response.data;
 //   } catch (error) {
 //     console.error(
-//       '❌ Error moving card:',
+//       'Error moving card:',
 //       error instanceof Error ? error.message : 'Unknown error'
 //     );
 //     throw error;
