@@ -632,6 +632,76 @@ export async function getProjectColumns(projectId: number) {
   }
 }
 
+export async function listProjectColumns(projectId: string) {
+  const query = `
+  query ListProjectColumns($projectId: ID!) {
+    node(id: $projectId) {
+      ... on ProjectV2 {
+        id
+        title
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2Field {
+              id
+              name
+              dataType
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              dataType
+              options {
+                id,
+                name,
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  `;
+
+  try {
+    const response = await fetch(GITHUB_GRAPHQL_API, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: query,
+        variables: { projectId },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(data.data.node.fields.nodes); // only index=2 column has todo, doing and done
+      return data.data.node.fields.nodes;
+    } else {
+      console.error('Error listing project columns:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return null;
+  }
+}
+
+export async function getStatusColumns(projectId: string) {
+  try {
+    const allColumns = await listProjectColumns(projectId);
+    const statusColumn = allColumns[2];
+    console.log('statusColumn: ', statusColumn);
+    return statusColumn;
+  } catch (error) {
+    console.log('Error getting Status column: ', error);
+    return null;
+  }
+}
+
 export async function getColumnCards(columnId: number) {
   try {
     console.log(`Fetching cards for column ID: ${columnId}`);
@@ -672,8 +742,8 @@ export async function moveCard(
           input: {
             projectId: "${owner}/projects/${fieldId}"
             itemId: "${cardId}"
-            fieldId: "${fieldId}" 
-            value: { 
+            fieldId: "${fieldId}"
+            value: {
               singleSelectOptionId: "${columnId}"
             }
           }
@@ -706,6 +776,66 @@ export async function moveCard(
     throw error;
   }
 }
+
+// export async function moveCard(
+//   cardId: string,
+//   projectId: string,
+//   toColumnId: string
+// ) {
+//   try {
+//     console.log(
+//       `Moving card ${cardId} to column ${toColumnId} in project ${projectId}`
+//     );
+
+//     const moveIssueQuery = `
+//       mutation MoveProjectV2Item($projectId: ID!, $itemId: ID!, $toColumnId: ID!) {
+//         moveProjectV2Item(
+//           input: {
+//             projectId: $projectId,
+//             itemId: $itemId,
+//             destinationColumnId: $toColumnId
+//           }
+//         ) {
+//           clientMutationId
+//         }
+//       }
+//     `;
+
+//     const response = await fetch(GITHUB_GRAPHQL_API, {
+//       method: 'POST',
+//       headers: {
+//         Authorization: `Bearer ${GITHUB_TOKEN}`,
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         query: moveIssueQuery,
+//         variables: {
+//           projectId,
+//           itemId: cardId,
+//           toColumnId,
+//         },
+//       }),
+//     });
+
+//     const data = await response.json();
+
+//     if (!response.ok) {
+//       console.error('Error moving card:', data);
+//       throw new Error(`GitHub API error: ${data.message || 'Unknown error'}`);
+//     }
+
+//     console.log(
+//       `✅ Card ${cardId} successfully moved to column ${toColumnId} in project ${projectId}`
+//     );
+//     return data;
+//   } catch (error) {
+//     console.error(
+//       '❌ Error moving card:',
+//       error instanceof Error ? error.message : 'Unknown error'
+//     );
+//     throw error;
+//   }
+// }
 
 export async function createIssue(
   title: string,
@@ -845,53 +975,6 @@ export async function fetchIssuesWithinProjects(repo: string) {
       console.error('Error fetching issues:', data);
       return null;
     }
-  } catch (error) {
-    console.error('Fetch error:', error);
-    return null;
-  }
-}
-
-export async function getStatusColumn(columnId: string) {
-  const query = `
-    query GetProjectColumn($columnId: ID!) {
-      node(id: $columnId) {
-        ... on ProjectV2SingleSelectField {
-          id
-          name
-          dataType
-          options {
-            id
-            name
-          }
-        }
-      }
-    }
-  `;
-  try {
-    const response = await fetch(GITHUB_GRAPHQL_API, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: query,
-        variables: { columnId },
-      }),
-    });
-
-    const data = await response.json();
-
-    console.log('GraphQL Response:', JSON.stringify(data, null, 2));
-
-    if (!data?.data?.node) {
-      console.error("Error: Missing 'node' in API response. Check column ID.");
-      console.error('Full Response:', data);
-      return null;
-    }
-
-    console.log('Project Column:', data.data.node);
-    return data.data.node;
   } catch (error) {
     console.error('Fetch error:', error);
     return null;
