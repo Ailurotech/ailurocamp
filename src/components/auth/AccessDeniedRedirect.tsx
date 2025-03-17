@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface AccessDeniedProps {
+interface AccessDeniedRedirectProps {
   redirectPath?: string;
 }
 
 export default function AccessDenied({
   redirectPath = '/dashboard',
-}: AccessDeniedProps) {
+}: AccessDeniedRedirectProps) {
   const router = useRouter();
 
   useEffect(() => {

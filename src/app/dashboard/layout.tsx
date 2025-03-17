@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import AccessDenied from '@/components/auth/AccessDenied';
+import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
@@ -32,7 +32,7 @@ export default function DashboardLayout({
 
   // Redirect if not student
   if (!session?.user?.roles.includes('student')) {
-    return <AccessDenied />;
+    return <AccessDeniedRedirect redirectPath="dashboard" />;
   }
 
   const handleSignOut = async () => {
@@ -57,7 +57,7 @@ export default function DashboardLayout({
       await update({ currentRole: role });
 
       if (session?.user?.currentRole !== 'student') {
-        return <AccessDenied />;
+        return <AccessDeniedRedirect redirectPath="dashboard" />;
       }
 
       // Refresh the page to update the session
