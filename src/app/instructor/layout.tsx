@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import {
   HomeIcon,
@@ -32,6 +32,7 @@ export default function InstructorLayout({
 }) {
   const pathname = usePathname();
   const { data: session, status, update } = useSession();
+  const router = useRouter();
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
 
   // If the session is still loading, show a loading message
@@ -70,12 +71,13 @@ export default function InstructorLayout({
       }
 
       // Refresh the page to update the session
-      window.location.href =
-        role === 'admin'
-          ? '/admin'
-          : role === 'instructor'
-            ? '/instructor'
-            : '/dashboard';
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'instructor') {
+        router.push('/instructor');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error) {
       console.error('Error switching role:', error);
     }
