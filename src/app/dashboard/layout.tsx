@@ -32,7 +32,7 @@ export default function DashboardLayout({
 
   // Redirect if not student
   if (!session?.user?.roles.includes('student')) {
-    return <AccessDeniedRedirect redirectPath="dashboard" />;
+    return <AccessDeniedRedirect redirectPath="/dashboard" />;
   }
 
   const handleSignOut = async () => {

@@ -42,7 +42,7 @@ export default function InstructorLayout({
 
   // Redirect if not instructor
   if (!session?.user?.roles.includes('instructor')) {
-    return <AccessDeniedRedirect redirectPath="dashboard" />;
+    return <AccessDeniedRedirect redirectPath="/dashboard" />;
   }
 
   const handleSignOut = async () => {

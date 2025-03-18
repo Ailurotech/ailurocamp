@@ -32,7 +32,7 @@ export default function AdminLayout({
 
   // Redirect if not admin
   if (!session?.user?.roles.includes('admin')) {
-    return <AccessDeniedRedirect redirectPath="dashboard" />;
+    return <AccessDeniedRedirect redirectPath="/dashboard" />;
   }
 
   const handleSignOut = async () => {
