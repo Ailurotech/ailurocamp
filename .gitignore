@@ -132,8 +132,5 @@ dist
 # MkDocs generated site
 docs/site/
 
-# MkDocs generated site
-docs/site/
-
 # local folder for storing thumbnail
 public/images
