@@ -14,7 +14,12 @@ import {
   ChevronUpDownIcon,
   LogoutIcon,
 } from '@/components/ui/Icons';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
+
+const queryClient = new QueryClient();
+
 
 const navigation = [
   { name: 'Overview', href: '/instructor', icon: HomeIcon },
@@ -275,7 +280,10 @@ export default function InstructorLayout({
         <main className="-mt-32">
           <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
             <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6">
-              {children}
+              <QueryClientProvider client={queryClient}>
+                {children}
+                <ReactQueryDevtools initialIsOpen={false} />
+              </QueryClientProvider>
             </div>
           </div>
         </main>
