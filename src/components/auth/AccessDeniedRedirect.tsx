@@ -12,7 +12,7 @@ export default function AccessDeniedRedirect({
 
   useEffect(() => {
     try {
-      router.replace('/dashboard');
+      router.replace(redirectPath);
     } catch (error) {
       console.error('Failed to redirect:', error);
     }
