@@ -14,6 +14,9 @@ import {
   ChevronUpDownIcon,
   LogoutIcon,
 } from '@/components/ui/Icons';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 import LoadingController from '@/components/ui/LoadingController';
 
 const navigation = [
