@@ -20,7 +20,6 @@ import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 
 const queryClient = new QueryClient();
 
-
 const navigation = [
   { name: 'Overview', href: '/instructor', icon: HomeIcon },
   { name: 'Students', href: '/instructor/students', icon: UsersIcon },
