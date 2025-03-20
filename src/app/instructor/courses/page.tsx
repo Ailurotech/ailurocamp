@@ -283,7 +283,9 @@ export default function InstructorCoursesPage() {
           onClose={() => setSelectedCourse(null)}
           onPublishToggle={handlePublishToggle}
           onEdit={openEditModal}
+          isSavingEdit={updateCourseMutation.isPending}
           onDelete={openDeleteConfirm}
+          isDeleting={deleteCourseMutation.isPending}
           isPublishing={updateCourseStatusMutation.isPending}
         />
       </div>
@@ -302,7 +304,6 @@ export default function InstructorCoursesPage() {
           setEditCourse(null);
         }}
         onSaveEdit={handleSaveEdit}
-        isSavingEdit={updateCourseMutation.isPending}
         editTitle={editTitle}
         setEditTitle={setEditTitle}
         editDesc={editDesc}
@@ -315,7 +316,6 @@ export default function InstructorCoursesPage() {
         courseToDelete={courseToDelete}
         onClose={() => setIsDeleteModalOpen(false)}
         onDelete={handleDeleteCourse}
-        isDeleting={deleteCourseMutation.isPending}
       />
     </main>
   );

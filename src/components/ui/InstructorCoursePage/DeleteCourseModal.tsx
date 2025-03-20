@@ -8,7 +8,6 @@ interface DeleteCourseModalProps {
   courseToDelete: ICourse | null; // Selected course to delete
   onClose: () => void;
   onDelete: (courseId: string) => Promise<void>; // Pass the courseId to his parent component
-  isDeleting: boolean;
 }
 
 const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
@@ -16,7 +15,6 @@ const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
   courseToDelete,
   onClose,
   onDelete,
-  isDeleting,
 }) => {
   if (!isOpen || !courseToDelete) return null;
 
@@ -39,10 +37,9 @@ const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
           </button>
           <button
             onClick={() => onDelete(courseToDelete._id)}
-            disabled={isDeleting}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
           >
-            {isDeleting ? 'Deleting...' : 'Delete'}
+            Delete
           </button>
         </div>
       </div>

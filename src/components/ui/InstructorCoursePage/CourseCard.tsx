@@ -8,8 +8,10 @@ interface CourseCardProps {
   onClose: () => void;
   onPublishToggle: (course: ICourse) => void;
   onEdit: (course: ICourse) => void;
+  isSavingEdit: boolean;
   onDelete: (course: ICourse) => void;
-  isPublishing?: boolean;
+  isDeleting: boolean;
+  isPublishing: boolean;
 }
 
 function CourseCard({
@@ -17,7 +19,9 @@ function CourseCard({
   onClose,
   onPublishToggle,
   onEdit,
+  isSavingEdit,
   onDelete,
+  isDeleting,
   isPublishing = false,
 }: CourseCardProps) {
   const router = useRouter();
@@ -90,15 +94,17 @@ function CourseCard({
             </button>
             <button
               onClick={() => onEdit(course)}
+              disabled={isSavingEdit}
               className="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700"
             >
-              Edit
+              {isSavingEdit ? 'Saving...' : 'Edit'}
             </button>
             <button
               onClick={() => onDelete(course)}
+              disabled={isDeleting}
               className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
             >
-              Delete
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </>

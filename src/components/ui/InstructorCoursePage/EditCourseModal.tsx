@@ -6,7 +6,6 @@ interface EditCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaveEdit: () => Promise<void>;
-  isSavingEdit: boolean;
   editTitle: string;
   setEditTitle: React.Dispatch<React.SetStateAction<string>>;
   editDesc: string;
@@ -17,7 +16,6 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({
   isOpen,
   onClose,
   onSaveEdit,
-  isSavingEdit,
   editTitle,
   setEditTitle,
   editDesc,
@@ -63,10 +61,9 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({
           </button>
           <button
             onClick={onSaveEdit}
-            disabled={isSavingEdit}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            {isSavingEdit ? 'Saving...' : 'Save Changes'}
+            Save
           </button>
         </div>
       </div>
