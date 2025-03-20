@@ -22,7 +22,7 @@ export default function Tests() {
     // fetchAllProjects();
     // fetchIssuesWithinProjects('ailurocamp');
     // addIssueToProjectBoard('PVT_kwDOCWE1Yc4AwAI5', 'I_kwDONp68us6uJAk2');
-    listProjectColumns('PVT_kwDOCWE1Yc4AwAI5'); // ailurocamp: PVT_kwDOCWE1Yc4AwAI5  nanyuan: PVT_kwDOCWE1Yc4AnUmz
+    // listProjectColumns('PVT_kwDOCWE1Yc4AwAI5'); // ailurocamp: PVT_kwDOCWE1Yc4AwAI5  nanyuan: PVT_kwDOCWE1Yc4AnUmz
     // getStatusColumns('PVT_kwDOCWE1Yc4AwAI5'); // statusField: PVTSSF_lADOCWE1Yc4AwAI5zgmV0nY todo: f75ad846, done: 98236657
     // moveCard(
     //   'I_kwDONp68us6qSq2n',
@@ -52,28 +52,28 @@ export default function Tests() {
     // };
     // fetchColumns();
 
-    // const moveCard = async () => {
-    //   try {
-    //     const res = await fetch('/api/board', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({
-    //         action: 'moveCard',
-    //         cardId: 'PVTI_lADOCWE1Yc4AwAI5zgXZiYM',
-    //         columnId: 'Done',
-    //         position: 'top',
-    //         isV2: true,
-    //       }),
-    //     });
-    //     const result = await res.json();
-    //     console.log('Move Card Response:', result);
-    //   } catch (err) {
-    //     console.error('Error moving card:', err);
-    //   }
-    // };
-    // moveCard();
+    const moveCard = async () => {
+      try {
+        const res = await fetch('/api/board', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'moveCard',
+            cardId: 'PVTI_lADOCWE1Yc4AwAI5zgXZiYM',
+            columnId: 'Done',
+            position: 'top',
+            isV2: true,
+          }),
+        });
+        const result = await res.json();
+        console.log('Move Card Response:', result);
+      } catch (err) {
+        console.error('Error moving card:', err);
+      }
+    };
+    moveCard();
   }, []);
 
   return (
