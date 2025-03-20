@@ -367,11 +367,13 @@ export default function KanbanBoard() {
               const formattedDate = new Date(
                 card.created_at
               ).toLocaleDateString();
+              const cardNumber = card.number ? card.number.toString() : '';
 
               return (
                 card.title?.toLowerCase().includes(searchTerm) ||
                 card.note?.toLowerCase().includes(searchTerm) ||
-                formattedDate.includes(searchTerm)
+                formattedDate.includes(searchTerm) ||
+                cardNumber.includes(searchTerm)
               );
             });
 
@@ -389,7 +391,7 @@ export default function KanbanBoard() {
                   <input
                     type="text"
                     className="border px-2 py-1 rounded-md text-sm"
-                    placeholder="Search by title, content, or date..."
+                    placeholder="Search by title, content, date, or number..."
                     value={searchTerms[column.id.toString()] || ''}
                     onChange={(e) =>
                       handleSearchChange(column.id.toString(), e.target.value)
