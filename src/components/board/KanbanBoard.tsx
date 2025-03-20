@@ -361,11 +361,13 @@ export default function KanbanBoard() {
 
             const isExpanded = expandedColumns[column.id.toString()];
             const searchTerm = searchTerms[column.id.toString()] || '';
+
             const filteredCards = column.cards.filter(
               (card) =>
                 card.title?.toLowerCase().includes(searchTerm) ||
                 card.note?.toLowerCase().includes(searchTerm)
             );
+
             const visibleCards = isExpanded
               ? filteredCards
               : filteredCards.slice(0, 5);
@@ -375,12 +377,11 @@ export default function KanbanBoard() {
                 key={column.id.toString()}
                 className="bg-gray-100 rounded-lg p-2"
               >
-                {/* Column Header with Search Input */}
                 <div className="flex justify-between items-center mb-2 px-2">
                   <h2 className="font-semibold text-lg">{column.name}</h2>
                   <input
                     type="text"
-                    placeholder="Search by..."
+                    placeholder="Search by title or content..."
                     className="border px-2 py-1 rounded-md text-sm"
                     value={searchTerm}
                     onChange={(e) =>
@@ -388,6 +389,7 @@ export default function KanbanBoard() {
                     }
                   />
                 </div>
+
                 <div className="min-h-[500px]">
                   {visibleCards.map((card) => (
                     <Card
