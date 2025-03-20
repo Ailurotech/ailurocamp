@@ -59,6 +59,7 @@ export default function KanbanBoard() {
   const [expandedColumns, setExpandedColumns] = useState<
     Record<string, boolean>
   >({});
+  const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
 
   const { status } = useSession();
   const router = useRouter();
@@ -168,6 +169,13 @@ export default function KanbanBoard() {
       setLoading(false);
       setColumns([]);
     }
+  };
+
+  const handleSearchChange = (columnId: string, value: string) => {
+    setSearchTerms((prev) => ({
+      ...prev,
+      [columnId]: value.toLowerCase(),
+    }));
   };
 
   const handleCreateIssue = async (
@@ -352,18 +360,34 @@ export default function KanbanBoard() {
             };
 
             const isExpanded = expandedColumns[column.id.toString()];
+            const searchTerm = searchTerms[column.id.toString()] || '';
+            const filteredCards = column.cards.filter(
+              (card) =>
+                card.title?.toLowerCase().includes(searchTerm) ||
+                card.note?.toLowerCase().includes(searchTerm)
+            );
             const visibleCards = isExpanded
-              ? column.cards
-              : column.cards.slice(0, 5);
+              ? filteredCards
+              : filteredCards.slice(0, 5);
 
             return (
               <div
                 key={column.id.toString()}
                 className="bg-gray-100 rounded-lg p-2"
               >
-                <h2 className="font-semibold text-lg mb-2 px-2">
-                  {column.name}
-                </h2>
+                {/* Column Header with Search Input */}
+                <div className="flex justify-between items-center mb-2 px-2">
+                  <h2 className="font-semibold text-lg">{column.name}</h2>
+                  <input
+                    type="text"
+                    placeholder="Search by..."
+                    className="border px-2 py-1 rounded-md text-sm"
+                    value={searchTerm}
+                    onChange={(e) =>
+                      handleSearchChange(column.id.toString(), e.target.value)
+                    }
+                  />
+                </div>
                 <div className="min-h-[500px]">
                   {visibleCards.map((card) => (
                     <Card
