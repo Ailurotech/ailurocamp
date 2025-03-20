@@ -362,11 +362,18 @@ export default function KanbanBoard() {
             const isExpanded = expandedColumns[column.id.toString()];
             const searchTerm = searchTerms[column.id.toString()] || '';
 
-            const filteredCards = column.cards.filter(
-              (card) =>
+            const filteredCards = column.cards.filter((card) => {
+              const searchTerm = searchTerms[column.id.toString()] || '';
+              const formattedDate = new Date(
+                card.created_at
+              ).toLocaleDateString();
+
+              return (
                 card.title?.toLowerCase().includes(searchTerm) ||
-                card.note?.toLowerCase().includes(searchTerm)
-            );
+                card.note?.toLowerCase().includes(searchTerm) ||
+                formattedDate.includes(searchTerm)
+              );
+            });
 
             const visibleCards = isExpanded
               ? filteredCards
@@ -381,9 +388,9 @@ export default function KanbanBoard() {
                   <h2 className="font-semibold text-lg">{column.name}</h2>
                   <input
                     type="text"
-                    placeholder="Search by title or content..."
                     className="border px-2 py-1 rounded-md text-sm"
-                    value={searchTerm}
+                    placeholder="Search by title, content, or date..."
+                    value={searchTerms[column.id.toString()] || ''}
                     onChange={(e) =>
                       handleSearchChange(column.id.toString(), e.target.value)
                     }
