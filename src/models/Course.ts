@@ -1,16 +1,18 @@
 import mongoose from 'mongoose';
 
+export interface IModule extends mongoose.Types.Subdocument {
+  title: string;
+  content: string;
+  order: number;
+  duration: number;
+}
+
 export interface ICourse extends mongoose.Document {
   title: string;
   description: string;
   instructor: mongoose.Types.ObjectId;
   thumbnail?: string;
-  modules: {
-    title: string;
-    content: string;
-    order: number;
-    duration: number;
-  }[];
+  modules: mongoose.Types.DocumentArray<IModule>;
   enrolledStudents: mongoose.Types.ObjectId[];
   price: number;
   category: string;
@@ -45,7 +47,7 @@ const courseSchema = new mongoose.Schema<ICourse>(
       type: String,
     },
     modules: [
-      {
+      new mongoose.Schema<IModule>({
         title: {
           type: String,
           required: true,
@@ -62,7 +64,7 @@ const courseSchema = new mongoose.Schema<ICourse>(
           type: Number,
           required: true,
         },
-      },
+      }),
     ],
     enrolledStudents: [
       {
