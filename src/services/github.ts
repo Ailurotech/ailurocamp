@@ -162,24 +162,11 @@ export async function getProjectColumns(projectId: number) {
             closed
             fields(first: 50) {
               nodes {
-                ... on ProjectV2Field {
-                  id
-                  name
-                  dataType
-                }
-                ... on ProjectV2IterationField {
-                  id
-                  name
-                  dataType
-                }
+                ... on ProjectV2Field { id name dataType }
+                ... on ProjectV2IterationField { id name dataType }
                 ... on ProjectV2SingleSelectField {
-                  id
-                  name
-                  dataType
-                  options {
-                    id
-                    name
-                  }
+                  id name dataType
+                  options { id name }
                 }
               }
             }
@@ -189,52 +176,20 @@ export async function getProjectColumns(projectId: number) {
                 type
                 content {
                   ... on Issue {
-                    title
-                    body
-                    number
-                    url
-                    state
-                    createdAt
+                    title body number url state createdAt
                   }
                   ... on PullRequest {
-                    title
-                    body
-                    number
-                    url
-                    state
-                    createdAt
+                    title body number url state createdAt
                   }
                   ... on DraftIssue {
-                    title
-                    body
+                    title body
                   }
                 }
                 fieldValues(first: 50) {
                   nodes {
-                    ... on ProjectV2ItemFieldTextValue {
-                      text
-                      field {
-                        ... on ProjectV2FieldCommon {
-                          name
-                        }
-                      }
-                    }
-                    ... on ProjectV2ItemFieldDateValue {
-                      date
-                      field {
-                        ... on ProjectV2FieldCommon {
-                          name
-                        }
-                      }
-                    }
                     ... on ProjectV2ItemFieldSingleSelectValue {
                       name
-                      field {
-                        ... on ProjectV2FieldCommon {
-                          id
-                          name
-                        }
-                      }
+                      field { ... on ProjectV2FieldCommon { id name } }
                     }
                   }
                 }
@@ -247,201 +202,105 @@ export async function getProjectColumns(projectId: number) {
     const projectData = (await octokit.graphql(
       projectQuery
     )) as ProjectV2Response;
+    const fields = projectData?.organization?.projectV2?.fields?.nodes || [];
+    const items = projectData?.organization?.projectV2?.items?.nodes || [];
 
-    const allFields = projectData?.organization?.projectV2?.fields?.nodes || [];
-
-    const fieldValueCounts: Record<string, Set<string>> = {};
-
-    projectData?.organization?.projectV2?.items?.nodes?.forEach((item) => {
-      if (!item.fieldValues?.nodes) return;
-
-      item.fieldValues.nodes.forEach((value) => {
-        if (value && value.field && value.field.name && value.name) {
-          const fieldName = value.field.name;
-          if (!fieldValueCounts[fieldName]) {
-            fieldValueCounts[fieldName] = new Set();
-          }
-          fieldValueCounts[fieldName].add(value.name);
+    const fieldValueMap: Record<string, Set<string>> = {};
+    items.forEach((item) => {
+      item.fieldValues?.nodes?.forEach((value) => {
+        if (value?.field?.name && value.name) {
+          const key = value.field.name;
+          fieldValueMap[key] = fieldValueMap[key] || new Set();
+          fieldValueMap[key].add(value.name);
         }
       });
     });
 
-    let statusFieldName = '';
     const statusKeywords = ['status', 'state', 'stage', 'progress', 'kanban'];
-
-    for (const fieldName of Object.keys(fieldValueCounts)) {
-      const lowercaseName = fieldName.toLowerCase();
-      if (statusKeywords.some((keyword) => lowercaseName.includes(keyword))) {
-        statusFieldName = fieldName;
-        break;
-      }
-    }
+    let statusFieldName = Object.keys(fieldValueMap).find((field) =>
+      statusKeywords.some((k) => field.toLowerCase().includes(k))
+    );
 
     if (!statusFieldName) {
-      const statusValueKeywords = [
-        'todo',
-        'to do',
-        'in progress',
-        'done',
-        'complete',
-        'ready',
-      ];
-      for (const [fieldName, values] of Object.entries(fieldValueCounts)) {
-        const valueArray = Array.from(values);
+      const valueKeywords = ['todo', 'in progress', 'done', 'complete'];
+      for (const [field, values] of Object.entries(fieldValueMap)) {
         if (
-          valueArray.some((value) =>
-            statusValueKeywords.some((keyword) =>
-              value.toLowerCase().includes(keyword)
-            )
+          [...values].some((v) =>
+            valueKeywords.some((k) => v.toLowerCase().includes(k))
           )
         ) {
-          statusFieldName = fieldName;
+          statusFieldName = field;
           break;
         }
       }
     }
 
-    if (!statusFieldName && Object.keys(fieldValueCounts).length > 0) {
-      statusFieldName = Object.keys(fieldValueCounts)[0];
+    if (!statusFieldName) {
+      statusFieldName = Object.keys(fieldValueMap)[0]; // fallback
     }
 
-    if (statusFieldName) {
-      const statusField = allFields.find((f) => f.name === statusFieldName);
+    const statusField = fields.find((f) => f.name === statusFieldName);
+    if (!statusField) throw new Error('Status field not found');
 
-      if (statusField) {
-        const uniqueValues = Array.from(fieldValueCounts[statusFieldName]);
+    const columns = [...fieldValueMap[statusFieldName]].map((name) => ({
+      id: name,
+      name,
+      field_id: statusField.id,
+      isV2: true,
+      cards: [] as any[],
+    }));
 
-        const columns: Array<{
-          id: string;
-          name: string;
-          isV2: boolean;
-          field_id?: string;
-          cards: any[];
-        }> = uniqueValues.map((value: string) => ({
-          id: value,
-          name: value,
-          field_id: statusField.id,
-          isV2: true,
-          cards: [],
-        }));
-
-        projectData?.organization?.projectV2?.items?.nodes?.forEach((item) => {
-          if (!item.fieldValues?.nodes) return;
-          const statusValue = item.fieldValues.nodes.find(
-            (value) => value.field && value.field.name === statusFieldName
-          );
-
-          if (statusValue && statusValue.name) {
-            const column = columns.find((col) => col.name === statusValue.name);
-
-            if (column) {
-              const card = {
-                id: item.id,
-                note: item.content?.body || '',
-                content_url: item.content?.url || '',
-                title:
-                  item.content?.title || `Item #${item.content?.number || ''}`,
-                created_at: item.content?.createdAt || new Date().toISOString(),
-                number: item.content?.number,
-              };
-              column.cards.push(card);
-            }
-          }
+    items.forEach((item) => {
+      const statusValue = item.fieldValues?.nodes?.find(
+        (val) => val?.field?.name === statusFieldName
+      );
+      const col = columns.find((c) => c.name === statusValue?.name);
+      if (col) {
+        col.cards.push({
+          id: item.id,
+          note: item.content?.body || '',
+          content_url: item.content?.url || '',
+          title: item.content?.title || `Item #${item.content?.number || ''}`,
+          created_at: item.content?.createdAt || new Date().toISOString(),
+          number: item.content?.number,
         });
-
-        return columns;
       }
-    }
-
-    const columnsResponse = await octokit.rest.projects.listColumns({
-      project_id: projectId,
     });
-
-    const columns = await Promise.all(
-      columnsResponse.data.map(async (column) => {
-        const cardsResponse = await octokit.rest.projects.listCards({
-          column_id: column.id,
-        });
-
-        const cards = await Promise.all(
-          cardsResponse.data.map(async (card) => {
-            try {
-              if (card.content_url) {
-                const parts = new URL(card.content_url).pathname.split('/');
-                const issue_number = parts[parts.length - 1];
-
-                try {
-                  const issueResponse = await octokit.rest.issues.get({
-                    owner,
-                    repo,
-                    issue_number: parseInt(issue_number),
-                  });
-
-                  const issue = issueResponse.data;
-
-                  return {
-                    id: card.id,
-                    note: issue.body || '',
-                    content_url: card.content_url,
-                    title: issue.title,
-                    created_at: issue.created_at,
-                    number: issue.number,
-                  };
-                } catch (issueError) {
-                  console.error(
-                    `Error getting issue details: ${card.content_url}`,
-                    issueError instanceof Error
-                      ? issueError.message
-                      : 'Unknown error'
-                  );
-
-                  return {
-                    id: card.id,
-                    note: card.note || '',
-                    content_url: card.content_url || '',
-                    created_at: new Date().toISOString(),
-                  };
-                }
-              }
-
-              return {
-                id: card.id,
-                note: card.note || '',
-                content_url: card.content_url || '',
-                created_at: new Date().toISOString(),
-              };
-            } catch (cardError) {
-              console.error(
-                'Error processing card:',
-                cardError instanceof Error ? cardError.message : 'Unknown error'
-              );
-
-              return {
-                id: card.id,
-                note: card.note || '',
-                content_url: card.content_url || '',
-                created_at: new Date().toISOString(),
-              };
-            }
-          })
-        );
-
-        return {
-          id: column.id,
-          name: column.name,
-          cards,
-        };
-      })
-    );
 
     return columns;
   } catch (error) {
-    console.error('Error fetching project columns:', error);
-    return [
-      { id: 'to-do', name: 'To Do', isV2: true, cards: [] },
-      { id: 'in-progress', name: 'In Progress', isV2: true, cards: [] },
-      { id: 'done', name: 'Done', isV2: true, cards: [] },
-    ];
+    console.error('GraphQL failed, falling back to REST:', error);
+
+    try {
+      const columnsRes = await octokit.rest.projects.listColumns({
+        project_id: projectId,
+      });
+      const columns = await Promise.all(
+        columnsRes.data.map(async (col) => {
+          const cardsRes = await octokit.rest.projects.listCards({
+            column_id: col.id,
+          });
+          return {
+            id: col.id,
+            name: col.name,
+            cards: cardsRes.data.map((card) => ({
+              id: card.id,
+              note: card.note || '',
+              content_url: card.content_url || '',
+              created_at: new Date().toISOString(),
+            })),
+          };
+        })
+      );
+      return columns;
+    } catch (restError) {
+      console.error('REST fallback failed:', restError);
+      return [
+        { id: 'to-do', name: 'To Do', isV2: true, cards: [] },
+        { id: 'in-progress', name: 'In Progress', isV2: true, cards: [] },
+        { id: 'done', name: 'Done', isV2: true, cards: [] },
+      ];
+    }
   }
 }
 
