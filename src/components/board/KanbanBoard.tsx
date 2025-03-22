@@ -13,6 +13,8 @@ import {
   fetchAllProjects,
   fetchIssuesWithinProjects,
 } from '@/services/github';
+import NoProjectFound from './NoProjectFound';
+import Spinner from './Spinner';
 
 interface Project {
   id: number;
@@ -47,10 +49,10 @@ interface Column {
 export default function KanbanBoard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [uniqueProjects, setUniqueProjects] = useState<UniqueProject[]>([]);
-  const [uniqueProjectId, setUniqueProjectId] = useState<string>('');
+  const [, setUniqueProjectId] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [selectedProjectName, setSelectedProjectName] = useState<string>('');
-  const [newIssueId, setNewIssueId] = useState<string>('');
+  const [, setNewIssueId] = useState<string>('');
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
   const [isNewIssueModalOpen, setIsNewIssueModalOpen] = useState(false);
@@ -64,7 +66,6 @@ export default function KanbanBoard() {
   const { status } = useSession();
   const router = useRouter();
 
-  // Check if user is authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
@@ -137,15 +138,12 @@ export default function KanbanBoard() {
       }
 
       if (data && data.columns) {
-        // Process columns to ensure consistent data format
         const processedColumns = data.columns.map((column: Column) => {
-          // Ensure column ID is a string
           const processedColumn = {
             ...column,
             id: column.id.toString(),
           };
 
-          // Process cards if they exist
           if (column.cards && Array.isArray(column.cards)) {
             processedColumn.cards = column.cards.map((card: Card) => ({
               ...card,
@@ -210,11 +208,6 @@ export default function KanbanBoard() {
         const projectId = matchedProject?.id || '';
 
         if (projectId && lastIssueId) {
-          console.log(
-            'Executing addIssueToProjectBoard with:',
-            projectId,
-            lastIssueId
-          );
           addIssueToProjectBoard(projectId, lastIssueId);
         }
 
@@ -250,11 +243,7 @@ export default function KanbanBoard() {
   };
 
   if (loading && projects.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (projects.length === 0) {
@@ -267,46 +256,7 @@ export default function KanbanBoard() {
           </Button>
         </div>
 
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-yellow-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">
-                No Projects Found
-              </h3>
-              <div className="mt-2 text-sm text-yellow-700">
-                <p>
-                  No GitHub Project boards were found for this repository. You
-                  can:
-                </p>
-                <ul className="list-disc pl-5 space-y-1 mt-2">
-                  <li>
-                    Click the &quot;Create Project&quot; button above to create
-                    a new project
-                  </li>
-                  <li>
-                    Check that your GitHub token has the correct permissions
-                  </li>
-                  <li>
-                    Verify that GitHub Projects are enabled for your repository
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        <NoProjectFound />
 
         <CreateProjectModal
           isOpen={isCreateProjectModalOpen}
@@ -442,7 +392,6 @@ export default function KanbanBoard() {
                   ))}
                 </div>
 
-                {/* Expand/Collapse Button */}
                 {column.cards.length > 5 && (
                   <button
                     className="w-full text-blue-500 text-sm mt-2"

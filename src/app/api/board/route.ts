@@ -19,98 +19,9 @@ interface Column {
   isV2?: boolean;
 }
 
-// export async function GET(req: Request) {
-//   try {
-//     // Verify user is authenticated
-//     const session = await getServerSession(authOptions);
-
-//     // For debugging:
-//     console.log('Session data:', session);
-
-//     if (!session) {
-//       // Return both error and empty arrays to prevent client-side errors
-//       return NextResponse.json(
-//         {
-//           error: 'Unauthorized',
-//           projects: [],
-//           columns: [],
-//         },
-//         { status: 401 }
-//       );
-//     }
-
-//     const { searchParams } = new URL(req.url);
-//     const projectId = searchParams.get('projectId');
-
-//     if (!projectId) {
-//       // Get all projects with better error handling
-//       try {
-//         const projects = await githubService.getProjects();
-//         console.log('API response projects:', projects);
-
-//         if (projects && projects.length > 0) {
-//           return NextResponse.json({ projects });
-//         } else {
-//           console.log('No projects found');
-//           return NextResponse.json({
-//             projects: [],
-//             message: 'No GitHub Project boards found',
-//           });
-//         }
-//       } catch (projectError) {
-//         console.error('Error fetching projects:', projectError);
-//         return NextResponse.json({
-//           error: 'Error fetching projects',
-//           errorDetails:
-//             projectError instanceof Error
-//               ? projectError.message
-//               : 'Unknown error',
-//           projects: [],
-//         });
-//       }
-//     } else {
-//       // Get columns for specific project
-//       const columns = await githubService.getProjectColumns(Number(projectId));
-//       console.log(`API received ${columns.length} columns from GitHub service`);
-
-//       if (columns && columns.length > 0) {
-//         // Log column details to help debug
-//         columns.forEach((col: Column, index: number) => {
-//           console.log(
-//             `Column ${index + 1}: ${col.name} (ID: ${col.id}, isV2: ${col.isV2 || false})`
-//           );
-//           console.log(`  Cards: ${col.cards?.length || 0}`);
-//         });
-//         console.log(4);
-
-//         return NextResponse.json({ columns });
-//       } else {
-//         console.log('No columns found for project');
-//         return NextResponse.json({
-//           columns: [],
-//           message: 'No columns found for this project',
-//         });
-//       }
-//     }
-//   } catch (error) {
-//     console.error('Error in board API:', error);
-//     return NextResponse.json(
-//       {
-//         error: 'Internal Server Error',
-//         projects: [],
-//         columns: [],
-//       },
-//       { status: 500 }
-//     );
-//   }
-// }
 export async function GET(req: Request) {
   try {
-    // Verify user is authenticated
     const session = await getServerSession(authOptions);
-
-    // For debugging:
-    console.log('Session data:', session);
 
     if (!session) {
       return NextResponse.json(
@@ -129,15 +40,12 @@ export async function GET(req: Request) {
     const columnId = searchParams.get('columnId');
 
     if (!projectId && !columnId) {
-      // Get all projects if no specific project or column is requested
       try {
         const projects = await githubService.getProjects();
-        console.log('API response projects:', projects);
 
         if (projects && projects.length > 0) {
           return NextResponse.json({ projects });
         } else {
-          console.log('No projects found');
           return NextResponse.json({
             projects: [],
             message: 'No GitHub Project boards found',
@@ -157,26 +65,14 @@ export async function GET(req: Request) {
     }
 
     if (projectId && !columnId) {
-      // Get columns for specific project
       try {
         const columns = await githubService.getProjectColumns(
           Number(projectId)
         );
-        console.log(
-          `API received ${columns.length} columns from GitHub service`
-        );
 
         if (columns.length > 0) {
-          columns.forEach((col: Column, index: number) => {
-            console.log(
-              `Column ${index + 1}: ${col.name} (ID: ${col.id}, isV2: ${col.isV2 || false})`
-            );
-            console.log(`  Cards: ${col.cards?.length || 0}`);
-          });
-
           return NextResponse.json({ columns });
         } else {
-          console.log('No columns found for project');
           return NextResponse.json({
             columns: [],
             message: 'No columns found for this project',
@@ -196,13 +92,8 @@ export async function GET(req: Request) {
     }
 
     if (columnId) {
-      // Get cards for a specific column
       try {
         const cards = await githubService.getColumnCards(Number(columnId));
-        console.log(
-          `API received ${cards.length} cards for column ID ${columnId}`
-        );
-
         return NextResponse.json({ cards });
       } catch (cardError) {
         console.error('Error fetching cards:', cardError);
@@ -247,7 +138,6 @@ interface CreateIssueParams {
 
 interface RequestBody {
   action: 'moveCard' | 'createIssue';
-  // Include all possible fields from both parameter types
   cardId?: string | number;
   columnId?: string | number;
   position?: string;
@@ -260,11 +150,7 @@ interface RequestBody {
 
 export async function POST(req: Request) {
   try {
-    // Verify user is authenticated
     const session = await getServerSession(authOptions);
-
-    // For debugging:
-    console.log('POST - Session data:', session);
 
     if (!session) {
       return NextResponse.json(
@@ -274,7 +160,6 @@ export async function POST(req: Request) {
     }
 
     const body = (await req.json()) as RequestBody;
-    console.log('POST Request Body:', body);
 
     const { action, ...params } = body;
 
@@ -282,17 +167,12 @@ export async function POST(req: Request) {
       case 'moveCard': {
         const { cardId, columnId, position } = params as MoveCardParams;
 
-        console.log(
-          `Moving card ${cardId} to ${columnId ? `column ${columnId}` : 'same column'}, position: ${position}`
-        );
-
         try {
           const result = await githubService.moveCard(
             cardId,
             columnId,
             position
           );
-          console.log('MoveCard API Response:', result);
           return NextResponse.json({ success: true, data: result });
         } catch (moveError) {
           console.error('Error in moveCard function:', moveError);
@@ -313,10 +193,8 @@ export async function POST(req: Request) {
             labels,
             repo
           );
-          console.log('Issue Created:', issue);
           return NextResponse.json({ success: true, data: issue });
         } catch (issueError) {
-          console.error('Error creating issue:', issueError);
           return NextResponse.json(
             { error: 'Error creating issue', errorDetails: issueError },
             { status: 500 }
