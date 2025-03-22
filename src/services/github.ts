@@ -1,6 +1,5 @@
 const GITHUB_RATE_LIMIT_API = 'https://api.github.com/rate_limit';
 const GITHUB_GRAPHQL_API = 'https://api.github.com/graphql';
-const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
 import { Octokit } from 'octokit';
 
@@ -506,7 +505,7 @@ export async function listProjectColumns(projectId: string) {
     const response = await fetch(GITHUB_GRAPHQL_API, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -649,7 +648,7 @@ export async function fetchAllProjects() {
     const response = await fetch(GITHUB_GRAPHQL_API, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ query }),
@@ -675,7 +674,7 @@ export async function checkRateLimit() {
     const response = await fetch(GITHUB_RATE_LIMIT_API, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
         Accept: 'application/vnd.github.v3+json',
       },
     });
@@ -724,7 +723,7 @@ export async function fetchIssuesWithinProjects(repo: string) {
     const response = await fetch(GITHUB_GRAPHQL_API, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ query, variables: { repo } }),
@@ -783,7 +782,7 @@ export async function getRepositoryId(owner: string, repo: string) {
   const response = await fetch(GITHUB_GRAPHQL_API, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ query, variables: { owner, repo } }),
@@ -811,7 +810,7 @@ export async function addIssueToProjectBoard(
   const response = await fetch(GITHUB_GRAPHQL_API, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
