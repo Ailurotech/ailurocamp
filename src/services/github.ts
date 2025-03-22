@@ -777,38 +777,6 @@ export async function moveCard(
   }
 }
 
-// export async function moveCard(
-//   cardId: string | number,
-//   columnId?: string | number,
-//   position: string = 'top'
-// ) {
-//   try {
-//     console.log(
-//       `Moving card ${cardId} to column ${columnId || 'same column'}, position: ${position}`
-//     );
-
-//     const params: any = {
-//       card_id: Number(cardId),
-//       position,
-//     };
-
-//     if (columnId) {
-//       params.column_id = Number(columnId);
-//     }
-
-//     const response = await octokit.rest.projects.moveCard(params);
-
-//     console.log('REST API Response:', response.status);
-//     return response.data;
-//   } catch (error) {
-//     console.error(
-//       'Error moving card:',
-//       error instanceof Error ? error.message : 'Unknown error'
-//     );
-//     throw error;
-//   }
-// }
-
 export async function createIssue(
   title: string,
   body: string,

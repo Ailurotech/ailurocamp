@@ -360,7 +360,6 @@ export default function KanbanBoard() {
             };
 
             const isExpanded = expandedColumns[column.id.toString()];
-            const searchTerm = searchTerms[column.id.toString()] || '';
 
             const filteredCards = column.cards.filter((card) => {
               const searchTerm = searchTerms[column.id.toString()] || '';
