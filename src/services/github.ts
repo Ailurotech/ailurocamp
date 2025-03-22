@@ -152,8 +152,7 @@ interface ProjectV2Response {
 
 export async function getProjectColumns(projectId: number) {
   try {
-    try {
-      const projectQuery = `
+    const projectQuery = `
       query {
         organization(login: "${owner}") {
           projectV2(number: ${projectId}) {
@@ -245,222 +244,197 @@ export async function getProjectColumns(projectId: number) {
         }
       }`;
 
-      const projectData = (await octokit.graphql(
-        projectQuery
-      )) as ProjectV2Response;
+    const projectData = (await octokit.graphql(
+      projectQuery
+    )) as ProjectV2Response;
 
-      const allFields =
-        projectData?.organization?.projectV2?.fields?.nodes || [];
+    const allFields = projectData?.organization?.projectV2?.fields?.nodes || [];
 
-      const fieldValueCounts: Record<string, Set<string>> = {};
+    const fieldValueCounts: Record<string, Set<string>> = {};
 
-      projectData?.organization?.projectV2?.items?.nodes?.forEach((item) => {
-        if (!item.fieldValues?.nodes) return;
+    projectData?.organization?.projectV2?.items?.nodes?.forEach((item) => {
+      if (!item.fieldValues?.nodes) return;
 
-        item.fieldValues.nodes.forEach((value) => {
-          if (value && value.field && value.field.name && value.name) {
-            const fieldName = value.field.name;
-            if (!fieldValueCounts[fieldName]) {
-              fieldValueCounts[fieldName] = new Set();
-            }
-            fieldValueCounts[fieldName].add(value.name);
+      item.fieldValues.nodes.forEach((value) => {
+        if (value && value.field && value.field.name && value.name) {
+          const fieldName = value.field.name;
+          if (!fieldValueCounts[fieldName]) {
+            fieldValueCounts[fieldName] = new Set();
           }
-        });
+          fieldValueCounts[fieldName].add(value.name);
+        }
       });
+    });
 
-      let statusFieldName = '';
-      const statusKeywords = ['status', 'state', 'stage', 'progress', 'kanban'];
+    let statusFieldName = '';
+    const statusKeywords = ['status', 'state', 'stage', 'progress', 'kanban'];
 
-      for (const fieldName of Object.keys(fieldValueCounts)) {
-        const lowercaseName = fieldName.toLowerCase();
-        if (statusKeywords.some((keyword) => lowercaseName.includes(keyword))) {
+    for (const fieldName of Object.keys(fieldValueCounts)) {
+      const lowercaseName = fieldName.toLowerCase();
+      if (statusKeywords.some((keyword) => lowercaseName.includes(keyword))) {
+        statusFieldName = fieldName;
+        break;
+      }
+    }
+
+    if (!statusFieldName) {
+      const statusValueKeywords = [
+        'todo',
+        'to do',
+        'in progress',
+        'done',
+        'complete',
+        'ready',
+      ];
+      for (const [fieldName, values] of Object.entries(fieldValueCounts)) {
+        const valueArray = Array.from(values);
+        if (
+          valueArray.some((value) =>
+            statusValueKeywords.some((keyword) =>
+              value.toLowerCase().includes(keyword)
+            )
+          )
+        ) {
           statusFieldName = fieldName;
           break;
         }
       }
+    }
 
-      if (!statusFieldName) {
-        const statusValueKeywords = [
-          'todo',
-          'to do',
-          'in progress',
-          'done',
-          'complete',
-          'ready',
-        ];
-        for (const [fieldName, values] of Object.entries(fieldValueCounts)) {
-          const valueArray = Array.from(values);
-          if (
-            valueArray.some((value) =>
-              statusValueKeywords.some((keyword) =>
-                value.toLowerCase().includes(keyword)
-              )
-            )
-          ) {
-            statusFieldName = fieldName;
-            break;
+    if (!statusFieldName && Object.keys(fieldValueCounts).length > 0) {
+      statusFieldName = Object.keys(fieldValueCounts)[0];
+    }
+
+    if (statusFieldName) {
+      const statusField = allFields.find((f) => f.name === statusFieldName);
+
+      if (statusField) {
+        const uniqueValues = Array.from(fieldValueCounts[statusFieldName]);
+
+        const columns: Array<{
+          id: string;
+          name: string;
+          isV2: boolean;
+          field_id?: string;
+          cards: any[];
+        }> = uniqueValues.map((value: string) => ({
+          id: value,
+          name: value,
+          field_id: statusField.id,
+          isV2: true,
+          cards: [],
+        }));
+
+        projectData?.organization?.projectV2?.items?.nodes?.forEach((item) => {
+          if (!item.fieldValues?.nodes) return;
+          const statusValue = item.fieldValues.nodes.find(
+            (value) => value.field && value.field.name === statusFieldName
+          );
+
+          if (statusValue && statusValue.name) {
+            const column = columns.find((col) => col.name === statusValue.name);
+
+            if (column) {
+              const card = {
+                id: item.id,
+                note: item.content?.body || '',
+                content_url: item.content?.url || '',
+                title:
+                  item.content?.title || `Item #${item.content?.number || ''}`,
+                created_at: item.content?.createdAt || new Date().toISOString(),
+                number: item.content?.number,
+              };
+              column.cards.push(card);
+            }
           }
-        }
+        });
+
+        return columns;
       }
+    }
 
-      if (!statusFieldName && Object.keys(fieldValueCounts).length > 0) {
-        statusFieldName = Object.keys(fieldValueCounts)[0];
-      }
+    const columnsResponse = await octokit.rest.projects.listColumns({
+      project_id: projectId,
+    });
 
-      if (statusFieldName) {
-        const statusField = allFields.find((f) => f.name === statusFieldName);
+    const columns = await Promise.all(
+      columnsResponse.data.map(async (column) => {
+        const cardsResponse = await octokit.rest.projects.listCards({
+          column_id: column.id,
+        });
 
-        if (statusField) {
-          const uniqueValues = Array.from(fieldValueCounts[statusFieldName]);
+        const cards = await Promise.all(
+          cardsResponse.data.map(async (card) => {
+            try {
+              if (card.content_url) {
+                const parts = new URL(card.content_url).pathname.split('/');
+                const issue_number = parts[parts.length - 1];
 
-          const columns: Array<{
-            id: string;
-            name: string;
-            isV2: boolean;
-            field_id?: string;
-            cards: any[];
-          }> = uniqueValues.map((value: string) => ({
-            id: value,
-            name: value,
-            field_id: statusField.id,
-            isV2: true,
-            cards: [],
-          }));
+                try {
+                  const issueResponse = await octokit.rest.issues.get({
+                    owner,
+                    repo,
+                    issue_number: parseInt(issue_number),
+                  });
 
-          projectData?.organization?.projectV2?.items?.nodes?.forEach(
-            (item) => {
-              if (!item.fieldValues?.nodes) return;
-              const statusValue = item.fieldValues.nodes.find(
-                (value) => value.field && value.field.name === statusFieldName
+                  const issue = issueResponse.data;
+
+                  return {
+                    id: card.id,
+                    note: issue.body || '',
+                    content_url: card.content_url,
+                    title: issue.title,
+                    created_at: issue.created_at,
+                    number: issue.number,
+                  };
+                } catch (issueError) {
+                  console.error(
+                    `Error getting issue details: ${card.content_url}`,
+                    issueError instanceof Error
+                      ? issueError.message
+                      : 'Unknown error'
+                  );
+
+                  return {
+                    id: card.id,
+                    note: card.note || '',
+                    content_url: card.content_url || '',
+                    created_at: new Date().toISOString(),
+                  };
+                }
+              }
+
+              return {
+                id: card.id,
+                note: card.note || '',
+                content_url: card.content_url || '',
+                created_at: new Date().toISOString(),
+              };
+            } catch (cardError) {
+              console.error(
+                'Error processing card:',
+                cardError instanceof Error ? cardError.message : 'Unknown error'
               );
 
-              if (statusValue && statusValue.name) {
-                const column = columns.find(
-                  (col) => col.name === statusValue.name
-                );
-
-                if (column) {
-                  const card = {
-                    id: item.id,
-                    note: item.content?.body || '',
-                    content_url: item.content?.url || '',
-                    title:
-                      item.content?.title ||
-                      `Item #${item.content?.number || ''}`,
-                    created_at:
-                      item.content?.createdAt || new Date().toISOString(),
-                    number: item.content?.number,
-                  };
-                  column.cards.push(card);
-                }
-              }
+              return {
+                id: card.id,
+                note: card.note || '',
+                content_url: card.content_url || '',
+                created_at: new Date().toISOString(),
+              };
             }
-          );
+          })
+        );
 
-          return columns;
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
+        return {
+          id: column.id,
+          name: column.name,
+          cards,
+        };
+      })
+    );
 
-    try {
-      const columnsResponse = await octokit.rest.projects.listColumns({
-        project_id: projectId,
-      });
-
-      const columns = await Promise.all(
-        columnsResponse.data.map(async (column) => {
-          const cardsResponse = await octokit.rest.projects.listCards({
-            column_id: column.id,
-          });
-
-          const cards = await Promise.all(
-            cardsResponse.data.map(async (card) => {
-              try {
-                if (card.content_url) {
-                  const parts = new URL(card.content_url).pathname.split('/');
-                  const issue_number = parts[parts.length - 1];
-
-                  try {
-                    const issueResponse = await octokit.rest.issues.get({
-                      owner,
-                      repo,
-                      issue_number: parseInt(issue_number),
-                    });
-
-                    const issue = issueResponse.data;
-
-                    return {
-                      id: card.id,
-                      note: issue.body || '',
-                      content_url: card.content_url,
-                      title: issue.title,
-                      created_at: issue.created_at,
-                      number: issue.number,
-                    };
-                  } catch (issueError) {
-                    console.error(
-                      `Error getting issue details: ${card.content_url}`,
-                      issueError instanceof Error
-                        ? issueError.message
-                        : 'Unknown error'
-                    );
-
-                    return {
-                      id: card.id,
-                      note: card.note || '',
-                      content_url: card.content_url || '',
-                      created_at: new Date().toISOString(),
-                    };
-                  }
-                }
-
-                return {
-                  id: card.id,
-                  note: card.note || '',
-                  content_url: card.content_url || '',
-                  created_at: new Date().toISOString(),
-                };
-              } catch (cardError) {
-                console.error(
-                  'Error processing card:',
-                  cardError instanceof Error
-                    ? cardError.message
-                    : 'Unknown error'
-                );
-
-                return {
-                  id: card.id,
-                  note: card.note || '',
-                  content_url: card.content_url || '',
-                  created_at: new Date().toISOString(),
-                };
-              }
-            })
-          );
-
-          return {
-            id: column.id,
-            name: column.name,
-            cards,
-          };
-        })
-      );
-
-      return columns;
-    } catch (restError) {
-      console.error(
-        'Error fetching classic project columns:',
-        restError instanceof Error ? restError.message : 'Unknown error'
-      );
-
-      return [
-        { id: 'to-do', name: 'To Do', isV2: true, cards: [] },
-        { id: 'in-progress', name: 'In Progress', isV2: true, cards: [] },
-        { id: 'done', name: 'Done', isV2: true, cards: [] },
-      ];
-    }
+    return columns;
   } catch (error) {
     console.error('Error fetching project columns:', error);
     return [
