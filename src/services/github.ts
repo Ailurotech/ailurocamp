@@ -5,7 +5,7 @@ const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 import { Octokit } from 'octokit';
 
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
+  auth: process.env.NEXT_PUBLIC_GITHUB_TOKEN,
 });
 
 const owner = process.env.GITHUB_OWNER || 'Ailurotech';
@@ -108,7 +108,6 @@ interface FieldOption {
   options?: Array<{ id: string; name: string }>;
 }
 
-// Update the ProjectItemNode interface to avoid any types in field values
 interface FieldValue {
   text?: string;
   date?: string;
@@ -310,9 +309,7 @@ export async function getProjectColumns(projectId: number) {
       }
 
       if (statusFieldName) {
-        const statusField = allFields.find(
-          (f: any) => f.name === statusFieldName
-        );
+        const statusField = allFields.find((f) => f.name === statusFieldName);
 
         if (statusField) {
           const uniqueValues = Array.from(fieldValueCounts[statusFieldName]);
@@ -332,11 +329,10 @@ export async function getProjectColumns(projectId: number) {
           }));
 
           projectData?.organization?.projectV2?.items?.nodes?.forEach(
-            (item: any) => {
+            (item) => {
               if (!item.fieldValues?.nodes) return;
               const statusValue = item.fieldValues.nodes.find(
-                (value: any) =>
-                  value.field && value.field.name === statusFieldName
+                (value) => value.field && value.field.name === statusFieldName
               );
 
               if (statusValue && statusValue.name) {
@@ -375,13 +371,13 @@ export async function getProjectColumns(projectId: number) {
       });
 
       const columns = await Promise.all(
-        columnsResponse.data.map(async (column: any) => {
+        columnsResponse.data.map(async (column) => {
           const cardsResponse = await octokit.rest.projects.listCards({
             column_id: column.id,
           });
 
           const cards = await Promise.all(
-            cardsResponse.data.map(async (card: any) => {
+            cardsResponse.data.map(async (card) => {
               try {
                 if (card.content_url) {
                   const parts = new URL(card.content_url).pathname.split('/');
@@ -616,7 +612,6 @@ export async function createIssue(
   try {
     console.log(`Creating issue: ${title}`);
 
-    // Create the issue
     const response = await octokit.rest.issues.create({
       owner,
       repo,
