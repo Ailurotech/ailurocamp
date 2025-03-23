@@ -3,10 +3,10 @@
 import React, { useState } from 'react';
 import ModuleForm from '@/components/ui/InstructorModulePage/ModuleForm';
 import ErrorPopupModal from '@/components/ui/ErrorPopupModal';
-import Loading from '@/components/ui/Loading';
 import { useMutation } from '@tanstack/react-query';
 import { createModule } from '@/lib/instructor/ModuleRequest';
 import { useRouter } from 'next/navigation';
+import Loading from '@/components/ui/Loading';
 
 export default function CreateModulePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: courseId } = React.use(params);
@@ -37,7 +37,7 @@ export default function CreateModulePage({ params }: { params: Promise<{ id: str
   return (
     <main className="p-4">
       <h1 className="text-xl font-bold mb-4">Create New Module</h1>
-      <ModuleForm onCreateModule={handleCreateModule} isLoading={createModuleMutation.isPending} />
+      <ModuleForm onCreateModule={handleCreateModule} />
       {error && (
         <ErrorPopupModal error={error} onClose={() => setError(null)} />
       )}

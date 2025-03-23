@@ -4,10 +4,9 @@ import React, { useState } from 'react';
 
 interface ModuleFormProps {
   onCreateModule: (title: string, content: string, order: number, duration: number) => void;
-  isLoading?: boolean;
 }
 
-export default function ModuleForm({ onCreateModule, isLoading }: ModuleFormProps) {
+export default function ModuleForm({ onCreateModule }: ModuleFormProps) {
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [order, setOrder] = useState<number>(0);
@@ -67,10 +66,9 @@ export default function ModuleForm({ onCreateModule, isLoading }: ModuleFormProp
       </div>
       <button
         type="submit"
-        disabled={isLoading}
         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
-        {isLoading ? 'Creating...' : 'Create Module'}
+        Create
       </button>
     </form>
   );

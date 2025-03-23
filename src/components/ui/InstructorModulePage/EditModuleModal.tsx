@@ -10,8 +10,6 @@ interface EditModuleModalProps {
   setEditTitle: React.Dispatch<React.SetStateAction<string>>;
   editContent: string;
   setEditContent: React.Dispatch<React.SetStateAction<string>>;
-  editOrder: number;
-  setEditOrder: React.Dispatch<React.SetStateAction<number>>;
   editDuration: number;
   setEditDuration: React.Dispatch<React.SetStateAction<number>>;
 }
@@ -24,8 +22,6 @@ export default function EditModuleModal({
   setEditTitle,
   editContent,
   setEditContent,
-  editOrder,
-  setEditOrder,
   editDuration,
   setEditDuration,
 }: EditModuleModalProps) {
@@ -58,19 +54,6 @@ export default function EditModuleModal({
               onChange={(e) => setEditContent(e.target.value)}
               rows={4}
               className="mt-1 w-full p-2 border rounded-lg resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Order
-            </label>
-            <input
-              type="number"
-              value={editOrder}
-              min={0}
-              onChange={(e) => setEditOrder(+e.target.value)}
-              className="mt-1 w-full p-2 border rounded-lg"
             />
           </div>
 

@@ -23,7 +23,11 @@ interface PopupError {
   onClose?: () => void;
 }
 
-export default function InstructorModulesPage({ params }: { params: Promise<{ id: string }> }) {
+export default function InstructorModulesPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   // const { id: courseId } = useParams<{ id: string }>();
   const { id: courseId }: { id: string } = React.use(params);
 
@@ -36,7 +40,6 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
-  const [editOrder, setEditOrder] = useState(0);
   const [editDuration, setEditDuration] = useState(0);
 
   // State for deleting
@@ -70,7 +73,7 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
     isPending,
     isSuccess,
     isError,
-  } = useQuery({
+  } = useQuery<{ modules: IModule[] }, Error>({
     queryKey: ['modules', courseId],
     queryFn: () => fetchModules(courseId),
     enabled:
@@ -79,14 +82,12 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
   });
 
   useEffect(() => {
-    if (isSuccess && fetchedModules?.modules) {
+    if (isSuccess && fetchedModules.modules.length > 0) {
       // setModulesState(fetchedModules.modules);
       // Auto-select first module if available
-      if (fetchedModules.modules.length > 0 && !selectedModule) {
-        setSelectedModule(fetchedModules.modules[0]);
-      }
+      setSelectedModule(fetchedModules.modules[0]);
     }
-  }, [isSuccess, fetchedModules, selectedModule]);
+  }, [isSuccess, fetchedModules]);
 
   // Error handling for fetch modules
   useEffect(() => {
@@ -127,10 +128,15 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['modules', courseId] });
       if (selectedModule?._id === res.deletedModule._id) {
+        console.log('selectedModule', selectedModule);
+        console.log('res.deletedModule', res.deletedModule);
+        
         setSelectedModule(null);
+        console.log('selectedModule', selectedModule);
+        
       }
     },
-    onError: () => {      
+    onError: () => {
       setError({
         errorMsg: 'Failed to delete module, please try again.',
         onClose: () => {
@@ -145,7 +151,6 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
     setEditModule(module);
     setEditTitle(module.title);
     setEditContent(module.content);
-    setEditOrder(module.order);
     setEditDuration(module.duration);
     setIsEditModalOpen(true);
   }
@@ -166,9 +171,6 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
     }
     if (editModule.content !== editContent) {
       changes.content = editContent;
-    }
-    if (editModule.order !== editOrder) {
-      changes.order = editOrder;
     }
     if (editModule.duration !== editDuration) {
       changes.duration = editDuration;
@@ -209,40 +211,29 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
   }
 
   /**
-   * Handle updates to a single module (e.g., edit title/content).
+   * Handle reordering modules after a drag-and-drop event in ModuleList.
+   * This function is passed to <ModuleList onReorderModules={...} />.
    */
-  // const handleUpdateModule = async (
-  //   moduleId: string,
-  //   updates: Partial<IModule>
-  // ) => {
-  //   updateModuleMutation.mutate({ moduleId, updates });
-  // };
+  function handleReorderModules(newModules: IModule[]) {
+    // Optimistically update the list in the query cache (optional but nice).
+    queryClient.setQueryData(['modules', courseId], (oldData: { modules: IModule[] }) => {
+      if (!oldData || !oldData.modules) return oldData;
+      return {
+        ...oldData,
+        modules: newModules,
+      };
+    });
 
-  /**
-   * Handle deleting a module.
-   */
-  // const handleDeleteModule = async (module: IModule) => {
-  //   deleteModuleMutation.mutate(module._id);
-  //   // Optionally remove it optimistically from modulesState:
-  //   setModulesState((prev) => prev.filter((m) => m._id !== module._id));
-  //   if (selectedModule && selectedModule._id === module._id) {
-  //     setSelectedModule(null);
-  //   }
-  // };
-
-  /**
-   * Handle reordering modules after drag-and-drop.
-   */
-  // const handleReorderModules = (newModules: IModule[]) => {
-  //   setModulesState(newModules);
-  //   // Optionally update each module’s `order` in the DB
-  //   newModules.forEach((mod, index) => {
-  //     updateModuleMutation.mutate({
-  //       moduleId: mod._id,
-  //       updates: { order: index },
-  //     });
-  //   });
-  // };
+    // Update each module’s `order` in the database
+    newModules.forEach((module: IModule, index: number) => {
+      if (module.order !== index) {
+        updateModuleMutation.mutate({
+          moduleId: module._id,
+          changes: { order: index },
+        });
+      }
+    });
+  }
 
   // Show loading component if courses are being fetched
   if (isPending) {
@@ -259,7 +250,7 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
             selectedModuleId={selectedModule ? selectedModule._id : null}
             onSelectModule={(module) => setSelectedModule(module)}
             courseId={courseId}
-            onReorderModules={() => {}}
+            onReorderModules={handleReorderModules}
           />
         )}
       </div>
@@ -268,7 +259,6 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
       <div className="w-1/2">
         <ModuleCard
           module={selectedModule}
-          onClose={() => setSelectedModule(null)}
           onEdit={openEditModal}
           isSavingEdit={updateModuleMutation.isPending}
           onDelete={openDeleteModal}
@@ -294,8 +284,6 @@ export default function InstructorModulesPage({ params }: { params: Promise<{ id
         setEditTitle={setEditTitle}
         editContent={editContent}
         setEditContent={setEditContent}
-        editOrder={editOrder}
-        setEditOrder={setEditOrder}
         editDuration={editDuration}
         setEditDuration={setEditDuration}
       />

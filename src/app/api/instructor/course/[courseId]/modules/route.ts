@@ -27,7 +27,7 @@ export async function GET(
     if (!course) {
       return NextResponse.json({ message: 'Course not found' }, { status: 404 });
     }
-    return NextResponse.json({ modules: course.modules }, { status: 200 });
+    return NextResponse.json({ modules: course.modules.sort((a, b) => a.order - b.order) }, { status: 200 });
   } catch (error: unknown) {
     return NextResponse.json(
       { message: 'Failed to fetch modules', error: (error as Error).message }, 
@@ -61,6 +61,10 @@ export async function POST(
 
     // Push new module
     course.modules.push({ title, content, order: +order, duration: +duration });
+    
+    // Sort modules by order
+    course.modules.sort((a, b) => a.order - b.order);
+    
     await course.save();
 
     return NextResponse.json({ message: 'Module created successfully', modules: course.modules }, { status: 201 });
@@ -107,7 +111,12 @@ export async function PATCH(
 
     if (title !== undefined) moduleToEdit.title = title;
     if (content !== undefined) moduleToEdit.content = content;
-    if (order !== undefined) moduleToEdit.order = +order;
+    if (order !== undefined) {
+      moduleToEdit.order = +order;
+
+      // Sort modules by order
+      course.modules.sort((a, b) => a.order - b.order);
+    }
     if (duration !== undefined) moduleToEdit.duration = +duration;
 
     await course.save();
@@ -158,6 +167,8 @@ export async function DELETE(
 
     await course.save();
 
+    console.log('Deleted module:', moduleToDelete);
+    
     return NextResponse.json({ message: 'Module deleted successfully', deletedModule: moduleToDelete }, { status: 200 });
   } catch (error: unknown) {
     return NextResponse.json({ message: 'Failed to delete module', error: (error as Error).message }, { status: 500 });

@@ -5,7 +5,6 @@ import type { IModule } from '@/types/module';
 
 interface ModuleCardProps {
   module: IModule | null;
-  onClose: () => void;
   onEdit: (module: IModule) => void;
   isSavingEdit: boolean;
   onDelete: (module: IModule) => void;
@@ -14,7 +13,6 @@ interface ModuleCardProps {
 
 function ModuleCard({
   module,
-  onClose,
   onEdit,
   isSavingEdit,
   onDelete,
@@ -27,9 +25,6 @@ function ModuleCard({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">Module Details</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-              ✕
-            </button>
           </div>
 
           {/* Body */}
@@ -63,7 +58,6 @@ function ModuleCard({
         </>
       ): (
         <div className="h-full flex items-center justify-center text-gray-500">
-          Select a module on the left
         </div>
       )}
     </div> 

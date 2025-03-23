@@ -280,7 +280,6 @@ export default function InstructorCoursesPage() {
       <div className="w-1/2 overflow-y-auto bg-gray-50">
         <CourseCard
           course={selectedCourse}
-          onClose={() => setSelectedCourse(null)}
           onPublishToggle={handlePublishToggle}
           onEdit={openEditModal}
           isSavingEdit={updateCourseMutation.isPending}
