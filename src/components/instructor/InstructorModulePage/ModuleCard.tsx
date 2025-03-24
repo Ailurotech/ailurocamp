@@ -35,7 +35,9 @@ function ModuleCard({
               <p className="text-gray-700 text-sm">{module.content}</p>
             </div>
             <p className="text-sm text-gray-600">Order: {module.order}</p>
-            <p className="text-sm text-gray-600">Duration: {module.duration} minutes</p>
+            <p className="text-sm text-gray-600">
+              Duration: {module.duration} minutes
+            </p>
           </div>
 
           {/* Footer with actions */}
@@ -56,11 +58,10 @@ function ModuleCard({
             </button>
           </div>
         </>
-      ): (
-        <div className="h-full flex items-center justify-center text-gray-500">
-        </div>
+      ) : (
+        <div className="h-full flex items-center justify-center text-gray-500"></div>
       )}
-    </div> 
+    </div>
   );
 }
 

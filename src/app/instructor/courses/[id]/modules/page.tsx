@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import ModuleList from '@/components/ui/InstructorModulePage/ModuleList';
-import ModuleCard from '@/components/ui/InstructorModulePage/ModuleCard';
-import ErrorPopupModal from '@/components/ui/ErrorPopupModal';
+import ModuleList from '@/components/instructor/InstructorModulePage/ModuleList';
+import ModuleCard from '@/components/instructor/InstructorModulePage/ModuleCard';
+import PopupModal, { PopupProps } from '@/components/ui/PopupModal';
 import Loading from '@/components/ui/Loading';
 import {
   fetchModules,
@@ -14,14 +14,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import EditModuleModal from '@/components/ui/InstructorModulePage/EditModuleModal';
-import DeleteModuleModal from '@/components/ui/InstructorModulePage/DeleteModuleModal';
+import EditModuleModal from '@/components/instructor/InstructorModulePage/EditModuleModal';
+import DeleteModuleModal from '@/components/instructor/InstructorModulePage/DeleteModuleModal';
 import { IModule } from '@/types/module';
-
-interface PopupError {
-  errorMsg: string;
-  onClose?: () => void;
-}
 
 export default function InstructorModulesPage({
   params,
@@ -29,7 +24,7 @@ export default function InstructorModulesPage({
   params: Promise<{ id: string }>;
 }) {
   // const { id: courseId } = useParams<{ id: string }>();
-  const { id: courseId }: { id: string } = React.use(params);
+  const courseId: string = React.use(params).id;
 
   // State for a selected module
   // const [modulesState, setModulesState] = useState<IModule[]>([]);
@@ -46,8 +41,8 @@ export default function InstructorModulesPage({
   const [moduleToDelete, setModuleToDelete] = useState<IModule | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // State for error handling
-  const [error, setError] = useState<PopupError | undefined>(undefined);
+  // State for popup modal (error)
+  const [popup, setPopup] = useState<PopupProps | null>(null);
 
   // Session
   const { data: session, status: sessionStatus } = useSession();
@@ -92,11 +87,11 @@ export default function InstructorModulesPage({
   // Error handling for fetch modules
   useEffect(() => {
     if (isError) {
-      setError({
-        errorMsg: 'Failed to fetch modules, please try again.',
+      setPopup({
+        message: 'Failed to fetch modules, please refresh to try again.',
+        type: 'error',
         onClose: () => {
-          setError(undefined);
-          fetchModules(courseId);
+          setPopup(null);
         },
       });
     }
@@ -113,10 +108,11 @@ export default function InstructorModulesPage({
       }
     },
     onError: () => {
-      setError({
-        errorMsg: 'Failed to update module, please try again.',
+      setPopup({
+        message: 'Failed to update module, please try again.',
+        type: 'error',
         onClose: () => {
-          setError(undefined);
+          setPopup(null);
         },
       });
     },
@@ -130,17 +126,17 @@ export default function InstructorModulesPage({
       if (selectedModule?._id === res.deletedModule._id) {
         console.log('selectedModule', selectedModule);
         console.log('res.deletedModule', res.deletedModule);
-        
+
         setSelectedModule(null);
         console.log('selectedModule', selectedModule);
-        
       }
     },
     onError: () => {
-      setError({
-        errorMsg: 'Failed to delete module, please try again.',
+      setPopup({
+        message: 'Failed to delete module, please try again.',
+        type: 'error',
         onClose: () => {
-          setError(undefined);
+          setPopup(null);
         },
       });
     },
@@ -216,13 +212,16 @@ export default function InstructorModulesPage({
    */
   function handleReorderModules(newModules: IModule[]) {
     // Optimistically update the list in the query cache (optional but nice).
-    queryClient.setQueryData(['modules', courseId], (oldData: { modules: IModule[] }) => {
-      if (!oldData || !oldData.modules) return oldData;
-      return {
-        ...oldData,
-        modules: newModules,
-      };
-    });
+    queryClient.setQueryData(
+      ['modules', courseId],
+      (oldData: { modules: IModule[] }) => {
+        if (!oldData || !oldData.modules) return oldData;
+        return {
+          ...oldData,
+          modules: newModules,
+        };
+      }
+    );
 
     // Update each module’s `order` in the database
     newModules.forEach((module: IModule, index: number) => {
@@ -266,11 +265,8 @@ export default function InstructorModulesPage({
         />
       </div>
 
-      {/* Error Popup Modal */}
-      <ErrorPopupModal
-        error={error?.errorMsg}
-        onClose={error?.onClose || (() => {})}
-      />
+      {/* Popup Modal */}
+      {popup && <PopupModal {...popup} onClose={popup.onClose} />}
 
       {/* Edit Module Modal */}
       <EditModuleModal

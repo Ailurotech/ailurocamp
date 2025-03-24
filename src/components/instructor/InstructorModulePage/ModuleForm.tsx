@@ -3,7 +3,12 @@
 import React, { useState } from 'react';
 
 interface ModuleFormProps {
-  onCreateModule: (title: string, content: string, order: number, duration: number) => void;
+  onCreateModule: (
+    title: string,
+    content: string,
+    order: number,
+    duration: number
+  ) => void;
 }
 
 export default function ModuleForm({ onCreateModule }: ModuleFormProps) {

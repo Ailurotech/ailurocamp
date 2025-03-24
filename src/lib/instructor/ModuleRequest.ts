@@ -36,7 +36,12 @@ export async function createModule(
 export async function updateModule(
   courseId: string,
   moduleId: string,
-  module: { title?: string; content?: string; order?: number; duration?: number }
+  module: {
+    title?: string;
+    content?: string;
+    order?: number;
+    duration?: number;
+  }
 ) {
   const res: Response = await fetch(
     `/api/instructor/course/${courseId}/modules?moduleId=${moduleId}`,
@@ -46,10 +51,10 @@ export async function updateModule(
       body: JSON.stringify(module),
     }
   );
-  if (!res.ok) {    
+  if (!res.ok) {
     throw new Error('Failed to update module, please try again.');
   }
-  
+
   const data: { updatedModule: IModule; error?: string } = await res.json();
   return data;
 }

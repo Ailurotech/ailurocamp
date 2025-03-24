@@ -30,7 +30,9 @@ export default function EditModuleModal({
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Module</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Edit Module
+        </h3>
 
         <div className="space-y-4">
           <div>

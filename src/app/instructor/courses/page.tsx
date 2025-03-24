@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import CourseList from '@/components/ui/InstructorCoursePage/CourseList';
-import CourseCard from '@/components/ui/InstructorCoursePage/CourseCard';
-import EditCourseModal from '@/components/ui/InstructorCoursePage/EditCourseModal';
-import DeleteCourseModal from '@/components/ui/InstructorCoursePage/DeleteCourseModal';
-import ErrorPopupModal from '@/components/ui/ErrorPopupModal';
+import CourseList from '@/components/instructor/InstructorCoursePage/CourseList';
+import CourseCard from '@/components/instructor/InstructorCoursePage/CourseCard';
+import EditCourseModal from '@/components/instructor/InstructorCoursePage/EditCourseModal';
+import DeleteCourseModal from '@/components/instructor/InstructorCoursePage/DeleteCourseModal';
+import PopupModal, { PopupProps } from '@/components/ui/PopupModal';
 import PaginationControls from '@/components/ui/PaginationControls';
 import Loading from '@/components/ui/Loading';
 import type { ICourse } from '@/types/course';
@@ -24,11 +24,6 @@ import {
   deleteCourse,
 } from '@/lib/instructor/CourseRequest';
 
-interface PopupError {
-  errorMsg: string;
-  onClose?: () => void;
-}
-
 export default function InstructorCoursesPage() {
   // State for a selected course
   const [selectedCourse, setSelectedCourse] = useState<ICourse | null>(null);
@@ -43,8 +38,8 @@ export default function InstructorCoursesPage() {
   const [courseToDelete, setCourseToDelete] = useState<ICourse | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // State for error handling
-  const [error, setError] = useState<PopupError | undefined>(undefined);
+  // State for popup modal (error)
+  const [popup, setPopup] = useState<PopupProps | null>(null);
 
   // Session
   const { data: session, status: sessionStatus } = useSession();
@@ -102,11 +97,11 @@ export default function InstructorCoursesPage() {
   // Error handling for fetch courses
   useEffect(() => {
     if (isError) {
-      setError({
-        errorMsg: 'Failed to load courses, please try again.',
+      setPopup({
+        message: 'Failed to load courses, please refresh to try again.',
+        type: 'error',
         onClose: () => {
-          setError(undefined);
-          fetchCourses(session?.user?.id, page);
+          setPopup(null);
         },
       });
     }
@@ -130,10 +125,11 @@ export default function InstructorCoursesPage() {
       }
     },
     onError: () => {
-      setError({
-        errorMsg: 'Failed to update course, please try again.',
+      setPopup({
+        message: 'Failed to update course, please try again.',
+        type: 'error',
         onClose: () => {
-          setError(undefined);
+          setPopup(null);
         },
       });
     },
@@ -154,10 +150,11 @@ export default function InstructorCoursesPage() {
       }
     },
     onError: () => {
-      setError({
-        errorMsg: 'Failed to update course status, please try again.',
+      setPopup({
+        message: 'Failed to update course status, please try again.',
+        type: 'error',
         onClose: () => {
-          setError(undefined);
+          setPopup(null);
         },
       });
     },
@@ -175,10 +172,11 @@ export default function InstructorCoursesPage() {
       }
     },
     onError: () => {
-      setError({
-        errorMsg: 'Failed to delete course, please try again.',
+      setPopup({
+        message: 'Failed to delete course, please try again.',
+        type: 'error',
         onClose: () => {
-          setError(undefined);
+          setPopup(null);
         },
       });
     },
@@ -290,10 +288,7 @@ export default function InstructorCoursesPage() {
       </div>
 
       {/* Error Popup Modal */}
-      <ErrorPopupModal
-        error={error?.errorMsg}
-        onClose={error?.onClose || (() => {})}
-      />
+      {popup && <PopupModal {...popup} onClose={popup.onClose} />}
 
       {/* EDIT MODAL */}
       <EditCourseModal

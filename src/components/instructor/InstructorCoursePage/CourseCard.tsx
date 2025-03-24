@@ -57,6 +57,16 @@ function CourseCard({
                 View Reviews
               </button>
             </p>
+            <p className="text-sm text-gray-600">
+              <button
+                onClick={() =>
+                  router.push(`/instructor/courses/${course._id}/modules`)
+                }
+                className="text-blue-500 hover:underline"
+              >
+                View Modules
+              </button>
+            </p>
             <div className="space-x-2 mt-4">
               <span
                 className={clsx(

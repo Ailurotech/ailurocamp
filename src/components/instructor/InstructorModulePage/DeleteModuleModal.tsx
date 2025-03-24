@@ -30,8 +30,8 @@ export default function DeleteModuleModal({
           Delete Confirmation
         </h3>
         <p className="text-sm text-gray-500 mb-6">
-          Are you sure you want to delete <strong>{moduleToDelete.title}</strong>? 
-          This action cannot be undone.
+          Are you sure you want to delete{' '}
+          <strong>{moduleToDelete.title}</strong>? This action cannot be undone.
         </p>
         <div className="flex justify-end space-x-3">
           <button

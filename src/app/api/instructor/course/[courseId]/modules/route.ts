@@ -25,12 +25,18 @@ export async function GET(
 
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
-    return NextResponse.json({ modules: course.modules.sort((a, b) => a.order - b.order) }, { status: 200 });
+    return NextResponse.json(
+      { modules: course.modules.sort((a, b) => a.order - b.order) },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     return NextResponse.json(
-      { message: 'Failed to fetch modules', error: (error as Error).message }, 
+      { message: 'Failed to fetch modules', error: (error as Error).message },
       { status: 500 }
     );
   }
@@ -56,21 +62,27 @@ export async function POST(
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     // Push new module
     course.modules.push({ title, content, order: +order, duration: +duration });
-    
+
     // Sort modules by order
     course.modules.sort((a, b) => a.order - b.order);
-    
+
     await course.save();
 
-    return NextResponse.json({ message: 'Module created successfully', modules: course.modules }, { status: 201 });
+    return NextResponse.json(
+      { message: 'Module created successfully', modules: course.modules },
+      { status: 201 }
+    );
   } catch (error: unknown) {
     return NextResponse.json(
-      { message: 'Failed to create module', error: (error as Error).message }, 
+      { message: 'Failed to create module', error: (error as Error).message },
       { status: 500 }
     );
   }
@@ -95,18 +107,24 @@ export async function PATCH(
     const id: string | null = searchParams.get('moduleId');
 
     const { title, content, order, duration }: IModuleApiReq = await req.json();
-    
+
     // Find course
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     // Find the module in the course
     const moduleToEdit: IModule | null = course.modules.id(id);
     if (!moduleToEdit) {
-      return NextResponse.json({ message: 'Module not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Module not found' },
+        { status: 404 }
+      );
     }
 
     if (title !== undefined) moduleToEdit.title = title;
@@ -121,11 +139,17 @@ export async function PATCH(
 
     await course.save();
 
-    return NextResponse.json({ message: 'Module updated successfully', updatedModule: moduleToEdit }, { status: 200 });
+    return NextResponse.json(
+      { message: 'Module updated successfully', updatedModule: moduleToEdit },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     console.log(error);
-    
-    return NextResponse.json({ message: 'Failed to update module', error: (error as Error).message }, { status: 500 });
+
+    return NextResponse.json(
+      { message: 'Failed to update module', error: (error as Error).message },
+      { status: 500 }
+    );
   }
 }
 
@@ -148,29 +172,44 @@ export async function DELETE(
     const id: string | null = searchParams.get('moduleId');
 
     if (!id) {
-      return NextResponse.json({ message: 'No moduleId provided' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'No moduleId provided' },
+        { status: 400 }
+      );
     }
 
     // Find Course
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     // Delete the module
     const moduleToDelete: IModule | null = course.modules.id(id);
     if (!moduleToDelete) {
-      return NextResponse.json({ message: 'Module not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Module not found' },
+        { status: 404 }
+      );
     }
     moduleToDelete.deleteOne();
 
     await course.save();
 
     console.log('Deleted module:', moduleToDelete);
-    
-    return NextResponse.json({ message: 'Module deleted successfully', deletedModule: moduleToDelete }, { status: 200 });
+
+    return NextResponse.json(
+      { message: 'Module deleted successfully', deletedModule: moduleToDelete },
+      { status: 200 }
+    );
   } catch (error: unknown) {
-    return NextResponse.json({ message: 'Failed to delete module', error: (error as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Failed to delete module', error: (error as Error).message },
+      { status: 500 }
+    );
   }
 }

@@ -5,15 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { z } from 'zod';
 
-import InputField from '@/components/ui/CreateCoursePage/InputField';
-import SelectField from '@/components/ui/CreateCoursePage/SelectField';
-import FileInput from '@/components/ui/CreateCoursePage/FileInput';
-import RadioGroup from '@/components/ui/CreateCoursePage/RadioGroup';
-import CoursePreview from '@/components/ui/CreateCoursePage/CoursePreview';
-import PopupModal, {
-  PopupProps,
-} from '@/components/ui/CreateCoursePage/PopupModal';
-import TextareaField from '@/components/ui/CreateCoursePage/TextareaField';
+import InputField from '@/components/instructor/CreateCoursePage/InputField';
+import SelectField from '@/components/instructor/CreateCoursePage/SelectField';
+import FileInput from '@/components/instructor/CreateCoursePage/FileInput';
+import RadioGroup from '@/components/instructor/CreateCoursePage/RadioGroup';
+import CoursePreview from '@/components/instructor/CreateCoursePage/CoursePreview';
+import PopupModal, { PopupProps } from '@/components/ui/PopupModal';
+import TextareaField from '@/components/instructor/CreateCoursePage/TextareaField';
 
 export default function NewCourseForm() {
   // Form states
@@ -264,7 +262,7 @@ export default function NewCourseForm() {
       <h1 className="text-2xl font-bold mb-4">Create a New Course</h1>
       <div className="max-w-3xl mx-auto">
         {/* Popup Modal */}
-        {popup && <PopupModal {...popup} onClose={popup?.onClose} />}
+        {popup && <PopupModal {...popup} onClose={popup.onClose} />}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Course Title */}
