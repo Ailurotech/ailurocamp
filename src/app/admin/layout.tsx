@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import LoadingController from '@/components/ui/LoadingController';
+import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
@@ -31,8 +32,8 @@ export default function AdminLayout({
   }
 
   // Redirect if not admin
-  if (session?.user?.currentRole !== 'admin') {
-    return <div>Access Denied. Admin only.</div>;
+  if (!session?.user?.roles.includes('admin')) {
+    return <AccessDeniedRedirect redirectPath="/dashboard" />;
   }
 
   const handleSignOut = async () => {
@@ -55,6 +56,10 @@ export default function AdminLayout({
 
       // update the session
       await update({ currentRole: role });
+
+      if (session?.user?.currentRole !== 'admin') {
+        return <AccessDeniedRedirect redirectPath="dashboard" />;
+      }
 
       // Refresh the page to update the session
       const link: string =

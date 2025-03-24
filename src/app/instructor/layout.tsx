@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import {
   HomeIcon,
@@ -17,6 +17,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import LoadingController from '@/components/ui/LoadingController';
+import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ export default function InstructorLayout({
 }) {
   const pathname = usePathname();
   const { data: session, status, update } = useSession();
+  const router = useRouter();
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
 
   // If the session is still loading, show a loading message
@@ -44,8 +46,8 @@ export default function InstructorLayout({
   }
 
   // Redirect if not instructor
-  if (session?.user?.currentRole !== 'instructor') {
-    return <div>Access Denied. Instructor only.</div>;
+  if (!session?.user?.roles.includes('instructor')) {
+    return <AccessDeniedRedirect redirectPath="/dashboard" />;
   }
 
   const handleSignOut = async () => {
@@ -69,13 +71,18 @@ export default function InstructorLayout({
       // update the session
       await update({ currentRole: role });
 
+      if (session?.user?.currentRole !== 'instructor') {
+        return <AccessDeniedRedirect redirectPath="dashboard" />;
+      }
+
       // Refresh the page to update the session
-      window.location.href =
-        role === 'admin'
-          ? '/admin'
-          : role === 'instructor'
-            ? '/instructor'
-            : '/dashboard';
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'instructor') {
+        router.push('/instructor');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error) {
       console.error('Error switching role:', error);
     }
