@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import Course from '@/models/Course';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import z from 'zod';
 import type { IModuleApiReq } from '@/types/module';
 import type { ICourse, IModule } from '@/models/Course';
 
@@ -57,6 +58,35 @@ export async function POST(
     await connectDB();
 
     const { title, content, order, duration }: IModuleApiReq = await req.json();
+
+    // Define a Zod schema for module input validation
+    const moduleSchema = z.object({
+      title: z.string().min(1, 'Module title is required'),
+      content: z.string().min(1, 'Module content is required'),
+      order: z.preprocess(
+        (val) => parseInt(val as string),
+        z.number().nonnegative('Order must be non-negative')
+      ),
+      duration: z.preprocess(
+        (val) => parseFloat(val as string),
+        z.number().nonnegative('Duration must be non-negative')
+      ),
+    });
+
+    // Validate module data
+    const result = moduleSchema.safeParse({
+      title,
+      content,
+      order,
+      duration,
+    });
+
+    if (!result.success) {
+      return NextResponse.json(
+        { message: result.error.errors, errors: result.error.errors },
+        { status: 400 }
+      );
+    }
 
     // Find course
     const { courseId } = await params;

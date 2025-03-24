@@ -10,7 +10,6 @@ import {
   KeyboardSensor,
   useSensor,
   useSensors,
-  DragStartEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -25,9 +24,11 @@ import type { IModule } from '@/types/module';
 function SortableModuleItem({
   module,
   selectedModuleId,
+  onSelectModule,
 }: {
   module: IModule;
   selectedModuleId: string | null;
+  onSelectModule: (module: IModule) => void;
 }) {
   const {
     attributes,
@@ -53,8 +54,13 @@ function SortableModuleItem({
       className={clsx(
         'relative cursor-move p-4 border border-gray-200 rounded-md shadow-sm mb-2 bg-white transition-colors',
         isDragging && 'opacity-80 ring-2 ring-blue-200',
-        selectedModuleId === module._id && 'border-blue-500'
+        selectedModuleId === module._id && '!border-blue-500'
       )}
+      onClick={() => {
+        onSelectModule(module);
+        console.log('Clicked module:', module);
+        console.log('Current selected module:', selectedModuleId);
+      }}
     >
       {/* drag handle icon */}
       <div className="flex items-center">
@@ -90,23 +96,15 @@ export default function ModuleList({
   onReorderModules,
 }: ModuleListProps) {
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  function handleDragStart(event: DragStartEvent) {
-    // Find the module that was dragged
-    const activeId = event.active.id as string;
-    const activeModule: IModule | undefined = modules.find(
-      (module) => module._id === activeId
-    );
-
-    if (activeModule) {
-      onSelectModule(activeModule);
-    }
-  }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -114,12 +112,12 @@ export default function ModuleList({
     // Do nothing if we didn't move or dropped in the same place
     if (!over || active.id === over.id) return;
 
-    // Find the module that was moved
     const oldIndex = modules.findIndex((m) => m._id === active.id);
     const newIndex = modules.findIndex((m) => m._id === over.id);
     const newModules = arrayMove(modules, oldIndex, newIndex);
+    onSelectModule(newModules[newIndex]);
 
-    console.log('Reordered modules:', newModules);
+    console.log('newModule:', newModules[newIndex]);
 
     onReorderModules(newModules);
   }
@@ -137,11 +135,7 @@ export default function ModuleList({
       </div>
 
       {/* List of modules */}
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <SortableContext
           items={modules.map((module) => module._id)}
           strategy={verticalListSortingStrategy}
@@ -157,6 +151,7 @@ export default function ModuleList({
                 key={module._id}
                 module={module}
                 selectedModuleId={selectedModuleId}
+                onSelectModule={onSelectModule}
               />
             ))}
           </ul>

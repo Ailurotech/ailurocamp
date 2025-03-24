@@ -77,12 +77,12 @@ export default function InstructorModulesPage({
   });
 
   useEffect(() => {
-    if (isSuccess && fetchedModules.modules.length > 0) {
+    if (isSuccess && fetchedModules.modules.length > 0 && !selectedModule) {
       // setModulesState(fetchedModules.modules);
       // Auto-select first module if available
       setSelectedModule(fetchedModules.modules[0]);
     }
-  }, [isSuccess, fetchedModules]);
+  }, [isSuccess, fetchedModules, selectedModule]);
 
   // Error handling for fetch modules
   useEffect(() => {

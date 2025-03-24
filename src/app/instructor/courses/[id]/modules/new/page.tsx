@@ -3,12 +3,10 @@
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import PopupModal, { PopupProps } from '@/components/ui/PopupModal';
-// import ModuleForm from '@/components/ui/InstructorModulePage/ModuleForm';
 import { useMutation } from '@tanstack/react-query';
 import { createModule } from '@/lib/instructor/ModuleRequest';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
-// import Loading from '@/components/ui/Loading';
 
 export default function CreateModulePage({
   params,
@@ -65,8 +63,8 @@ export default function CreateModulePage({
         message: 'Module created successfully.',
         type: 'success',
         onClose: () => {
-          router.push(`/instructor/courses/${courseId}/modules`);
           setPopup(null);
+          router.push(`/instructor/courses/${courseId}/modules`);
         },
       });
     },
@@ -162,42 +160,6 @@ export default function CreateModulePage({
       order,
       duration,
     });
-
-    //   const res = await fetch(`/api/instructor/course/${courseId}/modules`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       title,
-    //       content,
-    //       order,
-    //       duration,
-    //     }),
-    //   });
-
-    //   if (res.ok) {
-    //     // reset form
-    //     setTitle('');
-    //     setContent('');
-    //     setOrder(0);
-    //     setDuration(0);
-
-    //     setPopup({
-    //       message: 'Module created successfully.',
-    //       type: 'success',
-    //       onClose: () => {
-    //         router.push(`/instructor/courses/${courseId}/modules`);
-    //         setPopup(null);
-    //       },
-    //     });
-    //   } else {
-    //     setPopup({
-    //       message: 'Failed to create module, please try again.',
-    //       type: 'error',
-    //       onClose: () => setPopup(null),
-    //     });
-    //   }
   }
 
   return (
@@ -228,6 +190,7 @@ export default function CreateModulePage({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={3}
+              required
             />
             {errors && (
               <p className="text-red-600 text-sm mt-1">{errors.content}</p>
