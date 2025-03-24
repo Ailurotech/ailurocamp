@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/Icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import LoadingController from '@/components/ui/LoadingController';
 import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 
 const queryClient = new QueryClient();
@@ -41,7 +42,7 @@ export default function InstructorLayout({
 
   // If the session is still loading, show a loading message
   if (status === 'loading') {
-    return <div>Loading...</div>;
+    return <LoadingController />;
   }
 
   // Redirect if not instructor

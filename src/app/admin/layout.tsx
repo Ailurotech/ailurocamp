@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import LoadingController from '@/components/ui/LoadingController';
 import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 
 const navigation = [
@@ -27,7 +28,7 @@ export default function AdminLayout({
 
   // If the session is still loading, show a loading message
   if (status === 'loading') {
-    return <div>Loading...</div>;
+    return <LoadingController />;
   }
 
   // Redirect if not admin
