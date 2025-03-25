@@ -24,6 +24,15 @@ interface OrgProjectsResponse {
   };
 }
 
+type Card = {
+  id: string;
+  note: string;
+  content_url: string;
+  title: string;
+  created_at: string;
+  number?: number;
+};
+
 export async function getProjects() {
   try {
     try {
@@ -247,7 +256,7 @@ export async function getProjectColumns(projectId: number) {
       name,
       field_id: statusField.id,
       isV2: true,
-      cards: [] as any[],
+      cards: [] as Card[],
     }));
 
     items.forEach((item) => {

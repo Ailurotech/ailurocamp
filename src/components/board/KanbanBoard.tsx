@@ -73,17 +73,17 @@ export default function KanbanBoard() {
   }, [status, router]);
 
   useEffect(() => {
+    if (selectedProject) {
+      fetchProjectColumns(selectedProject);
+    }
+  }, [selectedProject]);
+
+  useEffect(() => {
     if (status === 'authenticated') {
       fetchProjects();
       fetchUniqueProjects();
     }
   }, [status]);
-
-  useEffect(() => {
-    if (selectedProject) {
-      fetchProjectColumns(selectedProject);
-    }
-  }, [selectedProject]);
 
   const fetchProjects = async () => {
     try {
@@ -115,11 +115,12 @@ export default function KanbanBoard() {
 
   const fetchUniqueProjects = async () => {
     const projects = await fetchAllProjects();
+    console.log('projects: ', projects);
     setUniqueProjects(projects);
 
     if (selectedProjectName) {
       const matchedProject = projects.find(
-        (p) => p.title === selectedProjectName
+        (p: UniqueProject) => p.title === selectedProjectName
       );
       setUniqueProjectId(matchedProject?.id || '');
     }
@@ -340,7 +341,7 @@ export default function KanbanBoard() {
                   <input
                     type="text"
                     className="border px-2 py-1 rounded-md text-sm"
-                    placeholder="Search by title, content, date, or number..."
+                    placeholder="Search by any..."
                     value={searchTerms[column.id.toString()] || ''}
                     onChange={(e) =>
                       handleSearchChange(column.id.toString(), e.target.value)

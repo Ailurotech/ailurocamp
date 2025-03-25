@@ -3,22 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import * as githubService from '@/services/github';
 
-interface Card {
-  id: string | number;
-  note: string;
-  content_url: string;
-  title?: string;
-  created_at: string;
-  number?: number;
-}
-
-interface Column {
-  id: string | number;
-  name: string;
-  cards?: Card[];
-  isV2?: boolean;
-}
-
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
