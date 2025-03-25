@@ -58,8 +58,6 @@ function SortableModuleItem({
       )}
       onClick={() => {
         onSelectModule(module);
-        console.log('Clicked module:', module);
-        console.log('Current selected module:', selectedModuleId);
       }}
     >
       {/* drag handle icon */}
@@ -117,8 +115,6 @@ export default function ModuleList({
     const newModules = arrayMove(modules, oldIndex, newIndex);
     onSelectModule(newModules[newIndex]);
 
-    console.log('newModule:', newModules[newIndex]);
-
     onReorderModules(newModules);
   }
 
@@ -127,11 +123,18 @@ export default function ModuleList({
       {/* Header with "New Module" button */}
       <div className="p-4 flex items-center justify-between border-b bg-white">
         <h2 className="font-semibold text-lg">Modules</h2>
-        <Link href={`/instructor/courses/${courseId}/modules/new`}>
-          <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
-            New Module
-          </button>
-        </Link>
+        <div className="flex space-x-2">
+          <Link href={`/instructor/courses/${courseId}/modules/preview`}>
+            <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
+              Preview
+            </button>
+          </Link>
+          <Link href={`/instructor/courses/${courseId}/modules/new`}>
+            <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
+              New Module
+            </button>
+          </Link>
+        </div>
       </div>
 
       {/* List of modules */}

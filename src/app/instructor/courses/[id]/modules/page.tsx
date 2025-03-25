@@ -11,7 +11,6 @@ import {
   deleteModule,
 } from '@/lib/instructor/ModuleRequest';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import EditModuleModal from '@/components/instructor/InstructorModulePage/EditModuleModal';
@@ -23,11 +22,9 @@ export default function InstructorModulesPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // const { id: courseId } = useParams<{ id: string }>();
   const courseId: string = React.use(params).id;
 
   // State for a selected module
-  // const [modulesState, setModulesState] = useState<IModule[]>([]);
   const [selectedModule, setSelectedModule] = useState<IModule | null>(null);
 
   // State for editing
@@ -78,7 +75,6 @@ export default function InstructorModulesPage({
 
   useEffect(() => {
     if (isSuccess && fetchedModules.modules.length > 0 && !selectedModule) {
-      // setModulesState(fetchedModules.modules);
       // Auto-select first module if available
       setSelectedModule(fetchedModules.modules[0]);
     }
@@ -124,11 +120,7 @@ export default function InstructorModulesPage({
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['modules', courseId] });
       if (selectedModule?._id === res.deletedModule._id) {
-        console.log('selectedModule', selectedModule);
-        console.log('res.deletedModule', res.deletedModule);
-
         setSelectedModule(null);
-        console.log('selectedModule', selectedModule);
       }
     },
     onError: () => {

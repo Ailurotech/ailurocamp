@@ -174,8 +174,6 @@ export async function PATCH(
       { status: 200 }
     );
   } catch (error: unknown) {
-    console.log(error);
-
     return NextResponse.json(
       { message: 'Failed to update module', error: (error as Error).message },
       { status: 500 }
@@ -226,11 +224,9 @@ export async function DELETE(
         { status: 404 }
       );
     }
-    moduleToDelete.deleteOne();
+    await moduleToDelete.deleteOne();
 
     await course.save();
-
-    console.log('Deleted module:', moduleToDelete);
 
     return NextResponse.json(
       { message: 'Module deleted successfully', deletedModule: moduleToDelete },

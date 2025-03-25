@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import PopupModal, { PopupProps } from '@/components/ui/PopupModal';
-import { useMutation } from '@tanstack/react-query';
-import { createModule } from '@/lib/instructor/ModuleRequest';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { fetchModules, createModule } from '@/lib/instructor/ModuleRequest';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
+import type { IModule } from '@/types/module';
 
 export default function CreateModulePage({
   params,
@@ -44,7 +45,25 @@ export default function CreateModulePage({
     duration: durationRef,
   };
 
-  // Mutation to create a new module for the course.
+  // Fetch existing modules for this course
+  const { data: modulesData } = useQuery({
+    queryKey: ['modules', courseId],
+    queryFn: () => fetchModules(courseId),
+    enabled:
+      sessionStatus === 'authenticated' &&
+      session.user.currentRole === 'instructor',
+  });
+
+  // Default order for a new module
+  useEffect(() => {
+    if (modulesData && modulesData.modules.length > 0) {
+      setOrder(modulesData.modules.length);
+    } else {
+      setOrder(0);
+    }
+  }, [modulesData]);
+
+  // Mutation to create a new module for the course
   const createModuleMutation = useMutation({
     mutationFn: (newData: {
       title: string;
@@ -138,6 +157,21 @@ export default function CreateModulePage({
         }
       }
       return;
+    }
+
+    // Check for duplicate order
+    if (modulesData) {
+      const existingModule = modulesData.modules.find(
+        (module: IModule) => module.order === order
+      );
+      if (existingModule) {
+        setPopup({
+          message: 'Duplicate order. Please choose a different order.',
+          type: 'error',
+          onClose: () => setPopup(null),
+        });
+        return;
+      }
     }
 
     // If user not logged in, redirect to login page
