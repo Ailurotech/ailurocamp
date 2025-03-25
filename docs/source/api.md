@@ -482,6 +482,129 @@ Update a review (student only)
 }
 ```
 
+## Module Management Endpoints
+
+### GET /api/instructor/course/:courseId/modules
+
+Get all modules for a course.
+
+**Response:**
+
+```json
+{
+  "modules": [
+    {
+      "title": "module 1",
+      "content": "module 1 content",
+      "order": 0,
+      "duration": 2,
+      "_id": "moduleId"
+    },
+    {
+      "title": "module 2",
+      "content": "module 2 content",
+      "order": 1,
+      "duration": 2,
+      "_id": "moduleId"
+    }
+  ]
+}
+```
+
+### POST /api/instructor/course/:courseId/modules
+
+Create a new module (instructor only).
+
+**Request Body:**
+
+```json
+{
+  "title": "module 3",
+  "content": "module 3 content",
+  "order": "3",
+  "duration": "3"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Module created successfully",
+  "modules": [
+    {
+      "title": "module 1",
+      "content": "module 1 content",
+      "order": 0,
+      "duration": 2,
+      "_id": "67dd6c73d0ec095298870e16"
+    },
+    {
+      "title": "module 2",
+      "content": "module 2 content",
+      "order": 1,
+      "duration": 2,
+      "_id": "67dd6e76d0ec095298870e24"
+    },
+    {
+      "title": "module 3",
+      "content": "module 3 content",
+      "order": 3,
+      "duration": 3,
+      "_id": "67e25e1f257a5a2d257ed5f6"
+    }
+  ]
+}
+```
+
+### PATCH /api/instructor/course/:courseId/modules?moduleId={moduleId}
+
+Update a module (instructor only).
+
+Module's title, content, order and duration are optional. In other word, you can modify all of them or you can only modify a certain one.
+
+**Request Body:**
+
+```json
+{
+  "content": "module 3 content test update"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Module updated successfully",
+  "updatedModule": {
+    "title": "module 3",
+    "content": "module 3 content test update",
+    "order": 3,
+    "duration": 3,
+    "_id": "moduleId"
+  }
+}
+```
+
+### DELETE /api/instructor/course/:courseId/modules?moduleId={moduleId}
+
+Delete a module (instructor only).
+
+**Response:**
+
+```json
+{
+  "message": "Module deleted successfully",
+  "deletedModule": {
+    "title": "module 3",
+    "content": "module 3 content test update",
+    "order": 3,
+    "duration": 3,
+    "_id": "67e25e1f257a5a2d257ed5f6"
+  }
+}
+```
+
 ## Assignment Management Endpoints
 
 ### GET /api/courses/:courseId/assignments
