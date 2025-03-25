@@ -7,6 +7,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchModules, createModule } from '@/lib/instructor/ModuleRequest';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
+import InputField from '@/components/instructor/CreateModulePage/InputField';
+import TextareaField from '@/components/instructor/CreateModulePage/TextareaField';
 import type { IModule } from '@/types/module';
 
 export default function CreateModulePage({
@@ -204,61 +206,43 @@ export default function CreateModulePage({
         {popup && <PopupModal {...popup} onClose={popup?.onClose} />}
 
         <form onSubmit={handleSubmit} className="space-y-2">
-          <div>
-            <label className="block font-medium mb-1">Title</label>
-            <input
-              type="text"
-              className="border rounded p-2 w-full"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-            {errors && (
-              <p className="text-red-600 text-sm mt-1">{errors.title}</p>
-            )}
-          </div>
-          <div>
-            <label className="block font-medium mb-1">Content</label>
-            <textarea
-              className="border rounded p-2 w-full"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={3}
-              required
-            />
-            {errors && (
-              <p className="text-red-600 text-sm mt-1">{errors.content}</p>
-            )}
-          </div>
-          <div>
-            <label className="block font-medium mb-1">Order</label>
-            <input
-              type="number"
-              className="border rounded p-2 w-full"
-              value={order}
-              onChange={(e) => setOrder(parseInt(e.target.value))}
-              required
-              min={0}
-            />
-            {errors && (
-              <p className="text-red-600 text-sm mt-1">{errors.order}</p>
-            )}
-          </div>
-          <div>
-            <label className="block font-medium mb-1">Duration</label>
-            <input
-              type="number"
-              className="border rounded p-2 w-full"
-              value={duration}
-              onChange={(e) => setDuration(parseFloat(e.target.value))}
-              required
-              min={0}
-              step={0.01}
-            />
-            {errors && (
-              <p className="text-red-600 text-sm mt-1">{errors.duration}</p>
-            )}
-          </div>
+          <InputField
+            label="Title"
+            name="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            error={errors.title}
+            required
+          />
+          <TextareaField
+            label="Content"
+            name="content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            error={errors.content}
+            required
+          />
+          <InputField
+            label="Order"
+            name="order"
+            type="number"
+            value={order}
+            onChange={(e) => setOrder(parseInt(e.target.value))}
+            error={errors.order}
+            required
+            min="0"
+          />
+          <InputField
+            label="Duration"
+            name="duration"
+            type="number"
+            value={duration}
+            onChange={(e) => setDuration(parseFloat(e.target.value))}
+            error={errors.duration}
+            required
+            min="0"
+            step="0.01"
+          />
           <button
             type="submit"
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
