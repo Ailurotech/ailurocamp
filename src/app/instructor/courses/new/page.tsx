@@ -3,7 +3,7 @@
 import { useState, useRef, ChangeEvent, useEffect, RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { z } from 'zod';
+import { courseSchema } from '@/lib/validation/courseSchema';
 
 import InputField from '@/components/instructor/CreateCoursePage/InputField';
 import SelectField from '@/components/instructor/CreateCoursePage/SelectField';
@@ -122,32 +122,10 @@ export default function NewCourseForm() {
     setErrors({});
 
     // Zod schema for validation
-    const formSchema = z.object({
-      title: z.string().min(1, 'Course title is required'),
-      description: z.string().min(1, 'Course description is required'),
-      category: z.string().refine((val) => categoryOptions.includes(val), {
-        message: 'Please select a valid category',
-      }),
-      level: z.string().refine((val) => levelOptions.includes(val), {
-        message: 'Please select a valid level',
-      }),
-      price: z.preprocess(
-        (val) => parseFloat(val as string),
-        z.number().nonnegative('Price must be non-negative')
-      ),
-      thumbnail: z
-        .instanceof(File)
-        .refine((file) => file.type.startsWith('image/'), {
-          message: 'Only image files are allowed.',
-        }),
-      tags: z.string().optional(),
-      status: z.enum(['published', 'unpublished'], {
-        errorMap: () => ({ message: 'Please select a valid status' }),
-      }),
-    });
+    const formschema = courseSchema(categoryOptions, levelOptions);
 
     // Validate data
-    const result = formSchema.safeParse({
+    const result = formschema.safeParse({
       title,
       description,
       category,

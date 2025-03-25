@@ -115,6 +115,14 @@ const courseSchema = new mongoose.Schema<ICourse>(
   }
 );
 
+// Automatically sort modules by order
+courseSchema.pre('save', function (next) {
+  if (this.modules && this.modules.length > 0) {
+    this.modules.sort((a, b) => a.order - b.order);
+  }
+  next();
+});
+
 // Index for better search performance
 courseSchema.index({ title: 'text', description: 'text' });
 

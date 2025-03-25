@@ -6,9 +6,9 @@ import PopupModal, { PopupProps } from '@/components/ui/PopupModal';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchModules, createModule } from '@/lib/instructor/ModuleRequest';
 import { useRouter } from 'next/navigation';
-import { z } from 'zod';
 import InputField from '@/components/instructor/CreateModulePage/InputField';
 import TextareaField from '@/components/instructor/CreateModulePage/TextareaField';
+import { moduleSchema } from '@/lib/validation/moduleSchema';
 import type { IModule } from '@/types/module';
 
 export default function CreateModulePage({
@@ -106,22 +106,8 @@ export default function CreateModulePage({
     // Clear previous errors
     setErrors({});
 
-    // Zod schema for validation
-    const formSchema = z.object({
-      title: z.string().min(1, 'Module title is required'),
-      content: z.string().min(1, 'Module content is required'),
-      order: z.preprocess(
-        (val) => parseInt(val as string),
-        z.number().nonnegative('Order must be non-negative')
-      ),
-      duration: z.preprocess(
-        (val) => parseFloat(val as string),
-        z.number().nonnegative('Duration must be non-negative')
-      ),
-    });
-
     // Validate form data
-    const result = formSchema.safeParse({
+    const result = moduleSchema.safeParse({
       title,
       content,
       order,
