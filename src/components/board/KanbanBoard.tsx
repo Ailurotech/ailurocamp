@@ -138,11 +138,9 @@ export default function KanbanBoard() {
       const data = await response.json();
 
       if (response.ok && data.columns) {
-        console.log('Received columns data:', data.columns);
         // Log the first card of each column if it exists
         data.columns.forEach((col: Column) => {
           if (col.cards && col.cards.length > 0) {
-            console.log(`Column ${col.name} first card:`, col.cards[0]);
           }
         });
         setColumns(data.columns);
@@ -162,8 +160,7 @@ export default function KanbanBoard() {
   };
 
   const onDragEnd = async (result: DropResult) => {
-    console.log('Drag ended:', result);
-    const { destination, source, draggableId } = result;
+    const { destination, source } = result;
 
     if (!destination) {
       console.log('No destination');
@@ -267,7 +264,6 @@ export default function KanbanBoard() {
       });
 
       const responseData = await response.clone().json();
-      console.log('Move card API response:', responseData);
 
       if (!response.ok) {
         console.error('API Error:', responseData);
@@ -312,12 +308,6 @@ export default function KanbanBoard() {
       setDragError('Failed to create issue');
     } finally {
       setIsNewIssueModalOpen(false);
-    }
-  };
-
-  const handleCardClick = (card: Card) => {
-    if (card.content_url) {
-      window.open(card.content_url, '_blank');
     }
   };
 
@@ -378,7 +368,6 @@ export default function KanbanBoard() {
                 typeof column.id === 'string'
                   ? column.id
                   : `PVTSSF_${column.id}`;
-              console.log('Column ID:', columnId); // Debug log
               return (
                 <StrictModeDroppable
                   key={columnId}
@@ -407,7 +396,6 @@ export default function KanbanBoard() {
                             typeof card.id === 'string'
                               ? card.id
                               : `PVTI_${card.id}`;
-                          console.log('Card ID:', cardId); // Debug log
                           return (
                             <Draggable
                               key={cardId}
