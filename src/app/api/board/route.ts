@@ -110,6 +110,7 @@ interface MoveCardParams {
   position?: string;
   isV2?: boolean;
   fieldId?: string;
+  projectId?: string;
 }
 
 interface CreateIssueParams {
@@ -155,14 +156,15 @@ export async function POST(req: Request) {
 
     switch (action) {
       case 'moveCard': {
-        const { cardId, columnId, position, isV2, fieldId } =
+        const { cardId, columnId, position, isV2, fieldId, projectId } =
           params as MoveCardParams;
         const result = await githubService.moveCard(
           cardId,
           columnId,
           position,
           isV2,
-          fieldId
+          fieldId,
+          projectId
         );
         return NextResponse.json({ success: true, data: result });
       }
