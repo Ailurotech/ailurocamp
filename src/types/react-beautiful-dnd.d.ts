@@ -8,14 +8,18 @@ declare module 'react-beautiful-dnd' {
     innerRef: (element: HTMLElement | null) => void;
     draggableProps: {
       style?: React.CSSProperties;
-      [key: string]: any;
+      [key: string]: unknown;
     };
-    dragHandleProps: object | null;
+    dragHandleProps: {
+      [key: string]: unknown;
+    } | null;
   }
 
   export interface DroppableProvided {
     innerRef: (element: HTMLElement | null) => void;
-    droppableProps: object;
+    droppableProps: {
+      [key: string]: unknown;
+    };
     placeholder?: React.ReactNode;
   }
 

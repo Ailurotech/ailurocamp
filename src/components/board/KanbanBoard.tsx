@@ -3,7 +3,7 @@
 import { useEffect, useState, useLayoutEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, LinkIcon, CalendarIcon } from '@heroicons/react/20/solid';
 import {
@@ -12,6 +12,7 @@ import {
   Draggable,
   DropResult,
   DroppableProps,
+  DragStart,
 } from 'react-beautiful-dnd';
 import CreateProjectModal from './CreateProjectModal';
 import NewIssueModal from './NewIssueModal';
@@ -156,7 +157,7 @@ export default function KanbanBoard() {
     }
   };
 
-  const onDragStart = (result: any) => {
+  const onDragStart = (result: DragStart) => {
     console.log('Drag started:', result);
   };
 
