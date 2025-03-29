@@ -6,7 +6,10 @@ declare module 'react-beautiful-dnd' {
 
   export interface DraggableProvided {
     innerRef: (element: HTMLElement | null) => void;
-    draggableProps: object;
+    draggableProps: {
+      style?: React.CSSProperties;
+      [key: string]: any;
+    };
     dragHandleProps: object | null;
   }
 
@@ -26,6 +29,7 @@ declare module 'react-beautiful-dnd' {
     onDragStart?: (initial: DragStart) => void;
     onDragUpdate?: (update: DragUpdate) => void;
     children: React.ReactNode;
+    isCombineEnabled?: boolean;
   }
 
   export interface DragStart {
@@ -52,6 +56,8 @@ declare module 'react-beautiful-dnd' {
     droppableId: string;
     type?: string;
     isDropDisabled?: boolean;
+    isCombineEnabled?: boolean;
+    ignoreContainerClipping?: boolean;
     children: (
       provided: DroppableProvided,
       snapshot: DroppableStateSnapshot

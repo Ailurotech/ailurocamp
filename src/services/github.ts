@@ -202,9 +202,10 @@ interface ProjectV2Response {
   };
 }
 
-export async function getProjectColumns(projectId: number) {
+export async function getProjectColumns(projectNumber: number) {
   try {
-    console.log(`Fetching columns for project ID: ${projectId}`);
+    // For debugging
+    // console.log(`Fetching columns for project ID: ${projectNumber}`);
 
     // Check if this is a v2 project - different handling
     try {
@@ -215,7 +216,7 @@ export async function getProjectColumns(projectId: number) {
       const projectQuery = `
       query {
         organization(login: "${owner}") {
-          projectV2(number: ${projectId}) {
+          projectV2(number: ${projectNumber}) {
             id
             title
             url
@@ -318,6 +319,10 @@ export async function getProjectColumns(projectId: number) {
         'V2 Project closed:',
         projectData?.organization?.projectV2?.closed
       );
+
+      // Save the project ID for later use
+      const projectId = projectData?.organization?.projectV2?.id;
+      // console.log('Project V2 ID:', projectId);
 
       // 1. Log all fields to help debug
       console.log('Project fields:');
@@ -435,14 +440,17 @@ export async function getProjectColumns(projectId: number) {
             name: string;
             isV2: boolean;
             field_id?: string;
+            project_id?: string;
             cards: any[];
-          }> = uniqueValues.map((value: string) => ({
-            id: value, // Use value as id for now
-            name: value,
-            field_id: statusField.id,
-            isV2: true,
-            cards: [],
-          }));
+          }> =
+            statusField.options?.map((option: any) => ({
+              id: option.id, // Use the actual option ID
+              name: option.name,
+              field_id: statusField.id,
+              project_id: projectId,
+              isV2: true,
+              cards: [],
+            })) || [];
 
           // Group items by their status value
           projectData?.organization?.projectV2?.items?.nodes?.forEach(
@@ -456,7 +464,7 @@ export async function getProjectColumns(projectId: number) {
               );
 
               if (statusValue && statusValue.name) {
-                // Find the matching column
+                // Find the matching column by name
                 const column = columns.find(
                   (col) => col.name === statusValue.name
                 );
@@ -509,7 +517,7 @@ export async function getProjectColumns(projectId: number) {
       console.log('Attempting to fetch project columns for classic project...');
 
       const columnsResponse = await octokit.rest.projects.listColumns({
-        project_id: projectId,
+        project_id: projectNumber,
       });
 
       console.log(`Found ${columnsResponse.data.length} columns`);
@@ -663,12 +671,13 @@ export async function moveCard(
   columnId: string | number,
   position: string = 'top',
   isV2: boolean = false,
-  fieldId?: string
+  fieldId?: string,
+  projectId?: string
 ) {
   try {
     console.log(`Moving card ${cardId} to column ${columnId}, isV2: ${isV2}`);
 
-    if (isV2 && fieldId) {
+    if (isV2 && fieldId && projectId) {
       // For Projects V2, update the status field
       console.log('Using GraphQL to update ProjectV2 item field');
 
@@ -676,11 +685,11 @@ export async function moveCard(
       mutation {
         updateProjectV2ItemFieldValue(
           input: {
-            projectId: "${owner}/projects/${fieldId}"
+            projectId: "${projectId}"
             itemId: "${cardId}"
-            fieldId: "${fieldId}" 
+            fieldId: "${fieldId}"
             value: { 
-              singleSelectOptionId: "${columnId}"
+              singleSelectOptionId: "${columnId.toString()}"
             }
           }
         ) {
@@ -690,6 +699,7 @@ export async function moveCard(
         }
       }`;
 
+      console.log('Executing GraphQL mutation:', graphqlMutation);
       const response = await octokit.graphql(graphqlMutation);
       console.log('GraphQL update response:', response);
       return response;
