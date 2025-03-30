@@ -5,13 +5,11 @@ import { StrictModeDroppable } from './StrictModeDroppable';
 
 interface BoardColumnProps {
   column: Column;
-  index: number;
   isLoading?: boolean;
 }
 
 export const BoardColumn = memo(function BoardColumn({
   column,
-  index,
   isLoading,
 }: BoardColumnProps) {
   const columnId =

@@ -228,48 +228,51 @@ export default function KanbanBoard() {
   /**
    * Makes an API call to persist card movement
    */
-  const persistCardMove = async (
-    movedCard: Card,
-    destColumn: Column,
-    destIndex: number
-  ): Promise<void> => {
-    if (!movedCard.id || !destColumn.id) {
-      throw new Error('Invalid card or column data');
-    }
+  const persistCardMove = useCallback(
+    async (
+      movedCard: Card,
+      destColumn: Column,
+      destIndex: number
+    ): Promise<void> => {
+      if (!movedCard.id || !destColumn.id) {
+        throw new Error('Invalid card or column data');
+      }
 
-    const requestBody: MoveCardRequest = {
-      action: 'moveCard',
-      cardId: movedCard.id,
-      columnId: destColumn.id,
-      position: destIndex === 0 ? 'top' : 'bottom',
-      isV2: Boolean(destColumn.isV2),
-      fieldId: destColumn.field_id,
-      projectId: destColumn.project_id,
-    };
+      const requestBody: MoveCardRequest = {
+        action: 'moveCard',
+        cardId: movedCard.id,
+        columnId: destColumn.id,
+        position: destIndex === 0 ? 'top' : 'bottom',
+        isV2: Boolean(destColumn.isV2),
+        fieldId: destColumn.field_id,
+        projectId: destColumn.project_id,
+      };
 
-    try {
-      setColumnLoading((prev: Record<string, boolean>) => ({
-        ...prev,
-        [destColumn.id.toString()]: true,
-      }));
+      try {
+        setColumnLoading((prev: Record<string, boolean>) => ({
+          ...prev,
+          [destColumn.id.toString()]: true,
+        }));
 
-      await handleAPIRequest(
-        fetch('/api/board', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        })
-      );
-    } catch (error) {
-      handleError(error, 'persistCardMove');
-      throw error; // Re-throw to trigger optimistic update rollback
-    } finally {
-      setColumnLoading((prev: Record<string, boolean>) => ({
-        ...prev,
-        [destColumn.id.toString()]: false,
-      }));
-    }
-  };
+        await handleAPIRequest(
+          fetch('/api/board', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          })
+        );
+      } catch (error) {
+        handleError(error, 'persistCardMove');
+        throw error; // Re-throw to trigger optimistic update rollback
+      } finally {
+        setColumnLoading((prev: Record<string, boolean>) => ({
+          ...prev,
+          [destColumn.id.toString()]: false,
+        }));
+      }
+    },
+    [handleError]
+  );
 
   /**
    * Handles the end of a drag operation
@@ -377,18 +380,17 @@ export default function KanbanBoard() {
         isCombineEnabled={false}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {columns.map((column, index) => (
+          {columns.map((column) => (
             <BoardColumn
               key={column.id}
               column={column}
-              index={index}
               isLoading={columnLoading[column.id.toString()]}
             />
           ))}
         </div>
       </DragDropContext>
     );
-  }, [columns, loading, onDragStart, onDragEnd]);
+  }, [columns, loading, onDragStart, onDragEnd, columnLoading]);
 
   if (!session || !enabled) {
     return null;
