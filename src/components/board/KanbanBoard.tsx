@@ -18,7 +18,6 @@ import {
   Column,
   MoveCardRequest,
   Card,
-  APIError,
   APIErrorHandler,
 } from '@/types/board';
 import { BoardColumn } from './BoardColumn';
@@ -78,6 +77,65 @@ export default function KanbanBoard() {
     {}
   );
 
+  const handleError = useCallback((error: unknown, context: string) => {
+    console.error(`Error in ${context}:`, error);
+    setError({
+      message: APIErrorHandler.getErrorMessage(error),
+      type: 'error',
+      timestamp: Date.now(),
+    });
+  }, []);
+
+  /**
+   * Fetches all projects from the API
+   * Sets the first project as selected if available
+   */
+  const fetchProjects = useCallback(async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const data = await handleAPIRequest<{ projects: Project[] }>(
+        fetch('/api/board')
+      );
+
+      setProjects(data.projects);
+      if (data.projects.length > 0) {
+        setSelectedProject(data.projects[0].id);
+      }
+    } catch (error) {
+      handleError(error, 'fetchProjects');
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [handleError]);
+
+  /**
+   * Fetches columns and their cards for a specific project
+   */
+  const fetchProjectColumns = useCallback(
+    async (projectId: number): Promise<void> => {
+      if (!projectId) {
+        handleError(new Error('Project ID is required'), 'fetchProjectColumns');
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const data = await handleAPIRequest<{ columns: Column[] }>(
+          fetch(`/api/board?projectId=${projectId}`)
+        );
+
+        setColumns(data.columns);
+      } catch (error) {
+        handleError(error, 'fetchProjectColumns');
+        setColumns([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [handleError]
+  );
+
   // Enable drag and drop only after hydration
   useIsomorphicLayoutEffect(() => {
     setEnabled(true);
@@ -95,14 +153,14 @@ export default function KanbanBoard() {
     if (status === 'authenticated') {
       fetchProjects();
     }
-  }, [status]);
+  }, [status, fetchProjects]);
 
   // Load columns when project changes
   useEffect(() => {
     if (selectedProject) {
       fetchProjectColumns(selectedProject);
     }
-  }, [selectedProject]);
+  }, [selectedProject, fetchProjectColumns]);
 
   // Clear error message after 3 seconds
   useEffect(() => {
@@ -119,62 +177,6 @@ export default function KanbanBoard() {
       return () => clearTimeout(timer);
     }
   }, [error]);
-
-  const handleError = useCallback((error: unknown, context: string) => {
-    console.error(`Error in ${context}:`, error);
-    setError({
-      message: APIErrorHandler.getErrorMessage(error),
-      type: 'error',
-      timestamp: Date.now(),
-    });
-  }, []);
-
-  /**
-   * Fetches all projects from the API
-   * Sets the first project as selected if available
-   */
-  const fetchProjects = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      const data = await handleAPIRequest<{ projects: Project[] }>(
-        fetch('/api/board')
-      );
-
-      setProjects(data.projects);
-      if (data.projects.length > 0) {
-        setSelectedProject(data.projects[0].id);
-      }
-    } catch (error) {
-      handleError(error, 'fetchProjects');
-      setProjects([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Fetches columns and their cards for a specific project
-   */
-  const fetchProjectColumns = async (projectId: number): Promise<void> => {
-    if (!projectId) {
-      handleError(new Error('Project ID is required'), 'fetchProjectColumns');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const data = await handleAPIRequest<{ columns: Column[] }>(
-        fetch(`/api/board?projectId=${projectId}`)
-      );
-
-      setColumns(data.columns);
-    } catch (error) {
-      handleError(error, 'fetchProjectColumns');
-      setColumns([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const onDragStart = useCallback((result: DragStart) => {
     console.log('Drag started:', result);
@@ -326,7 +328,7 @@ export default function KanbanBoard() {
         setDragError('Failed to move card. Changes reverted.');
       }
     },
-    [columns, updateColumnsState]
+    [columns, updateColumnsState, persistCardMove]
   );
 
   const handleCreateIssue = useCallback(
@@ -355,7 +357,7 @@ export default function KanbanBoard() {
         setIsNewIssueModalOpen(false);
       }
     },
-    [selectedProject]
+    [selectedProject, fetchProjectColumns]
   );
 
   // Memoize the board content
@@ -376,7 +378,12 @@ export default function KanbanBoard() {
       >
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {columns.map((column, index) => (
-            <BoardColumn key={column.id} column={column} index={index} />
+            <BoardColumn
+              key={column.id}
+              column={column}
+              index={index}
+              isLoading={columnLoading[column.id.toString()]}
+            />
           ))}
         </div>
       </DragDropContext>

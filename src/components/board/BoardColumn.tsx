@@ -6,10 +6,13 @@ import { StrictModeDroppable } from './StrictModeDroppable';
 interface BoardColumnProps {
   column: Column;
   index: number;
+  isLoading?: boolean;
 }
 
 export const BoardColumn = memo(function BoardColumn({
   column,
+  index,
+  isLoading,
 }: BoardColumnProps) {
   const columnId =
     typeof column.id === 'string' ? column.id : `PVTSSF_${column.id}`;
@@ -30,10 +33,15 @@ export const BoardColumn = memo(function BoardColumn({
             snapshot.isDraggingOver ? 'bg-blue-50 border-2 border-blue-200' : ''
           }`}
         >
-          <h2 className="font-semibold text-lg mb-2 px-2">{column.name}</h2>
+          <h2 className="font-semibold text-lg mb-2 px-2 flex items-center justify-between">
+            {column.name}
+            {isLoading && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+            )}
+          </h2>
           <div className="min-h-[500px]">
-            {column.cards.map((card, index) => (
-              <BoardCard key={card.id} card={card} index={index} />
+            {column.cards.map((card, cardIndex) => (
+              <BoardCard key={card.id} card={card} index={cardIndex} />
             ))}
             {provided.placeholder}
           </div>
