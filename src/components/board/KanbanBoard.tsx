@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon } from '@heroicons/react/20/solid';
 import { DragDropContext, DragStart, DropResult } from 'react-beautiful-dnd';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Project, Column, MoveCardRequest } from '@/types/board';
+import { Project, Column, MoveCardRequest, Card } from '@/types/board';
 import { BoardColumn } from './BoardColumn';
 import CreateProjectModal from './CreateProjectModal';
 import NewIssueModal from './NewIssueModal';
@@ -126,6 +126,79 @@ export default function KanbanBoard() {
   }, []);
 
   /**
+   * Updates the columns state after a card move
+   */
+  const updateColumnsState = useCallback(
+    (
+      currentColumns: Column[],
+      sourceColumn: Column,
+      destColumn: Column,
+      sourceIndex: number,
+      destIndex: number,
+      movedCard: Card
+    ) => {
+      const newSourceCards = Array.from(sourceColumn.cards);
+      newSourceCards.splice(sourceIndex, 1);
+
+      let newDestCards;
+      if (sourceColumn.id === destColumn.id) {
+        newDestCards = newSourceCards;
+      } else {
+        newDestCards = Array.from(destColumn.cards);
+      }
+      newDestCards.splice(destIndex, 0, movedCard);
+
+      return currentColumns.map((col) => {
+        if (col.id.toString() === sourceColumn.id.toString()) {
+          return {
+            ...col,
+            cards:
+              sourceColumn.id === destColumn.id ? newDestCards : newSourceCards,
+          };
+        }
+        if (
+          col.id.toString() === destColumn.id.toString() &&
+          sourceColumn.id !== destColumn.id
+        ) {
+          return { ...col, cards: newDestCards };
+        }
+        return col;
+      });
+    },
+    []
+  );
+
+  /**
+   * Makes an API call to persist card movement
+   */
+  const persistCardMove = async (
+    movedCard: Card,
+    destColumn: Column,
+    destIndex: number
+  ) => {
+    const requestBody: MoveCardRequest = {
+      action: 'moveCard',
+      cardId: movedCard.id,
+      columnId: destColumn.id,
+      position: destIndex === 0 ? 'top' : 'bottom',
+      isV2: Boolean(destColumn.isV2),
+      fieldId: destColumn.field_id,
+      projectId: destColumn.project_id,
+    };
+
+    const response = await fetch('/api/board', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const responseData = await response.json();
+      throw new Error(responseData.error || 'Failed to update card position');
+    }
+  };
+
+  /**
    * Handles the end of a drag operation
    * Updates the UI optimistically and makes an API call to persist the changes
    */
@@ -182,81 +255,8 @@ export default function KanbanBoard() {
         setDragError('Failed to move card. Changes reverted.');
       }
     },
-    [columns]
+    [columns, updateColumnsState]
   );
-
-  /**
-   * Updates the columns state after a card move
-   */
-  const updateColumnsState = useCallback(
-    (
-      currentColumns: Column[],
-      sourceColumn: Column,
-      destColumn: Column,
-      sourceIndex: number,
-      destIndex: number,
-      movedCard: any
-    ) => {
-      const newSourceCards = Array.from(sourceColumn.cards);
-      newSourceCards.splice(sourceIndex, 1);
-
-      let newDestCards;
-      if (sourceColumn.id === destColumn.id) {
-        newDestCards = newSourceCards;
-      } else {
-        newDestCards = Array.from(destColumn.cards);
-      }
-      newDestCards.splice(destIndex, 0, movedCard);
-
-      return currentColumns.map((col) => {
-        if (col.id.toString() === sourceColumn.id.toString()) {
-          return {
-            ...col,
-            cards:
-              sourceColumn.id === destColumn.id ? newDestCards : newSourceCards,
-          };
-        }
-        if (
-          col.id.toString() === destColumn.id.toString() &&
-          sourceColumn.id !== destColumn.id
-        ) {
-          return { ...col, cards: newDestCards };
-        }
-        return col;
-      });
-    },
-    []
-  );
-
-  /**
-   * Makes an API call to persist card movement
-   */
-  const persistCardMove = async (
-    movedCard: any,
-    destColumn: Column,
-    destIndex: number
-  ) => {
-    const requestBody: MoveCardRequest = {
-      action: 'moveCard',
-      cardId: movedCard.id,
-      columnId: destColumn.id,
-      position: destIndex === 0 ? 'top' : 'bottom',
-      isV2: Boolean(destColumn.isV2),
-      fieldId: destColumn.field_id,
-      projectId: destColumn.project_id,
-    };
-
-    const response = await fetch('/api/board', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const responseData = await response.json();
-      throw new Error(responseData.error || 'Failed to update card position');
-    }
-  };
 
   const handleCreateIssue = useCallback(
     async (title: string, body: string, labels: string[]) => {

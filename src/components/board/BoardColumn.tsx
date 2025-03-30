@@ -1,5 +1,4 @@
 import React, { memo } from 'react';
-import { Draggable } from 'react-beautiful-dnd';
 import { Column } from '@/types/board';
 import { BoardCard } from './BoardCard';
 import { StrictModeDroppable } from './StrictModeDroppable';
