@@ -13,7 +13,14 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon } from '@heroicons/react/20/solid';
 import { DragDropContext, DragStart, DropResult } from 'react-beautiful-dnd';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Project, Column, MoveCardRequest, Card } from '@/types/board';
+import {
+  Project,
+  Column,
+  MoveCardRequest,
+  Card,
+  APIError,
+  APIErrorHandler,
+} from '@/types/board';
 import { BoardColumn } from './BoardColumn';
 import CreateProjectModal from './CreateProjectModal';
 import NewIssueModal from './NewIssueModal';
@@ -21,6 +28,34 @@ import NewIssueModal from './NewIssueModal';
 // To fix the isCombineEnabled error in development
 const useIsomorphicLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+interface ErrorState {
+  message: string;
+  type: 'error' | 'warning';
+  timestamp: number;
+}
+
+/**
+ * Handles API requests with proper error handling
+ * @param request The fetch request to make
+ * @returns The response data
+ * @throws Error with proper error message
+ */
+async function handleAPIRequest<T>(request: Promise<Response>): Promise<T> {
+  try {
+    const response = await request;
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data.error || new Error('API request failed');
+    }
+
+    return data;
+  } catch (error) {
+    const errorMessage = APIErrorHandler.getErrorMessage(error);
+    throw new Error(errorMessage);
+  }
+}
 
 /**
  * KanbanBoard component - Main component for displaying and managing the kanban board
@@ -38,6 +73,10 @@ export default function KanbanBoard() {
     useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(false);
+  const [error, setError] = useState<ErrorState | null>(null);
+  const [columnLoading, setColumnLoading] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // Enable drag and drop only after hydration
   useIsomorphicLayoutEffect(() => {
@@ -73,27 +112,41 @@ export default function KanbanBoard() {
     }
   }, [dragError]);
 
+  // Clear error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  const handleError = useCallback((error: unknown, context: string) => {
+    console.error(`Error in ${context}:`, error);
+    setError({
+      message: APIErrorHandler.getErrorMessage(error),
+      type: 'error',
+      timestamp: Date.now(),
+    });
+  }, []);
+
   /**
    * Fetches all projects from the API
    * Sets the first project as selected if available
    */
-  const fetchProjects = async () => {
+  const fetchProjects = async (): Promise<void> => {
     try {
       setLoading(true);
-      const response = await fetch('/api/board');
-      const data = await response.json();
+      const data = await handleAPIRequest<{ projects: Project[] }>(
+        fetch('/api/board')
+      );
 
-      if (response.ok && data.projects) {
-        setProjects(data.projects);
-        if (data.projects.length > 0) {
-          setSelectedProject(data.projects[0].id);
-        }
-      } else {
-        setDragError('Failed to load projects');
+      setProjects(data.projects);
+      if (data.projects.length > 0) {
+        setSelectedProject(data.projects[0].id);
       }
     } catch (error) {
-      console.error('Error fetching projects:', error);
-      setDragError('Failed to load projects');
+      handleError(error, 'fetchProjects');
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -102,20 +155,22 @@ export default function KanbanBoard() {
   /**
    * Fetches columns and their cards for a specific project
    */
-  const fetchProjectColumns = async (projectId: number) => {
+  const fetchProjectColumns = async (projectId: number): Promise<void> => {
+    if (!projectId) {
+      handleError(new Error('Project ID is required'), 'fetchProjectColumns');
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await fetch(`/api/board?projectId=${projectId}`);
-      const data = await response.json();
+      const data = await handleAPIRequest<{ columns: Column[] }>(
+        fetch(`/api/board?projectId=${projectId}`)
+      );
 
-      if (response.ok && data.columns) {
-        setColumns(data.columns);
-      } else {
-        setDragError('Failed to load board columns');
-      }
+      setColumns(data.columns);
     } catch (error) {
-      console.error('Error fetching columns:', error);
-      setDragError('Failed to load board columns');
+      handleError(error, 'fetchProjectColumns');
+      setColumns([]);
     } finally {
       setLoading(false);
     }
@@ -175,7 +230,11 @@ export default function KanbanBoard() {
     movedCard: Card,
     destColumn: Column,
     destIndex: number
-  ) => {
+  ): Promise<void> => {
+    if (!movedCard.id || !destColumn.id) {
+      throw new Error('Invalid card or column data');
+    }
+
     const requestBody: MoveCardRequest = {
       action: 'moveCard',
       cardId: movedCard.id,
@@ -186,15 +245,27 @@ export default function KanbanBoard() {
       projectId: destColumn.project_id,
     };
 
-    const response = await fetch('/api/board', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
+    try {
+      setColumnLoading((prev: Record<string, boolean>) => ({
+        ...prev,
+        [destColumn.id.toString()]: true,
+      }));
 
-    if (!response.ok) {
-      const responseData = await response.json();
-      throw new Error(responseData.error || 'Failed to update card position');
+      await handleAPIRequest(
+        fetch('/api/board', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        })
+      );
+    } catch (error) {
+      handleError(error, 'persistCardMove');
+      throw error; // Re-throw to trigger optimistic update rollback
+    } finally {
+      setColumnLoading((prev: Record<string, boolean>) => ({
+        ...prev,
+        [destColumn.id.toString()]: false,
+      }));
     }
   };
 
@@ -319,6 +390,18 @@ export default function KanbanBoard() {
   return (
     <ErrorBoundary>
       <div className="p-4">
+        {error && (
+          <div
+            className={`fixed top-4 right-4 px-4 py-3 rounded ${
+              error.type === 'error'
+                ? 'bg-red-100 border border-red-400 text-red-700'
+                : 'bg-yellow-100 border border-yellow-400 text-yellow-700'
+            }`}
+          >
+            {error.message}
+          </div>
+        )}
+
         {dragError && (
           <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             {dragError}

@@ -39,3 +39,37 @@ export interface CreateIssueRequest {
   body: string;
   labels: string[];
 }
+
+/**
+ * API Error types
+ */
+export interface APIError {
+  message: string;
+  code?: string;
+  details?: Record<string, unknown>;
+}
+
+export interface APIResponse<T> {
+  data?: T;
+  error?: APIError;
+  success: boolean;
+}
+
+/**
+ * API Error utility class
+ */
+export class APIErrorHandler {
+  static isAPIError(error: unknown): error is APIError {
+    return typeof error === 'object' && error !== null && 'message' in error;
+  }
+
+  static getErrorMessage(error: unknown): string {
+    if (this.isAPIError(error)) {
+      return error.message;
+    }
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return 'An unexpected error occurred';
+  }
+}
