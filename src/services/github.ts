@@ -403,15 +403,16 @@ export async function moveCard(
   columnId: string | number,
   position: string = 'top',
   isV2: boolean = false,
-  fieldId?: string
+  fieldId?: string,
+  projectId?: string
 ) {
   try {
-    if (isV2 && fieldId) {
+    if (isV2 && fieldId && projectId) {
       const graphqlMutation = `
       mutation {
         updateProjectV2ItemFieldValue(
           input: {
-            projectId: "${owner}/projects/${fieldId}"
+            projectId: "${projectId}"
             itemId: "${cardId}"
             fieldId: "${fieldId}"
             value: {

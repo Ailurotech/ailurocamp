@@ -111,6 +111,7 @@ interface MoveCardParams {
   position?: string;
   isV2?: boolean;
   fieldId?: string;
+  projectId?: string;
 }
 
 interface CreateIssueParams {
@@ -149,22 +150,17 @@ export async function POST(req: Request) {
 
     switch (action) {
       case 'moveCard': {
-        const { cardId, columnId, position } = params as MoveCardParams;
-
-        try {
-          const result = await githubService.moveCard(
-            cardId,
-            columnId,
-            position
-          );
-          return NextResponse.json({ success: true, data: result });
-        } catch (moveError) {
-          console.error('Error in moveCard function:', moveError);
-          return NextResponse.json(
-            { error: 'Error moving card', errorDetails: moveError },
-            { status: 500 }
-          );
-        }
+        const { cardId, columnId, position, isV2, fieldId, projectId } =
+          params as MoveCardParams;
+        const result = await githubService.moveCard(
+          cardId,
+          columnId,
+          position,
+          isV2,
+          fieldId,
+          projectId
+        );
+        return NextResponse.json({ success: true, data: result });
       }
 
       case 'createIssue': {
