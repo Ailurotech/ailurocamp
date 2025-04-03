@@ -3,17 +3,15 @@
 import { useState, useRef, ChangeEvent, useEffect, RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { z } from 'zod';
+import { courseSchema } from '@/lib/validation/courseSchema';
 
-import InputField from '@/components/ui/CreateCoursePage/InputField';
-import SelectField from '@/components/ui/CreateCoursePage/SelectField';
-import FileInput from '@/components/ui/CreateCoursePage/FileInput';
-import RadioGroup from '@/components/ui/CreateCoursePage/RadioGroup';
-import CoursePreview from '@/components/ui/CreateCoursePage/CoursePreview';
-import PopupModal, {
-  PopupProps,
-} from '@/components/ui/CreateCoursePage/PopupModal';
-import TextareaField from '@/components/ui/CreateCoursePage/TextareaField';
+import InputField from '@/components/instructor/CreateCoursePage/InputField';
+import SelectField from '@/components/instructor/CreateCoursePage/SelectField';
+import FileInput from '@/components/instructor/CreateCoursePage/FileInput';
+import RadioGroup from '@/components/instructor/CreateCoursePage/RadioGroup';
+import CoursePreview from '@/components/instructor/CreateCoursePage/CoursePreview';
+import PopupModal, { PopupProps } from '@/components/ui/PopupModal';
+import TextareaField from '@/components/instructor/CreateCoursePage/TextareaField';
 
 export default function NewCourseForm() {
   // Form states
@@ -124,32 +122,10 @@ export default function NewCourseForm() {
     setErrors({});
 
     // Zod schema for validation
-    const formSchema = z.object({
-      title: z.string().min(1, 'Course title is required'),
-      description: z.string().min(1, 'Course description is required'),
-      category: z.string().refine((val) => categoryOptions.includes(val), {
-        message: 'Please select a valid category',
-      }),
-      level: z.string().refine((val) => levelOptions.includes(val), {
-        message: 'Please select a valid level',
-      }),
-      price: z.preprocess(
-        (val) => parseFloat(val as string),
-        z.number().nonnegative('Price must be non-negative')
-      ),
-      thumbnail: z
-        .instanceof(File)
-        .refine((file) => file.type.startsWith('image/'), {
-          message: 'Only image files are allowed.',
-        }),
-      tags: z.string().optional(),
-      status: z.enum(['published', 'unpublished'], {
-        errorMap: () => ({ message: 'Please select a valid status' }),
-      }),
-    });
+    const formschema = courseSchema(categoryOptions, levelOptions);
 
     // Validate data
-    const result = formSchema.safeParse({
+    const result = formschema.safeParse({
       title,
       description,
       category,
@@ -264,7 +240,7 @@ export default function NewCourseForm() {
       <h1 className="text-2xl font-bold mb-4">Create a New Course</h1>
       <div className="max-w-3xl mx-auto">
         {/* Popup Modal */}
-        {popup && <PopupModal {...popup} onClose={popup?.onClose} />}
+        {popup && <PopupModal {...popup} onClose={popup.onClose} />}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Course Title */}
