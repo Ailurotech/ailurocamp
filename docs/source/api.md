@@ -178,17 +178,18 @@ Create a new course (instructor only).
 **Request Body:**
 
 Form-data
-| key | type | value |
-|-------------|------|-------|
-| title | Text | Introduction to Programming |
+
+| key         | type | value                           |
+| ----------- | ---- | ------------------------------- |
+| title       | Text | Introduction to Programming     |
 | description | Text | Learn the basics of programming |
-| category | Text | Backend |
-| level | Text | beginner |
-| price | Text | 23 |
-| thumbnail | File | File |
-| tags | Text | language, C |
-| status | Text | published |
-| instructor | Text | instructor_id |
+| category    | Text | Backend                         |
+| level       | Text | beginner                        |
+| price       | Text | 23                              |
+| thumbnail   | File | File                            |
+| tags        | Text | language, C                     |
+| status      | Text | published                       |
+| instructor  | Text | instructor_id                   |
 
 **Response:**
 
