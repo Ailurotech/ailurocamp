@@ -159,21 +159,12 @@ interface ProjectV2Response {
   };
 }
 
-export async function getProjectColumns(projectNumber: number) {
+export async function getProjectColumns(projectId: number) {
   try {
-    // For debugging
-    // console.log(`Fetching columns for project ID: ${projectNumber}`);
-
-    // Check if this is a v2 project - different handling
-    try {
-      // Try to get columns for a V2 project first (which are actually statuses)
-      console.log('Attempting to fetch columns for Projects V2...');
-
-      // Simpler query to get all project data first
-      const projectQuery = `
+    const projectQuery = `
       query {
         organization(login: "${owner}") {
-          projectV2(number: ${projectNumber}) {
+          projectV2(number: ${projectId}) {
             id
             title
             url
@@ -217,38 +208,19 @@ export async function getProjectColumns(projectNumber: number) {
         }
       }`;
 
-      const projectData = (await octokit.graphql(
-        projectQuery
-      )) as ProjectV2Response;
+    const projectData = (await octokit.graphql(
+      projectQuery
+    )) as ProjectV2Response;
+    const fields = projectData?.organization?.projectV2?.fields?.nodes || [];
+    const items = projectData?.organization?.projectV2?.items?.nodes || [];
 
-      // Save the raw project data for debugging
-      console.log(
-        'V2 Project title:',
-        projectData?.organization?.projectV2?.title
-      );
-      console.log('V2 Project URL:', projectData?.organization?.projectV2?.url);
-      console.log(
-        'V2 Project closed:',
-        projectData?.organization?.projectV2?.closed
-      );
-
-      // Save the project ID for later use
-      const projectId = projectData?.organization?.projectV2?.id;
-      // console.log('Project V2 ID:', projectId);
-
-      // 1. Log all fields to help debug
-      console.log('Project fields:');
-      const allFields =
-        projectData?.organization?.projectV2?.fields?.nodes || [];
-      allFields.forEach((field) => {
-        console.log(
-          `  Field: ${field.name} (${field.dataType || 'unknown type'})`
-        );
-        if (field.options) {
-          console.log(
-            '    Options:',
-            field.options.map((option) => option.name).join(', ')
-          );
+    const fieldValueMap: Record<string, Set<string>> = {};
+    items.forEach((item) => {
+      item.fieldValues?.nodes?.forEach((value) => {
+        if (value?.field?.name && value.name) {
+          const key = value.field.name;
+          fieldValueMap[key] = fieldValueMap[key] || new Set();
+          fieldValueMap[key].add(value.name);
         }
       });
     });
@@ -276,68 +248,8 @@ export async function getProjectColumns(projectNumber: number) {
       statusFieldName = Object.keys(fieldValueMap)[0]; // fallback
     }
 
-        if (statusField) {
-          console.log(`Using field "${statusFieldName}" as status field`);
-
-          // Get the unique values for this field
-          const uniqueValues = Array.from(fieldValueCounts[statusFieldName]);
-          console.log(`Status values: ${uniqueValues.join(', ')}`);
-
-          // Create columns from the unique values
-          const columns: Array<{
-            id: string;
-            name: string;
-            isV2: boolean;
-            field_id?: string;
-            project_id?: string;
-            cards: any[];
-          }> =
-            statusField.options?.map((option: any) => ({
-              id: option.id, // Use the actual option ID
-              name: option.name,
-              field_id: statusField.id,
-              project_id: projectId,
-              isV2: true,
-              cards: [],
-            })) || [];
-
-          // Group items by their status value
-          projectData?.organization?.projectV2?.items?.nodes?.forEach(
-            (item: any) => {
-              if (!item.fieldValues?.nodes) return;
-
-              // Find the status value for this item
-              const statusValue = item.fieldValues.nodes.find(
-                (value: any) =>
-                  value.field && value.field.name === statusFieldName
-              );
-
-              if (statusValue && statusValue.name) {
-                // Find the matching column by name
-                const column = columns.find(
-                  (col) => col.name === statusValue.name
-                );
-
-                if (column) {
-                  // Create card
-                  const card = {
-                    id: item.id,
-                    note: item.content?.body || '',
-                    content_url: item.content?.url || '',
-                    title:
-                      item.content?.title ||
-                      `Item #${item.content?.number || ''}`,
-                    created_at:
-                      item.content?.createdAt || new Date().toISOString(),
-                    number: item.content?.number,
-                  };
-
-                  // Add to column
-                  column.cards.push(card);
-                }
-              }
-            }
-          );
+    const statusField = fields.find((f) => f.name === statusFieldName);
+    if (!statusField) throw new Error('Status field not found');
 
     const columns = [...fieldValueMap[statusFieldName]].map((name) => ({
       id: name,
@@ -369,10 +281,8 @@ export async function getProjectColumns(projectNumber: number) {
     console.error('GraphQL failed, falling back to REST:', error);
 
     try {
-      console.log('Attempting to fetch project columns for classic project...');
-
-      const columnsResponse = await octokit.rest.projects.listColumns({
-        project_id: projectNumber,
+      const columnsRes = await octokit.rest.projects.listColumns({
+        project_id: projectId,
       });
       const columns = await Promise.all(
         columnsRes.data.map(async (col) => {
@@ -493,24 +403,19 @@ export async function moveCard(
   columnId: string | number,
   position: string = 'top',
   isV2: boolean = false,
-  fieldId?: string,
-  projectId?: string
+  fieldId?: string
 ) {
   try {
-    console.log(`Moving card ${cardId} to column ${columnId}, isV2: ${isV2}`);
-
-    if (isV2 && fieldId && projectId) {
-      // For Projects V2, update the status field
-      console.log('Using GraphQL to update ProjectV2 item field');
+    if (isV2 && fieldId) {
       const graphqlMutation = `
       mutation {
         updateProjectV2ItemFieldValue(
           input: {
-            projectId: "${projectId}"
+            projectId: "${owner}/projects/${fieldId}"
             itemId: "${cardId}"
             fieldId: "${fieldId}"
-            value: { 
-              singleSelectOptionId: "${columnId.toString()}"
+            value: {
+              singleSelectOptionId: "${columnId}"
             }
           }
         ) {
@@ -520,7 +425,6 @@ export async function moveCard(
         }
       }`;
 
-      console.log('Executing GraphQL mutation:', graphqlMutation);
       const response = await octokit.graphql(graphqlMutation);
       return response;
     } else {

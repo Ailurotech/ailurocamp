@@ -161,7 +161,6 @@ export async function POST(req: Request) {
           projectId
         );
         return NextResponse.json({ success: true, data: result });
-
       }
 
       case 'createIssue': {
