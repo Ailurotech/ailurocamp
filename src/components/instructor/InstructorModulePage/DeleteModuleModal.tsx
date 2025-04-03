@@ -1,24 +1,27 @@
 'use client';
 
 import React from 'react';
-import type { ICourse } from '@/types/course';
+import type { IModule } from '@/types/module';
 
-interface DeleteCourseModalProps {
+interface DeleteModuleModalProps {
   isOpen: boolean;
-  courseToDelete: ICourse | null; // Selected course to delete
+  moduleToDelete: IModule | null; // Seleted module to delete
   onClose: () => void;
-  onDelete: (courseId: string) => Promise<void>; // Pass the courseId to his parent component
-  isDeleting: boolean;
+  onDelete: (moduleId: string) => Promise<void>; // Pass the moduleId to his parent component
 }
 
-const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
+export default function DeleteModuleModal({
   isOpen,
-  courseToDelete,
+  moduleToDelete,
   onClose,
   onDelete,
-  isDeleting,
-}) => {
-  if (!isOpen || !courseToDelete) return null;
+}: DeleteModuleModalProps) {
+  if (!isOpen || !moduleToDelete) return null;
+
+  // const handleDelete = async () => {
+  //   await onConfirmDelete(moduleToDelete._id);
+  //   onClose();
+  // };
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
@@ -28,7 +31,7 @@ const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
         </h3>
         <p className="text-sm text-gray-500 mb-6">
           Are you sure you want to delete{' '}
-          <strong>{courseToDelete.title}</strong>? This action cannot be undone.
+          <strong>{moduleToDelete.title}</strong>? This action cannot be undone.
         </p>
         <div className="flex justify-end space-x-3">
           <button
@@ -38,16 +41,13 @@ const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
             Cancel
           </button>
           <button
-            onClick={() => onDelete(courseToDelete._id)}
-            disabled={isDeleting}
+            onClick={() => onDelete(moduleToDelete._id)}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
           >
-            {isDeleting ? 'Deleting...' : 'Delete'}
+            Delete
           </button>
         </div>
       </div>
     </div>
   );
-};
-
-export default DeleteCourseModal;
+}

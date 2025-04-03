@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Course, { ICourse } from '@/models/Course';
+import User, { IUser } from '@/models/User';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { z } from 'zod';
+import { courseSchema } from '@/lib/validation/courseSchema';
 import path from 'path';
 import fs from 'fs';
 import fsPromises from 'fs/promises';
@@ -106,36 +107,20 @@ export async function POST(req: Request): Promise<Response> {
     const status = formData.get('status') as string;
     const instructor = formData.get('instructor') as string;
 
+    // Check the instructor ID
+    const user: IUser | null = await User.findById(instructor);
+    if (!user) {
+      return NextResponse.json(
+        { message: 'Instructor not found' },
+        { status: 404 }
+      );
+    }
+
     // Define a schema for the incoming course data.
-    const courseSchema = z.object({
-      title: z.string().min(1, 'Course title is required'),
-      description: z.string().min(1, 'Course description is required'),
-      category: z.string().refine((value) => validCategories.includes(value), {
-        message: 'Invalid category',
-      }),
-      level: z.string().refine((value) => validLevels.includes(value), {
-        message: 'Invalid level',
-      }),
-      price: z.preprocess(
-        (val) => parseFloat(val as string),
-        z.number().nonnegative('Price must be non-negative')
-      ),
-      thumbnail: z
-        .instanceof(File)
-        .refine((file) => file.type.startsWith('image/'), {
-          message: 'Only image files are allowed.',
-        }),
-      tags: z.string().optional(),
-      status: z.enum(['published', 'unpublished'], {
-        errorMap: () => ({ message: 'Invalid status' }),
-      }),
-      instructor: z
-        .string()
-        .regex(/^[0-9a-fA-F]{24}$/, 'Invalid instructor id'),
-    });
+    const formSchema = courseSchema(validCategories, validLevels);
 
     // Validate the course data
-    const parsedCourseData = courseSchema.safeParse({
+    const parsedCourseData = formSchema.safeParse({
       title,
       description,
       category,
@@ -144,7 +129,6 @@ export async function POST(req: Request): Promise<Response> {
       thumbnail,
       tagsString,
       status,
-      instructor,
     });
 
     if (!parsedCourseData.success) {

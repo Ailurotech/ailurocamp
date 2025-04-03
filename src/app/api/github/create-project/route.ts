@@ -10,14 +10,11 @@ interface ProjectColumn {
 
 export async function POST(req: Request) {
   try {
-    // Verify user is authenticated
     const session = await getServerSession(authOptions);
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Get request body
     const body = await req.json();
     const { name, description } = body;
 
@@ -27,8 +24,6 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
-    // Get environment variables
     const token = process.env.GITHUB_TOKEN;
     const owner = process.env.GITHUB_OWNER || 'Ailurotech';
     const repo = process.env.GITHUB_REPO || 'ailurocamp';
@@ -40,14 +35,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Initialize Octokit
     const octokit = new Octokit({ auth: token });
 
-    // Create project
     try {
-      console.log(`Creating project "${name}" for repository ${owner}/${repo}`);
-
-      // Create project for the repository
       const response = await octokit.rest.projects.createForRepo({
         owner,
         repo,
@@ -56,9 +46,7 @@ export async function POST(req: Request) {
       });
 
       const projectId = response.data.id;
-      console.log(`Project created with ID: ${projectId}`);
 
-      // Create default columns
       const columns = ['To Do', 'In Progress', 'Done'];
       const createdColumns: ProjectColumn[] = [];
 
@@ -72,10 +60,6 @@ export async function POST(req: Request) {
           id: columnResponse.data.id,
           name: columnResponse.data.name,
         });
-
-        console.log(
-          `Column "${columnName}" created with ID: ${columnResponse.data.id}`
-        );
       }
 
       return NextResponse.json({

@@ -23,6 +23,13 @@ import {
 import { BoardColumn } from './BoardColumn';
 import CreateProjectModal from './CreateProjectModal';
 import NewIssueModal from './NewIssueModal';
+import {
+  addIssueToProjectBoard,
+  fetchAllProjects,
+  fetchIssuesWithinProjects,
+} from '@/services/github';
+import NoProjectFound from './NoProjectFound';
+import Spinner from './Spinner';
 
 // To fix the isCombineEnabled error in development
 const useIsomorphicLayoutEffect =
@@ -32,7 +39,6 @@ interface ErrorState {
   message: string;
   type: 'error' | 'warning';
   timestamp: number;
-}
 
 /**
  * Handles API requests with proper error handling
@@ -64,12 +70,17 @@ export default function KanbanBoard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [uniqueProjects, setUniqueProjects] = useState<UniqueProject[]>([]);
+  const [, setUniqueProjectId] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
+  const [selectedProjectName, setSelectedProjectName] = useState<string>('');
+  const [, setNewIssueId] = useState<string>('');
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
   const [isNewIssueModalOpen, setIsNewIssueModalOpen] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
+
   const [dragError, setDragError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(false);
   const [error, setError] = useState<ErrorState | null>(null);
