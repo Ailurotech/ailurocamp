@@ -7,7 +7,7 @@ import connectDB from '@/lib/mongodb';
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { courseId: string } }
-) {
+): Promise<NextResponse> {
   try {
     await connectDB();
     const session = await getServerSession(authOptions);
