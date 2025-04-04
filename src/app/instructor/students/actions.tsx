@@ -117,8 +117,8 @@ export async function generateReport(userId: string): Promise<string> {
   const csvContent = [
     'Student Name,Email,Course Title,Enrollment Date,Progress',
     ...enrollments.map(
-      (enroll: any) =>
-        `"${enroll.studentId?.name || ''}","${enroll.studentId?.email || ''}","${enroll.courseId?.title || ''}",${new Date(
+      (enroll: EnrollmentWithDetails) =>
+        `"${enroll.studentId.name}","${enroll.studentId.email}","${enroll.courseId.title}",${new Date(
           enroll.enrolledAt
         ).toISOString()},${enroll.progress}%`
     ),
