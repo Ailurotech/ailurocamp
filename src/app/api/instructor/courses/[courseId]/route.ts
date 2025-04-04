@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import CourseModel from '@/models/Course';
 import connectDB from '@/lib/mongodb';
 
 export async function PATCH(
-  req: Request,
+  request: NextRequest,
   { params }: { params: { courseId: string } }
 ) {
   try {
@@ -17,7 +17,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { maxEnrollments } = await req.json();
+    const { maxEnrollments } = await request.json();
 
     const course = await CourseModel.findOne({
       _id: params.courseId,
