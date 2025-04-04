@@ -6,8 +6,8 @@ import connectDB from '@/lib/mongodb';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
-): Promise<NextResponse> {
+  context: { params: { courseId: string } }
+) {
   try {
     await connectDB();
     const session = await getServerSession(authOptions);
@@ -20,7 +20,7 @@ export async function PATCH(
     const { maxEnrollments } = await request.json();
 
     const course = await CourseModel.findOne({
-      _id: params.courseId,
+      _id: context.params.courseId,
       instructor: userId,
     });
 
@@ -29,7 +29,7 @@ export async function PATCH(
     }
 
     const updatedCourse = await CourseModel.findByIdAndUpdate(
-      params.courseId,
+      context.params.courseId,
       { maxEnrollments },
       { new: true }
     );
