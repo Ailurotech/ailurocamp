@@ -6,30 +6,6 @@ import connectDB from '@/lib/mongodb';
 import { Enrollment } from '@/models/Enrollment';
 import CourseModel from '@/models/Course';
 
-interface Course {
-  id: string;
-  title: string;
-  maxEnrollments: number;
-}
-
-const convertMongooseData = (data: any): any => {
-  if (data instanceof Date) {
-    return data.toISOString();
-  }
-  if (data?._id && typeof data._id === 'object') {
-    data._id = data._id.toString();
-  }
-  if (typeof data === 'object' && data !== null) {
-    return Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [
-        key,
-        convertMongooseData(value),
-      ])
-    );
-  }
-  return data;
-};
-
 export async function fetchEnrollments(
   userId: string
 ): Promise<EnrollmentWithDetails[]> {
@@ -63,15 +39,14 @@ export async function getEnrolledStudents(
     await connectDB();
     const skip = (page - 1) * limit;
 
-    const enrollments = await Enrollment.find({ courseId })
+    const enrollments = (await Enrollment.find({ courseId })
       .skip(skip)
       .limit(limit)
       .populate('studentId', 'name email')
       .populate('courseId', 'title')
-      .lean()
-      .exec();
+      .lean()) as unknown as EnrollmentWithDetails[];
 
-    return enrollments.map((enroll: any) => ({
+    return enrollments.map((enroll: EnrollmentWithDetails) => ({
       _id: enroll._id.toString(),
       courseId: {
         _id: enroll.courseId._id.toString(),
@@ -132,12 +107,12 @@ export async function generateReport(userId: string): Promise<string> {
   const courses = await CourseModel.find({ instructor: userId }).select('_id');
   const courseIds = courses.map((course) => course._id);
 
-  const enrollments = await Enrollment.find({
+  const enrollments = (await Enrollment.find({
     courseId: { $in: courseIds },
   })
     .populate('studentId', 'name email')
     .populate('courseId', 'title')
-    .lean();
+    .lean()) as unknown as EnrollmentWithDetails[];
 
   const csvContent = [
     'Student Name,Email,Course Title,Enrollment Date,Progress',
