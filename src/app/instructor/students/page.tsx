@@ -39,7 +39,7 @@ export default function StudentsPage() {
       toast.success(`Setting limit to ${limit} students`);
       const enrollmentsData = await fetchEnrollments(userId!);
       setEnrollments(enrollmentsData);
-    } catch (error) {
+    } catch {
       toast.error('Error updating enrollment limit');
     }
   };
@@ -62,7 +62,7 @@ export default function StudentsPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
+    } catch {
       toast.error('Error generating report');
     }
   };
