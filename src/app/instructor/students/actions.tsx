@@ -1,18 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { EnrollmentWithDetails, Enrollment } from '@/types';
-import { Enrollment as EnrollmentModel } from '@/models/Enrollment';
-import CourseModel from '@/models/Course';
+import { EnrollmentWithDetails } from '@/types';
 import connectDB from '@/lib/mongodb';
-
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  enrolledAt: Date;
-  progress: number;
-}
+import { Enrollment } from '@/models/Enrollment';
+import CourseModel from '@/models/Course';
 
 interface Course {
   id: string;
@@ -38,29 +30,26 @@ const convertMongooseData = (data: any): any => {
   return data;
 };
 
-export async function fetchEnrollments(userId: string) {
+export async function fetchEnrollments(
+  userId: string
+): Promise<EnrollmentWithDetails[]> {
   await connectDB();
   const courses = await CourseModel.find({ instructor: userId }).select('_id');
   const courseIds = courses.map((course) => course._id);
 
-  const enrollments = await EnrollmentModel.find({
+  const enrollments = (await Enrollment.find({
     courseId: { $in: courseIds },
   })
     .populate('studentId', 'name email')
     .populate('courseId', 'title')
-    .lean()
-    .exec();
+    .lean()) as unknown as EnrollmentWithDetails[];
 
-  return enrollments.map((enroll) => ({
-    ...convertMongooseData(enroll),
-    courseId: {
-      ...convertMongooseData(enroll.courseId),
-      _id: enroll.courseId._id.toString(),
-    },
-    studentId: {
-      ...convertMongooseData(enroll.studentId),
-      _id: enroll.studentId._id.toString(),
-    },
+  return enrollments.map((enroll: EnrollmentWithDetails) => ({
+    _id: enroll._id,
+    studentId: enroll.studentId,
+    courseId: enroll.courseId,
+    enrolledAt: enroll.enrolledAt,
+    progress: enroll.progress,
   }));
 }
 
@@ -74,7 +63,7 @@ export async function getEnrolledStudents(
     await connectDB();
     const skip = (page - 1) * limit;
 
-    const enrollments = await EnrollmentModel.find({ courseId })
+    const enrollments = await Enrollment.find({ courseId })
       .skip(skip)
       .limit(limit)
       .populate('studentId', 'name email')
@@ -110,7 +99,7 @@ export async function removeStudent(
 ): Promise<void> {
   try {
     await connectDB();
-    await EnrollmentModel.findOneAndDelete({ courseId, studentId });
+    await Enrollment.findOneAndDelete({ courseId, studentId });
     revalidatePath('/instructor/students');
   } catch (error) {
     console.error('Error removing student:', error);
@@ -138,34 +127,27 @@ export async function setEnrollmentLimit(courseId: string, limit: number) {
   revalidatePath('/instructor/students');
 }
 
-export async function generateReport(userId: string) {
-  try {
-    await connectDB();
-    const courses = await CourseModel.find({ instructor: userId }).select(
-      '_id'
-    );
-    const courseIds = courses.map((course) => course._id);
+export async function generateReport(userId: string): Promise<string> {
+  await connectDB();
+  const courses = await CourseModel.find({ instructor: userId }).select('_id');
+  const courseIds = courses.map((course) => course._id);
 
-    const enrollments = await EnrollmentModel.find({
-      courseId: { $in: courseIds },
-    })
-      .populate('studentId', 'name email')
-      .populate('courseId', 'title')
-      .lean();
+  const enrollments = await Enrollment.find({
+    courseId: { $in: courseIds },
+  })
+    .populate('studentId', 'name email')
+    .populate('courseId', 'title')
+    .lean();
 
-    const csvContent = [
-      'Student Name,Email,Course Title,Enrollment Date,Progress',
-      ...enrollments.map(
-        (e) =>
-          `"${e.studentId?.name || 'N/A'}","${e.studentId?.email || 'N/A'}","${e.courseId?.title || 'N/A'}",${new Date(
-            e.enrolledAt
-          ).toISOString()},${e.progress}%`
-      ),
-    ].join('\n');
+  const csvContent = [
+    'Student Name,Email,Course Title,Enrollment Date,Progress',
+    ...enrollments.map(
+      (enroll: any) =>
+        `"${enroll.studentId?.name || ''}","${enroll.studentId?.email || ''}","${enroll.courseId?.title || ''}",${new Date(
+          enroll.enrolledAt
+        ).toISOString()},${enroll.progress}%`
+    ),
+  ].join('\n');
 
-    return csvContent;
-  } catch (error) {
-    console.error('Error generating report:', error);
-    throw new Error('Failed to generate report');
-  }
+  return csvContent;
 }
