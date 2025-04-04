@@ -23,6 +23,7 @@ export interface ICourse extends mongoose.Document {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
+  maxEnrollments: number;
 }
 
 const courseSchema = new mongoose.Schema<ICourse>(
@@ -106,6 +107,11 @@ const courseSchema = new mongoose.Schema<ICourse>(
     ratingSum: {
       type: Number,
       default: 0,
+    },
+    maxEnrollments: {
+      type: Number,
+      required: true,
+      default: 100,
     },
   },
   {

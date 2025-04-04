@@ -18,3 +18,27 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
+
+export interface Enrollment {
+  _id: string;
+  courseId: string;
+  studentId: string;
+  enrolledAt: Date;
+  progress: number;
+}
+
+export interface EnrollmentWithDetails {
+  _id: string;
+  courseId: {
+    _id: string;
+    title: string;
+    maxEnrollments: number;
+  };
+  studentId: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  enrolledAt: Date;
+  progress: number;
+}
