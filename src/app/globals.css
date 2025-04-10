@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ededed;
+    --foreground: #0a0a0a;
   }
   .dark {
     --background: 0 0% 3.9%;
