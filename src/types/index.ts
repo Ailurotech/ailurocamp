@@ -39,6 +39,6 @@ export interface EnrollmentWithDetails {
     name: string;
     email: string;
   };
-  enrolledAt: Date;
+  enrolledAt: string;
   progress: number;
 }

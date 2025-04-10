@@ -5,8 +5,8 @@ import CourseModel from '@/models/Course';
 import connectDB from '@/lib/mongodb';
 
 export async function PATCH(
-  request: NextRequest,
-  context: { params: { courseId: string } }
+  req: NextRequest,
+  { params }: { params: { [key: string]: string } }
 ) {
   try {
     await connectDB();
@@ -17,10 +17,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { maxEnrollments } = await request.json();
+    const { maxEnrollments } = await req.json();
 
     const course = await CourseModel.findOne({
-      _id: context.params.courseId,
+      _id: params.courseId,
       instructor: userId,
     });
 
@@ -29,7 +29,7 @@ export async function PATCH(
     }
 
     const updatedCourse = await CourseModel.findByIdAndUpdate(
-      context.params.courseId,
+      params.courseId,
       { maxEnrollments },
       { new: true }
     );

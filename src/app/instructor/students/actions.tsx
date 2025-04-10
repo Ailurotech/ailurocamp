@@ -21,9 +21,17 @@ export async function fetchEnrollments(
     .lean()) as unknown as EnrollmentWithDetails[];
 
   return enrollments.map((enroll: EnrollmentWithDetails) => ({
-    _id: enroll._id,
-    studentId: enroll.studentId,
-    courseId: enroll.courseId,
+    _id: enroll._id.toString(),
+    studentId: {
+      _id: enroll.studentId._id.toString(),
+      name: enroll.studentId.name,
+      email: enroll.studentId.email,
+    },
+    courseId: {
+      _id: enroll.courseId._id.toString(),
+      title: enroll.courseId.title,
+      maxEnrollments: enroll.courseId.maxEnrollments,
+    },
     enrolledAt: enroll.enrolledAt,
     progress: enroll.progress,
   }));
@@ -58,7 +66,7 @@ export async function getEnrolledStudents(
         name: enroll.studentId.name,
         email: enroll.studentId.email,
       },
-      enrolledAt: new Date(enroll.enrolledAt),
+      enrolledAt: new Date(enroll.enrolledAt).toISOString(),
       progress: enroll.progress,
     }));
   } catch (error) {
@@ -82,24 +90,25 @@ export async function removeStudent(
   }
 }
 
-// export async function trackStudentProgress(userId: string, courseId: string, studentId: string): Promise<number> {
-//   try {
-//     await connectDB();
-//     const enrollment: Enrollment | null = await EnrollmentModel.findOne({ courseId, studentId }).lean(); // Use Enrollment directly
-//     if (!enrollment) {
-//       throw new Error("Enrollment not found");
-//     }
-//     return enrollment.progress;
-//   } catch (error) {
-//     console.error("Error tracking student progress:", error);
-//     throw new Error("Failed to track student progress");
-//   }
-// }
-
 export async function setEnrollmentLimit(courseId: string, limit: number) {
-  await connectDB();
-  await CourseModel.findByIdAndUpdate(courseId, { maxEnrollments: limit });
-  revalidatePath('/instructor/students');
+  try {
+    const response = await fetch(`/api/instructor/courses/${courseId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ maxEnrollments: limit }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update course limit');
+    }
+
+    revalidatePath('/instructor/students');
+  } catch (error) {
+    console.error('Error updating course limit:', error);
+    throw new Error('Failed to update course limit');
+  }
 }
 
 export async function generateReport(userId: string): Promise<string> {
