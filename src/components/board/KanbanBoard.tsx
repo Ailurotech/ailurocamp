@@ -8,12 +8,25 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon, LinkIcon, CalendarIcon } from '@heroicons/react/20/solid';
 import CreateProjectModal from './CreateProjectModal';
 import NewIssueModal from './NewIssueModal';
+import {
+  addIssueToProjectBoard,
+  fetchAllProjects,
+  fetchIssuesWithinProjects,
+} from '@/services/github';
+import NoProjectFound from './NoProjectFound';
+import Spinner from './Spinner';
 
 interface Project {
   id: number;
   name: string;
   isV2?: boolean;
   orgProject?: boolean;
+}
+
+interface UniqueProject {
+  id: string;
+  title: string;
+  url: string;
 }
 
 interface Card {
@@ -35,17 +48,24 @@ interface Column {
 
 export default function KanbanBoard() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [uniqueProjects, setUniqueProjects] = useState<UniqueProject[]>([]);
+  const [, setUniqueProjectId] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
+  const [selectedProjectName, setSelectedProjectName] = useState<string>('');
+  const [, setNewIssueId] = useState<string>('');
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
   const [isNewIssueModalOpen, setIsNewIssueModalOpen] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
+  const [expandedColumns, setExpandedColumns] = useState<
+    Record<string, boolean>
+  >({});
+  const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
 
   const { status } = useSession();
   const router = useRouter();
 
-  // Check if user is authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
@@ -53,16 +73,17 @@ export default function KanbanBoard() {
   }, [status, router]);
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchProjects();
-    }
-  }, [status]);
-
-  useEffect(() => {
     if (selectedProject) {
       fetchProjectColumns(selectedProject);
     }
   }, [selectedProject]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchProjects();
+      fetchUniqueProjects();
+    }
+  }, [status]);
 
   const fetchProjects = async () => {
     try {
@@ -79,6 +100,7 @@ export default function KanbanBoard() {
 
         if (data.projects.length > 0) {
           setSelectedProject(data.projects[0].id);
+          setSelectedProjectName(data.projects[0].name);
         }
       } else {
         setProjects([]);
@@ -88,6 +110,19 @@ export default function KanbanBoard() {
     } catch (error) {
       console.error('Error fetching projects:', error);
       setLoading(false);
+    }
+  };
+
+  const fetchUniqueProjects = async () => {
+    const projects = await fetchAllProjects();
+    console.log('projects: ', projects);
+    setUniqueProjects(projects);
+
+    if (selectedProjectName) {
+      const matchedProject = projects.find(
+        (p: UniqueProject) => p.title === selectedProjectName
+      );
+      setUniqueProjectId(matchedProject?.id || '');
     }
   };
 
@@ -104,15 +139,12 @@ export default function KanbanBoard() {
       }
 
       if (data && data.columns) {
-        // Process columns to ensure consistent data format
         const processedColumns = data.columns.map((column: Column) => {
-          // Ensure column ID is a string
           const processedColumn = {
             ...column,
             id: column.id.toString(),
           };
 
-          // Process cards if they exist
           if (column.cards && Array.isArray(column.cards)) {
             processedColumn.cards = column.cards.map((card: Card) => ({
               ...card,
@@ -138,34 +170,67 @@ export default function KanbanBoard() {
     }
   };
 
+  const handleSearchChange = (columnId: string, value: string) => {
+    setSearchTerms((prev) => ({
+      ...prev,
+      [columnId]: value.toLowerCase(),
+    }));
+  };
+
   const handleCreateIssue = async (
     title: string,
     body: string,
     labels: string[]
   ) => {
     try {
+      const repoName = selectedProjectName.toLowerCase().replace(/\s+/g, '-');
+
       await fetch('/api/board', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'createIssue',
           title,
           body,
           labels,
+          repo: repoName,
         }),
       });
 
-      // Refresh the board after creating a new issue
       if (selectedProject) {
         fetchProjectColumns(selectedProject);
+
+        const issues = await fetchIssuesWithinProjects(selectedProjectName);
+        const lastIssueId = issues.at(-1)?.id || '';
+
+        const matchedProject = uniqueProjects.find(
+          (p) => p.title === selectedProjectName
+        );
+        const projectId = matchedProject?.id || '';
+
+        if (projectId && lastIssueId) {
+          addIssueToProjectBoard(projectId, lastIssueId);
+        }
+
+        setNewIssueId(lastIssueId);
+        setUniqueProjectId(projectId);
       }
 
       setIsNewIssueModalOpen(false);
     } catch (error) {
       console.error('Error creating issue:', error);
     }
+  };
+
+  const handleProjectSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const projectId = Number(e.target.value);
+    const projectName = projects.find((p) => p.id === projectId)?.name || '';
+
+    setSelectedProject(projectId);
+    setSelectedProjectName(projectName);
+
+    const matchedProject = uniqueProjects.find((p) => p.title === projectName);
+    setUniqueProjectId(matchedProject?.id || '');
   };
 
   const handleProjectCreated = () => {
@@ -179,11 +244,7 @@ export default function KanbanBoard() {
   };
 
   if (loading && projects.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (projects.length === 0) {
@@ -196,46 +257,7 @@ export default function KanbanBoard() {
           </Button>
         </div>
 
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-yellow-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">
-                No Projects Found
-              </h3>
-              <div className="mt-2 text-sm text-yellow-700">
-                <p>
-                  No GitHub Project boards were found for this repository. You
-                  can:
-                </p>
-                <ul className="list-disc pl-5 space-y-1 mt-2">
-                  <li>
-                    Click the &quot;Create Project&quot; button above to create
-                    a new project
-                  </li>
-                  <li>
-                    Check that your GitHub token has the correct permissions
-                  </li>
-                  <li>
-                    Verify that GitHub Projects are enabled for your repository
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        <NoProjectFound />
 
         <CreateProjectModal
           isOpen={isCreateProjectModalOpen}
@@ -255,7 +277,7 @@ export default function KanbanBoard() {
           <select
             className="px-3 py-2 border rounded-md"
             value={selectedProject || ''}
-            onChange={(e) => setSelectedProject(Number(e.target.value))}
+            onChange={handleProjectSelection}
           >
             {projects.map((project) => (
               <option key={project.id} value={project.id}>
@@ -280,57 +302,108 @@ export default function KanbanBoard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {columns.map((column) => (
-            <div
-              key={column.id.toString()}
-              className="bg-gray-100 rounded-lg p-2"
-            >
-              <h2 className="font-semibold text-lg mb-2 px-2">{column.name}</h2>
-              <div className="min-h-[500px]">
-                {column.cards.map((card) => (
-                  <Card
-                    key={card.id.toString()}
-                    className="mb-2 cursor-pointer"
-                    onClick={() => handleCardClick(card)}
-                  >
-                    {card.title && (
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">
-                          {card.title}
-                          {card.number && (
-                            <span className="ml-2 text-gray-500 text-sm">
-                              #{card.number}
-                            </span>
-                          )}
-                        </CardTitle>
-                      </CardHeader>
-                    )}
+          {[...columns].reverse().map((column) => {
+            const toggleExpand = (columnId: string) => {
+              setExpandedColumns((prev) => ({
+                ...prev,
+                [columnId]: !prev[columnId],
+              }));
+            };
 
-                    {card.note && (
-                      <CardContent className="py-0 px-4 text-xs text-gray-600">
-                        {card.note.length > 100
-                          ? `${card.note.substring(0, 100)}...`
-                          : card.note}
-                      </CardContent>
-                    )}
+            const isExpanded = expandedColumns[column.id.toString()];
 
-                    <CardContent className="py-2 px-4 flex items-center justify-between">
-                      <div className="flex items-center text-xs text-gray-500">
-                        <CalendarIcon className="w-3 h-3 mr-1" />
-                        {new Date(card.created_at).toLocaleDateString()}
-                      </div>
+            const filteredCards = column.cards.filter((card) => {
+              const searchTerm = searchTerms[column.id.toString()] || '';
+              const formattedDate = new Date(
+                card.created_at
+              ).toLocaleDateString();
+              const cardNumber = card.number ? card.number.toString() : '';
 
-                      {card.content_url && (
-                        <div className="text-blue-500">
-                          <LinkIcon className="w-3 h-3" />
-                        </div>
+              return (
+                card.title?.toLowerCase().includes(searchTerm) ||
+                card.note?.toLowerCase().includes(searchTerm) ||
+                formattedDate.includes(searchTerm) ||
+                cardNumber.includes(searchTerm)
+              );
+            });
+
+            const visibleCards = isExpanded
+              ? filteredCards
+              : filteredCards.slice(0, 5);
+
+            return (
+              <div
+                key={column.id.toString()}
+                className="bg-gray-100 rounded-lg p-2"
+              >
+                <div className="flex justify-between items-center mb-2 px-2">
+                  <h2 className="font-semibold text-lg">{column.name}</h2>
+                  <input
+                    type="text"
+                    className="border px-2 py-1 rounded-md text-sm"
+                    placeholder="Search by any..."
+                    value={searchTerms[column.id.toString()] || ''}
+                    onChange={(e) =>
+                      handleSearchChange(column.id.toString(), e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="min-h-[500px]">
+                  {visibleCards.map((card) => (
+                    <Card
+                      key={card.id.toString()}
+                      className="mb-2 cursor-pointer"
+                      onClick={() => handleCardClick(card)}
+                    >
+                      {card.title && (
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm">
+                            {card.title}
+                            {card.number && (
+                              <span className="ml-2 text-gray-500 text-sm">
+                                #{card.number}
+                              </span>
+                            )}
+                          </CardTitle>
+                        </CardHeader>
                       )}
-                    </CardContent>
-                  </Card>
-                ))}
+
+                      {card.note && (
+                        <CardContent className="py-0 px-4 text-xs text-gray-600">
+                          {card.note.length > 100
+                            ? `${card.note.substring(0, 100)}...`
+                            : card.note}
+                        </CardContent>
+                      )}
+
+                      <CardContent className="py-2 px-4 flex items-center justify-between">
+                        <div className="flex items-center text-xs text-gray-500">
+                          <CalendarIcon className="w-3 h-3 mr-1" />
+                          {new Date(card.created_at).toLocaleDateString()}
+                        </div>
+
+                        {card.content_url && (
+                          <div className="text-blue-500">
+                            <LinkIcon className="w-3 h-3" />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {column.cards.length > 5 && (
+                  <button
+                    className="w-full text-blue-500 text-sm mt-2"
+                    onClick={() => toggleExpand(column.id.toString())}
+                  >
+                    {isExpanded ? 'Show Less' : 'Show More'}
+                  </button>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

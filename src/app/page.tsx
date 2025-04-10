@@ -28,9 +28,10 @@ export default function HomePage() {
                   className="inline-block rounded-lg bg-indigo-600 px-4 py-1.5 text-base font-semibold leading-7 text-white shadow-sm hover:bg-indigo-500 transition-colors duration-200"
                 >
                   Get started
-                  <span className="text-indigo-200 ml-2" aria-hidden="true">
-                    →
-                  </span>
+                  <span
+                    className="text-indigo-200 ml-2"
+                    aria-hidden="true"
+                  ></span>
                 </Link>
                 <Link
                   href="/courses"
