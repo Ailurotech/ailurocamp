@@ -23,13 +23,6 @@ import {
 import { BoardColumn } from './BoardColumn';
 import CreateProjectModal from './CreateProjectModal';
 import NewIssueModal from './NewIssueModal';
-import {
-  addIssueToProjectBoard,
-  fetchAllProjects,
-  fetchIssuesWithinProjects,
-} from '@/services/github';
-import NoProjectFound from './NoProjectFound';
-import Spinner from './Spinner';
 
 const useIsomorphicLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
