@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import LoadingController from '@/components/ui/LoadingController';
+import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
@@ -26,12 +28,12 @@ export default function DashboardLayout({
 
   // If the session is still loading, show a loading message
   if (status === 'loading') {
-    return <div>Loading...</div>;
+    return <LoadingController />;
   }
 
   // Redirect if not student
-  if (session?.user?.currentRole !== 'student') {
-    return <div>Access Denied. Student only.</div>;
+  if (!session?.user?.roles.includes('student')) {
+    return <AccessDeniedRedirect redirectPath="/dashboard" />;
   }
 
   const handleSignOut = async () => {
@@ -54,6 +56,10 @@ export default function DashboardLayout({
 
       // update the session
       await update({ currentRole: role });
+
+      if (session?.user?.currentRole !== 'student') {
+        return <AccessDeniedRedirect redirectPath="dashboard" />;
+      }
 
       // Refresh the page to update the session
       router.push(`/${role.toLowerCase()}`);

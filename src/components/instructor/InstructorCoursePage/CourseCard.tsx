@@ -5,19 +5,21 @@ import React from 'react';
 
 interface CourseCardProps {
   course: ICourse | null;
-  onClose: () => void;
   onPublishToggle: (course: ICourse) => void;
   onEdit: (course: ICourse) => void;
+  isSavingEdit: boolean;
   onDelete: (course: ICourse) => void;
-  isPublishing?: boolean;
+  isDeleting: boolean;
+  isPublishing: boolean;
 }
 
 function CourseCard({
   course,
-  onClose,
   onPublishToggle,
   onEdit,
+  isSavingEdit,
   onDelete,
+  isDeleting,
   isPublishing = false,
 }: CourseCardProps) {
   const router = useRouter();
@@ -29,12 +31,6 @@ function CourseCard({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">Course Details</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              ✕
-            </button>
           </div>
 
           {/* Body */}
@@ -59,6 +55,16 @@ function CourseCard({
                 className="text-blue-500 hover:underline"
               >
                 View Reviews
+              </button>
+            </p>
+            <p className="text-sm text-gray-600">
+              <button
+                onClick={() =>
+                  router.push(`/instructor/courses/${course._id}/modules`)
+                }
+                className="text-blue-500 hover:underline"
+              >
+                View Modules
               </button>
             </p>
             <div className="space-x-2 mt-4">
@@ -90,15 +96,17 @@ function CourseCard({
             </button>
             <button
               onClick={() => onEdit(course)}
+              disabled={isSavingEdit}
               className="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700"
             >
-              Edit
+              {isSavingEdit ? 'Saving...' : 'Edit'}
             </button>
             <button
               onClick={() => onDelete(course)}
+              disabled={isDeleting}
               className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
             >
-              Delete
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </>
