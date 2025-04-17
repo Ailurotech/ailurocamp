@@ -48,11 +48,14 @@ export default function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
   const [isNewIssueModalOpen, setIsNewIssueModalOpen] = useState(false);
-  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
+    useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(false);
   const [error, setError] = useState<ErrorState | null>(null);
-  const [columnLoading, setColumnLoading] = useState<Record<string, boolean>>({});
+  const [columnLoading, setColumnLoading] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const handleError = useCallback((error: unknown, context: string) => {
     console.error(`Error in ${context}:`, error);
@@ -63,7 +66,9 @@ export default function KanbanBoard() {
     });
   }, []);
 
-  const handleAPIRequest = async <T,>(request: Promise<Response>): Promise<T> => {
+  const handleAPIRequest = async <T,>(
+    request: Promise<Response>
+  ): Promise<T> => {
     try {
       const response = await request;
       const data = await response.json();
@@ -98,127 +103,171 @@ export default function KanbanBoard() {
     }
   }, [handleError]);
 
-  const fetchProjectColumns = useCallback(async (projectId: number) => {
-    try {
-      setLoading(true);
-      const data = await handleAPIRequest<{ columns: Column[] }>(
-        fetch(`/api/board?projectId=${projectId}`)
-      );
+  const fetchProjectColumns = useCallback(
+    async (projectId: number) => {
+      try {
+        setLoading(true);
+        const data = await handleAPIRequest<{ columns: Column[] }>(
+          fetch(`/api/board?projectId=${projectId}`)
+        );
 
-      setColumns(data.columns);
-    } catch (error) {
-      handleError(error, 'fetchProjectColumns');
-      setColumns([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [handleError]);
-
-  const persistCardMove = useCallback(async (movedCard: Card, destColumn: Column, destIndex: number) => {
-    const requestBody: MoveCardRequest = {
-      action: 'moveCard',
-      cardId: movedCard.id,
-      columnId: destColumn.id,
-      position: destIndex === 0 ? 'top' : 'bottom',
-      isV2: Boolean(destColumn.isV2),
-      fieldId: destColumn.field_id,
-      projectId: destColumn.project_id,
-    };
-
-    try {
-      setColumnLoading((prev) => ({ ...prev, [destColumn.id.toString()]: true }));
-
-      await handleAPIRequest(
-        fetch('/api/board', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        })
-      );
-    } catch (error) {
-      handleError(error, 'persistCardMove');
-      throw error;
-    } finally {
-      setColumnLoading((prev) => ({ ...prev, [destColumn.id.toString()]: false }));
-    }
-  }, [handleError]);
-
-  const updateColumnsState = useCallback((
-    currentColumns: Column[],
-    sourceColumn: Column,
-    destColumn: Column,
-    sourceIndex: number,
-    destIndex: number,
-    movedCard: Card
-  ) => {
-    const newSourceCards = Array.from(sourceColumn.cards);
-    newSourceCards.splice(sourceIndex, 1);
-    const newDestCards = sourceColumn.id === destColumn.id
-      ? newSourceCards
-      : Array.from(destColumn.cards);
-    newDestCards.splice(destIndex, 0, movedCard);
-
-    return currentColumns.map((col) => {
-      if (col.id.toString() === sourceColumn.id.toString()) {
-        return { ...col, cards: sourceColumn.id === destColumn.id ? newDestCards : newSourceCards };
+        setColumns(data.columns);
+      } catch (error) {
+        handleError(error, 'fetchProjectColumns');
+        setColumns([]);
+      } finally {
+        setLoading(false);
       }
-      if (col.id.toString() === destColumn.id.toString() && sourceColumn.id !== destColumn.id) {
-        return { ...col, cards: newDestCards };
+    },
+    [handleError]
+  );
+
+  const persistCardMove = useCallback(
+    async (movedCard: Card, destColumn: Column, destIndex: number) => {
+      const requestBody: MoveCardRequest = {
+        action: 'moveCard',
+        cardId: movedCard.id,
+        columnId: destColumn.id,
+        position: destIndex === 0 ? 'top' : 'bottom',
+        isV2: Boolean(destColumn.isV2),
+        fieldId: destColumn.field_id,
+        projectId: destColumn.project_id,
+      };
+
+      try {
+        setColumnLoading((prev) => ({
+          ...prev,
+          [destColumn.id.toString()]: true,
+        }));
+
+        await handleAPIRequest(
+          fetch('/api/board', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          })
+        );
+      } catch (error) {
+        handleError(error, 'persistCardMove');
+        throw error;
+      } finally {
+        setColumnLoading((prev) => ({
+          ...prev,
+          [destColumn.id.toString()]: false,
+        }));
       }
-      return col;
-    });
-  }, []);
+    },
+    [handleError]
+  );
+
+  const updateColumnsState = useCallback(
+    (
+      currentColumns: Column[],
+      sourceColumn: Column,
+      destColumn: Column,
+      sourceIndex: number,
+      destIndex: number,
+      movedCard: Card
+    ) => {
+      const newSourceCards = Array.from(sourceColumn.cards);
+      newSourceCards.splice(sourceIndex, 1);
+      const newDestCards =
+        sourceColumn.id === destColumn.id
+          ? newSourceCards
+          : Array.from(destColumn.cards);
+      newDestCards.splice(destIndex, 0, movedCard);
+
+      return currentColumns.map((col) => {
+        if (col.id.toString() === sourceColumn.id.toString()) {
+          return {
+            ...col,
+            cards:
+              sourceColumn.id === destColumn.id ? newDestCards : newSourceCards,
+          };
+        }
+        if (
+          col.id.toString() === destColumn.id.toString() &&
+          sourceColumn.id !== destColumn.id
+        ) {
+          return { ...col, cards: newDestCards };
+        }
+        return col;
+      });
+    },
+    []
+  );
 
   const onDragStart = useCallback((result: DragStart) => {
     console.log('Drag started:', result);
   }, []);
 
-  const onDragEnd = useCallback(async (result: DropResult) => {
-    const { destination, source } = result;
+  const onDragEnd = useCallback(
+    async (result: DropResult) => {
+      const { destination, source } = result;
 
-    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
-      return;
-    }
-
-    try {
-      const sourceColumn = columns.find((col) => col.id.toString() === source.droppableId);
-      const destColumn = columns.find((col) => col.id.toString() === destination.droppableId);
-      if (!sourceColumn || !destColumn) throw new Error('Invalid column');
-
-      const movedCard = sourceColumn.cards[source.index];
-      if (!movedCard) throw new Error('Card not found');
-
-      const updatedColumns = updateColumnsState(columns, sourceColumn, destColumn, source.index, destination.index, movedCard);
-      setColumns(updatedColumns);
-
-      await persistCardMove(movedCard, destColumn, destination.index);
-    } catch (error) {
-      console.error('Error moving card:', error);
-      setColumns(columns);
-      setDragError('Failed to move card. Changes reverted.');
-    }
-  }, [columns, updateColumnsState, persistCardMove]);
-
-  const handleCreateIssue = useCallback(async (title: string, body: string, labels: string[]) => {
-    try {
-      const response = await fetch('/api/board', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'createIssue', title, body, labels }),
-      });
-
-      if (response.ok && selectedProject) {
-        fetchProjectColumns(selectedProject);
-      } else {
-        setDragError('Failed to create issue');
+      if (
+        !destination ||
+        (destination.droppableId === source.droppableId &&
+          destination.index === source.index)
+      ) {
+        return;
       }
-    } catch (error) {
-      console.error('Error creating issue:', error);
-      setDragError('Failed to create issue');
-    } finally {
-      setIsNewIssueModalOpen(false);
-    }
-  }, [selectedProject, fetchProjectColumns]);
+
+      try {
+        const sourceColumn = columns.find(
+          (col) => col.id.toString() === source.droppableId
+        );
+        const destColumn = columns.find(
+          (col) => col.id.toString() === destination.droppableId
+        );
+        if (!sourceColumn || !destColumn) throw new Error('Invalid column');
+
+        const movedCard = sourceColumn.cards[source.index];
+        if (!movedCard) throw new Error('Card not found');
+
+        const updatedColumns = updateColumnsState(
+          columns,
+          sourceColumn,
+          destColumn,
+          source.index,
+          destination.index,
+          movedCard
+        );
+        setColumns(updatedColumns);
+
+        await persistCardMove(movedCard, destColumn, destination.index);
+      } catch (error) {
+        console.error('Error moving card:', error);
+        setColumns(columns);
+        setDragError('Failed to move card. Changes reverted.');
+      }
+    },
+    [columns, updateColumnsState, persistCardMove]
+  );
+
+  const handleCreateIssue = useCallback(
+    async (title: string, body: string, labels: string[]) => {
+      try {
+        const response = await fetch('/api/board', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'createIssue', title, body, labels }),
+        });
+
+        if (response.ok && selectedProject) {
+          fetchProjectColumns(selectedProject);
+        } else {
+          setDragError('Failed to create issue');
+        }
+      } catch (error) {
+        console.error('Error creating issue:', error);
+        setDragError('Failed to create issue');
+      } finally {
+        setIsNewIssueModalOpen(false);
+      }
+    },
+    [selectedProject, fetchProjectColumns]
+  );
 
   useIsomorphicLayoutEffect(() => {
     setEnabled(true);
@@ -262,10 +311,18 @@ export default function KanbanBoard() {
     }
 
     return (
-      <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd} isCombineEnabled={false}>
+      <DragDropContext
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        isCombineEnabled={false}
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {columns.map((column) => (
-            <BoardColumn key={column.id} column={column} isLoading={columnLoading[column.id.toString()]} />
+            <BoardColumn
+              key={column.id}
+              column={column}
+              isLoading={columnLoading[column.id.toString()]}
+            />
           ))}
         </div>
       </DragDropContext>
@@ -278,7 +335,11 @@ export default function KanbanBoard() {
     <ErrorBoundary>
       <div className="p-4">
         {error && (
-          <div className={`fixed top-4 right-4 px-4 py-3 rounded ${error.type === 'error' ? 'bg-red-100 border border-red-400 text-red-700' : 'bg-yellow-100 border border-yellow-400 text-yellow-700'}`}>{error.message}</div>
+          <div
+            className={`fixed top-4 right-4 px-4 py-3 rounded ${error.type === 'error' ? 'bg-red-100 border border-red-400 text-red-700' : 'bg-yellow-100 border border-yellow-400 text-yellow-700'}`}
+          >
+            {error.message}
+          </div>
         )}
 
         {dragError && (
@@ -296,7 +357,9 @@ export default function KanbanBoard() {
               disabled={loading}
             >
               {projects.map((project) => (
-                <option key={project.id} value={project.id}>{project.name}</option>
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
               ))}
             </select>
 
