@@ -24,7 +24,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    // You can log the error to an error reporting service here
     console.error('Error caught by boundary:', error, errorInfo);
   }
 
