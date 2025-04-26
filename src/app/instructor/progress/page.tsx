@@ -9,23 +9,24 @@ import { ChartBarIcon, UsersIcon, BookOpenIcon } from '@/components/ui/Icons';
 interface Course {
   id: string;
   title: string;
-  _id?: string; // 添加这个字段以兼容API返回的数据结构
+  _id?: string;
 }
 
 export default function InstructorProgressPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession(); // Session data from NextAuth
   const router = useRouter();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]); // State to store the list of courses
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState<string | null>(null); // Error state to show if fetching fails
 
   useEffect(() => {
-    // 重定向未认证用户或非教师用户
+    // If not authenticated, redirect to login page
     if (status === 'unauthenticated') {
       router.push('/auth/login');
       return;
     }
 
+    // If authenticated but the role is not instructor, redirect to the dashboard
     if (
       status === 'authenticated' &&
       !session?.user?.roles?.includes('instructor')
@@ -34,9 +35,9 @@ export default function InstructorProgressPage() {
       return;
     }
 
-    // 获取教师的课程列表
     const fetchCourses = async () => {
       try {
+        // Fetch courses using the instructor's ID from the session
         const response = await fetch(
           `/api/instructor/course?instructorId=${session?.user?.id}`
         );
@@ -47,39 +48,37 @@ export default function InstructorProgressPage() {
 
         const data = await response.json();
 
-        // 确保我们提取正确的课程数组并处理可能存在的结构差异
+        // Check if the courses data is an array and format it accordingly
         if (data.courses && Array.isArray(data.courses)) {
-          // 将API返回的数据映射到我们期望的格式
           const formattedCourses = data.courses.map((course: any) => ({
             id: course._id || course.id,
             title: course.title,
           }));
           setCourses(formattedCourses);
         } else if (Array.isArray(data)) {
-          // 如果API直接返回数组
           const formattedCourses = data.map((course: any) => ({
             id: course._id || course.id,
             title: course.title,
           }));
           setCourses(formattedCourses);
         } else {
-          // 如果数据结构不符合预期，设置为空数组
           console.error('Unexpected API response format:', data);
-          setCourses([]);
+          setCourses([]); // If the response format is unexpected, set courses to empty
         }
       } catch (err) {
-        setError('Failed to load courses. Please try again.');
+        setError('Failed to load courses. Please try again.'); // Error handling
         console.error(err);
       } finally {
-        setLoading(false);
+        setLoading(false); // Set loading to false after the fetch is complete
       }
     };
 
     if (status === 'authenticated') {
-      fetchCourses();
+      fetchCourses(); // Fetch courses only if the user is authenticated
     }
   }, [session, status, router]);
 
+  // Show a loading spinner while fetching data
   if (status === 'loading' || loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -88,6 +87,7 @@ export default function InstructorProgressPage() {
     );
   }
 
+  // Display error message if the fetch failed
   if (error) {
     return (
       <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
@@ -116,6 +116,7 @@ export default function InstructorProgressPage() {
     );
   }
 
+  // Render course progress page
   return (
     <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
       <div className="px-4 py-6 sm:px-0">
@@ -124,6 +125,7 @@ export default function InstructorProgressPage() {
             Student Progress Tracking
           </h1>
 
+          {/* Icons and descriptions for course tracking */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center px-4 py-2 bg-indigo-50 rounded-lg">
               <UsersIcon className="h-5 w-5 text-indigo-600 mr-2" />
@@ -140,6 +142,7 @@ export default function InstructorProgressPage() {
           </div>
         </div>
 
+        {/* Show no courses message if there are no courses */}
         {courses.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <h3 className="text-lg font-medium text-gray-900">
@@ -159,6 +162,7 @@ export default function InstructorProgressPage() {
             </div>
           </div>
         ) : (
+          // Render the courses if found
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => (
               <Link

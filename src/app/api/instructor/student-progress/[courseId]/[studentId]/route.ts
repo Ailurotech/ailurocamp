@@ -7,12 +7,15 @@ import User from '@/models/User';
 import StudentProgress from '@/models/StudentProgress';
 import Assessment from '@/models/Assessment';
 
+// API route for fetching the progress of a student in a specific course
 export async function GET(
   request: NextRequest,
   { params }: { params: { courseId: string; studentId: string } }
 ) {
+  // Retrieve the current session using NextAuth
   const session = await getServerSession(authOptions);
 
+  // Check if the user is authenticated
   if (!session) {
     return NextResponse.json(
       { error: 'You must be logged in.' },
@@ -20,6 +23,7 @@ export async function GET(
     );
   }
 
+  // Ensure the user has sufficient permissions (either instructor or admin)
   if (
     !session.user?.roles?.includes('instructor') &&
     !session.user?.roles?.includes('admin')
@@ -30,10 +34,13 @@ export async function GET(
     );
   }
 
+  // Connect to the MongoDB database
   await connectDB();
 
+  // Extract courseId and studentId from the URL parameters
   const { courseId, studentId } = params;
 
+  // Check if the courseId is provided
   if (!courseId) {
     return NextResponse.json(
       { error: 'Course ID is required' },
@@ -41,6 +48,7 @@ export async function GET(
     );
   }
 
+  // Check if the studentId is provided
   if (!studentId) {
     return NextResponse.json(
       { error: 'Student ID is required' },
@@ -49,12 +57,15 @@ export async function GET(
   }
 
   try {
+    // Fetch the course using the courseId and populate its modules
     const course = await Course.findById(courseId).populate('modules');
 
+    // If the course is not found, return an error
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
+    // Ensure the instructor is either an admin or the course instructor
     if (
       !session.user?.roles?.includes('admin') &&
       course.instructor.toString() !== session.user?.id
@@ -65,12 +76,15 @@ export async function GET(
       );
     }
 
+    // Fetch the student by their ID and select name and email
     const student = await User.findById(studentId).select('name email');
 
+    // If the student is not found, return an error
     if (!student) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
+    // Ensure the student is enrolled in the course
     if (!course.enrolledStudents.includes(student._id)) {
       return NextResponse.json(
         { error: 'This student is not enrolled in this course' },
@@ -78,16 +92,19 @@ export async function GET(
       );
     }
 
+    // Fetch the student's progress for the given course
     const progress = await StudentProgress.findOne({
       course: courseId,
       student: studentId,
     });
 
+    // Fetch the student's assessment submissions for the given course
     const assessments = await Assessment.find({
       course: courseId,
       'submissions.student': studentId,
     }).select('title type totalPoints submissions.$');
 
+    // Prepare the response with the student's details, course, progress, and assessments
     const response = {
       student: {
         id: student._id,
@@ -99,7 +116,7 @@ export async function GET(
         title: course.title,
         modules: course.modules.map((module: any) => ({
           title: module.title,
-          lessons: module.lessons || [],
+          lessons: module.lessons || [], // Ensure modules have lessons
         })),
       },
       progress: progress || {
@@ -113,13 +130,15 @@ export async function GET(
         title: assessment.title,
         type: assessment.type,
         totalPoints: assessment.totalPoints,
-        submission: assessment.submissions[0] || null,
+        submission: assessment.submissions[0] || null, // Return the first submission
       })),
     };
 
+    // Return the response in JSON format
     return NextResponse.json(response);
   } catch (error) {
     console.error('Error fetching student progress details:', error);
+    // If an error occurs, return a 500 error
     return NextResponse.json(
       { error: 'Failed to fetch student progress details' },
       { status: 500 }

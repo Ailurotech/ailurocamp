@@ -104,10 +104,8 @@ export async function POST(request: NextRequest) {
         lastPosition: lastPosition || 0,
       });
     } else {
-      // 更新现有的课时记录
       const lessonProgress = progress.completedLessons[lessonProgressIndex];
 
-      // 如果课时从未完成到已完成，记录完成时间
       if (!lessonProgress.completed && completed) {
         lessonProgress.completedAt = new Date();
       }
@@ -123,17 +121,13 @@ export async function POST(request: NextRequest) {
       progress.completedLessons[lessonProgressIndex] = lessonProgress;
     }
 
-    // 更新模块完成状态
-    // 找出当前模块所有的课时
     const moduleCompletedLessons = progress.completedLessons.filter(
       (lp: LessonProgress) => lp.moduleIndex === moduleIndex && lp.completed
     );
 
-    // 获取该模块的总课时数量
     const totalModuleLessons =
       course.modules[moduleIndex]?.lessons?.length || 0;
 
-    // 如果所有课时都完成了，标记模块为已完成
     if (
       totalModuleLessons > 0 &&
       moduleCompletedLessons.length === totalModuleLessons
@@ -143,7 +137,6 @@ export async function POST(request: NextRequest) {
       );
 
       if (moduleProgressIndex === -1) {
-        // 如果模块记录不存在，创建一个新的
         progress.completedModules.push({
           moduleIndex,
           completedAt: new Date(),
@@ -153,7 +146,6 @@ export async function POST(request: NextRequest) {
           ),
         });
       } else {
-        // 更新现有模块记录的完成时间
         progress.completedModules[moduleProgressIndex].completedAt = new Date();
         progress.completedModules[moduleProgressIndex].timeSpent =
           moduleCompletedLessons.reduce(
@@ -163,7 +155,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 计算整体进度百分比
     const totalLessons = course.modules.reduce(
       (count: number, module: CourseModule) =>
         count + (module.lessons?.length || 0),
@@ -179,7 +170,6 @@ export async function POST(request: NextRequest) {
         ? Math.round((completedLessonsCount / totalLessons) * 100)
         : 0;
 
-    // 保存更新后的进度
     await progress.save();
 
     return NextResponse.json({
