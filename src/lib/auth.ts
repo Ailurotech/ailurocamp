@@ -31,6 +31,18 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        // // ------------- test -------------
+        // if (process.env.NODE_ENV === 'development') {
+        //   return {
+        //     id: 'test-id',
+        //     email: 'instructor@example.com',
+        //     name: 'Test Instructor',
+        //     roles: ['instructor'],
+        //     currentRole: 'instructor',
+        //   } as CustomUser;
+        // }
+        // // ------------- test -------------
+
         try {
           await connectDB();
 
@@ -72,12 +84,10 @@ export const authOptions: NextAuthOptions = {
         token.roles = (user as CustomUser).roles;
         token.currentRole = (user as CustomUser).currentRole;
       }
-
       // Update token from a session update
       if (trigger === 'update' && session?.currentRole) {
         token.currentRole = session.currentRole;
       }
-
       return token as CustomToken;
     },
     async session({ session, token }): Promise<CustomSession> {
