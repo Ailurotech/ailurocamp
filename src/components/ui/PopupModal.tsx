@@ -4,7 +4,7 @@ import React from 'react';
 
 export interface PopupProps {
   message: string;
-  type?: 'success' | 'error';
+  type: 'success' | 'error';
   onOK?: () => void;
   onClose: () => void;
 }
