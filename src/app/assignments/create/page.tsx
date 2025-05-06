@@ -24,8 +24,6 @@ const CreateAssignmentPage: React.FC = () => {
 
       const result = await response.json();
       console.log('Assignment created:', result);
-
-      // ✅ 成功后跳转到列表页
       router.push('/assignments');
     } catch (error) {
       console.error('Error:', error);
