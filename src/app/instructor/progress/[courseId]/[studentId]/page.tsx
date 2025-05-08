@@ -755,10 +755,25 @@ export default function StudentProgressDetailPage({
                     <button
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       onClick={() => {
-                        // Export PDF report feature (actual implementation requires PDF generation library)
-                        alert(
-                          'Report export functionality would be implemented here'
-                        );
+                        try {
+                          // Call the export API endpoint
+                          const exportUrl = `/api/instructor/export-progress/${courseId}/${studentId}`;
+
+                          // Create a link element to trigger download
+                          const downloadLink = document.createElement('a');
+                          downloadLink.href = exportUrl;
+                          downloadLink.download = `student_progress_${studentId}.txt`;
+                          document.body.appendChild(downloadLink);
+
+                          // Trigger the download
+                          downloadLink.click();
+
+                          // Clean up
+                          document.body.removeChild(downloadLink);
+                        } catch (error) {
+                          console.error('Error exporting report:', error);
+                          alert('Failed to export report. Please try again.');
+                        }
                       }}
                     >
                       Export Report
