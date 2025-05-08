@@ -118,29 +118,13 @@ export default function InstructorProgressPage() {
 
   // Render course progress page
   return (
-    <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
-        <div className="mb-8 flex justify-between items-center">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Student Progress Tracking
-          </h1>
+    <div className="px-4 py-6 sm:px-0">
+      <div className="mb-8 flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Student Progress Tracking
+        </h1>
 
-          {/* Icons and descriptions for course tracking */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center px-4 py-2 bg-indigo-50 rounded-lg">
-              <UsersIcon className="h-5 w-5 text-indigo-600 mr-2" />
-              <span className="text-sm font-medium text-gray-700">
-                Track individual student progress
-              </span>
-            </div>
-            <div className="flex items-center px-4 py-2 bg-indigo-50 rounded-lg">
-              <ChartBarIcon className="h-5 w-5 text-indigo-600 mr-2" />
-              <span className="text-sm font-medium text-gray-700">
-                View completion rates
-              </span>
-            </div>
-          </div>
-        </div>
+        {/* Icons and descriptions for course tracking */}
 
         {/* Show no courses message if there are no courses */}
         {courses.length === 0 ? (
