@@ -175,7 +175,6 @@ export default function StudentProgressDetailPage({
       (l) => l.completed
     ).length;
 
-    // 添加更详细的调试信息
     console.log('Course Modules:', progressData.course.modules);
 
     let totalLessonsCount = 0;
@@ -183,7 +182,6 @@ export default function StudentProgressDetailPage({
       progressData.course.modules &&
       Array.isArray(progressData.course.modules)
     ) {
-      // 遍历每个模块并记录详细信息
       progressData.course.modules.forEach((module, index) => {
         console.log(`Module ${index}:`, module);
         console.log(`Module ${index} lessons:`, module.lessons);
@@ -194,20 +192,19 @@ export default function StudentProgressDetailPage({
       });
     }
 
-    // 如果计算出的总课程数为0，但有已完成的课程，则使用已完成课程的数量作为参考
+    // If total lessons count is 0 but there are completed lessons, use completed lessons as reference
     if (
       totalLessonsCount === 0 &&
       progressData.progress.completedLessons.length > 0
     ) {
-      // 找出最大的模块索引和课程索引
+      // Find the maximum module index and lesson index
       const maxModuleIndex = Math.max(
         ...progressData.progress.completedLessons.map((l) => l.moduleIndex)
       );
 
-      // 估算总课程数
+      // Create a set for each module to record known lesson indices
       const estimatedLessons = progressData.progress.completedLessons.reduce(
         (acc, lesson) => {
-          // 为每个模块创建一个集合，记录已知的课程索引
           if (!acc[lesson.moduleIndex]) {
             acc[lesson.moduleIndex] = new Set();
           }
@@ -217,7 +214,7 @@ export default function StudentProgressDetailPage({
         {} as Record<number, Set<number>>
       );
 
-      // 计算估算的总课程数
+      // Calculate estimated total lessons
       totalLessonsCount = Object.values(estimatedLessons).reduce(
         (sum, set) => sum + set.size,
         0
@@ -229,9 +226,9 @@ export default function StudentProgressDetailPage({
       );
     }
 
-    // 如果仍然为0，则使用数据库中的进度值进行反向计算
+    // If still 0, use database progress value for reverse calculation
     if (totalLessonsCount === 0 && progressData.progress.overallProgress > 0) {
-      // 假设数据库中的进度是正确的，反向计算总课程数
+      // Assuming database progress is correct, calculate total lessons count
       totalLessonsCount = Math.ceil(
         (completedLessonsCount * 100) / progressData.progress.overallProgress
       );
@@ -268,6 +265,14 @@ export default function StudentProgressDetailPage({
       calculatedProgress: percentComplete,
     });
 
+    // 如果计算出的进度与数据库中的不同，则更新数据库
+    if (
+      percentComplete !== progressData.progress.overallProgress &&
+      totalLessonsCount > 0
+    ) {
+      updateProgressInDatabase(percentComplete);
+    }
+
     return {
       completedLessonsCount,
       totalLessonsCount,
@@ -278,6 +283,47 @@ export default function StudentProgressDetailPage({
       averageScore: isNaN(averageScore) ? 0 : Math.round(averageScore),
       isStruggling: identifyStruggling(),
     };
+  };
+
+  // 添加更新数据库中进度的函数
+  const updateProgressInDatabase = async (newProgress: number) => {
+    try {
+      const response = await fetch(
+        `/api/instructor/update-progress/${courseId}/${studentId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            overallProgress: newProgress,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          'Failed to update progress in database:',
+          response.status
+        );
+        return;
+      }
+
+      console.log('Progress updated in database successfully');
+
+      // 更新本地状态
+      if (progressData) {
+        setProgressData({
+          ...progressData,
+          progress: {
+            ...progressData.progress,
+            overallProgress: newProgress,
+          },
+        });
+      }
+    } catch (err) {
+      console.error('Error updating progress in database:', err);
+    }
   };
 
   if (status === 'loading' || loading) {

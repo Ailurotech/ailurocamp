@@ -154,8 +154,8 @@ Generated Time: ${new Date().toLocaleString()}
 Course Completion Status
 ==========================
 Overall Progress: ${data.progress?.overallProgress || 0}%
+
 Completed Lessons: ${completedLessonsCount}/${totalLessonsCount}
-Completion Percentage: ${completionPercentage}%
 Total Learning Time: ${timeSpentHours} hours ${timeSpentMinutes} minutes
 Start Date: ${startDate}
 Last Activity: ${lastActivityDate}
