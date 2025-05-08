@@ -175,10 +175,68 @@ export default function StudentProgressDetailPage({
       (l) => l.completed
     ).length;
 
-    const totalLessonsCount = progressData.course.modules.reduce(
-      (count, module) => count + (module.lessons?.length || 0),
-      0
-    );
+    // 添加更详细的调试信息
+    console.log('Course Modules:', progressData.course.modules);
+
+    let totalLessonsCount = 0;
+    if (
+      progressData.course.modules &&
+      Array.isArray(progressData.course.modules)
+    ) {
+      // 遍历每个模块并记录详细信息
+      progressData.course.modules.forEach((module, index) => {
+        console.log(`Module ${index}:`, module);
+        console.log(`Module ${index} lessons:`, module.lessons);
+
+        if (module.lessons && Array.isArray(module.lessons)) {
+          totalLessonsCount += module.lessons.length;
+        }
+      });
+    }
+
+    // 如果计算出的总课程数为0，但有已完成的课程，则使用已完成课程的数量作为参考
+    if (
+      totalLessonsCount === 0 &&
+      progressData.progress.completedLessons.length > 0
+    ) {
+      // 找出最大的模块索引和课程索引
+      const maxModuleIndex = Math.max(
+        ...progressData.progress.completedLessons.map((l) => l.moduleIndex)
+      );
+
+      // 估算总课程数
+      const estimatedLessons = progressData.progress.completedLessons.reduce(
+        (acc, lesson) => {
+          // 为每个模块创建一个集合，记录已知的课程索引
+          if (!acc[lesson.moduleIndex]) {
+            acc[lesson.moduleIndex] = new Set();
+          }
+          acc[lesson.moduleIndex].add(lesson.lessonIndex);
+          return acc;
+        },
+        {} as Record<number, Set<number>>
+      );
+
+      // 计算估算的总课程数
+      totalLessonsCount = Object.values(estimatedLessons).reduce(
+        (sum, set) => sum + set.size,
+        0
+      );
+
+      console.log(
+        'Estimated total lessons from completed lessons:',
+        totalLessonsCount
+      );
+    }
+
+    // 如果仍然为0，则使用数据库中的进度值进行反向计算
+    if (totalLessonsCount === 0 && progressData.progress.overallProgress > 0) {
+      // 假设数据库中的进度是正确的，反向计算总课程数
+      totalLessonsCount = Math.ceil(
+        (completedLessonsCount * 100) / progressData.progress.overallProgress
+      );
+      console.log('Reverse calculated total lessons:', totalLessonsCount);
+    }
 
     const totalTimeSpent = progressData.progress.completedLessons.reduce(
       (total, lesson) => total + lesson.timeSpent,
@@ -197,13 +255,23 @@ export default function StudentProgressDetailPage({
         (a) => a.submission && a.submission.score !== undefined
       ).length || 1);
 
+    const percentComplete =
+      totalLessonsCount > 0
+        ? Math.round((completedLessonsCount / totalLessonsCount) * 100)
+        : progressData.progress.overallProgress; // 如果无法计算，则使用数据库中的值
+
+    // 添加调试日志
+    console.log('Progress Data:', {
+      completedLessonsCount,
+      totalLessonsCount,
+      dbProgress: progressData.progress.overallProgress,
+      calculatedProgress: percentComplete,
+    });
+
     return {
       completedLessonsCount,
       totalLessonsCount,
-      percentComplete:
-        totalLessonsCount > 0
-          ? Math.round((completedLessonsCount / totalLessonsCount) * 100)
-          : 0,
+      percentComplete,
       totalTimeSpent,
       completedAssessments,
       totalAssessments: progressData.assessments.length,
@@ -314,12 +382,12 @@ export default function StudentProgressDetailPage({
                     <div
                       className="bg-indigo-600 h-2.5 rounded-full"
                       style={{
-                        width: `${progressData.progress.overallProgress}%`,
+                        width: `${report?.percentComplete}%`,
                       }}
                     ></div>
                   </div>
                   <span className="text-sm font-medium text-gray-900">
-                    {progressData.progress.overallProgress}%
+                    {report?.percentComplete}%
                   </span>
                 </dd>
               </div>
