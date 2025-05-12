@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Assignment } from '@/types/assignment';
+import Link from 'next/link';
 
 const AssignmentListPage: React.FC = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -52,16 +53,23 @@ const AssignmentListPage: React.FC = () => {
           <p className="text-gray-500">No assignments created yet.</p>
         ) : (
           <ul className="space-y-4">
-            {assignments.map((assignment) => (
-              <li key={assignment.id} className="border border-gray-300 rounded-md p-4">
-                <h2 className="text-lg font-semibold">{assignment.title}</h2>
-                <p className="text-gray-600">{assignment.description}</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  Due: {assignment.dueDate || 'N/A'} | Time Limit: {assignment.timeLimit} mins | Passing: {assignment.passingScore}
-                </p>
-              </li>
-            ))}
-          </ul>
+  {assignments.map((assignment) => (
+    <li key={assignment.id} className="border border-gray-300 rounded-md p-4 flex flex-col gap-2">
+      <div>
+        <h2 className="text-lg font-semibold">{assignment.title}</h2>
+        <p className="text-gray-600">{assignment.description}</p>
+        <p className="text-sm text-gray-400 mt-1">
+          Due: {assignment.dueDate || 'N/A'} | Time Limit: {assignment.timeLimit} mins | Passing: {assignment.passingScore}
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Link href={`/assignments/${assignment.id}`}>
+          <button className="text-blue-600 hover:underline">🔍 View</button>
+        </Link>
+      </div>
+    </li>
+  ))}
+</ul>
         )}
       </div>
     </div>
