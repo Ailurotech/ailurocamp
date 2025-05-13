@@ -24,14 +24,22 @@ const MultipleChoiceFields: React.FC<Props> = ({ nestIndex, control }) => {
             name={`questions.${nestIndex}.choices.${index}.label`}
             control={control}
             render={({ field }) => (
-              <input {...field} placeholder="Label" className="flex-1 border p-2 rounded" />
+              <input
+                {...field}
+                placeholder="Label"
+                className="flex-1 border p-2 rounded"
+              />
             )}
           />
           <Controller
             name={`questions.${nestIndex}.choices.${index}.value`}
             control={control}
             render={({ field }) => (
-              <input {...field} placeholder="Value" className="flex-1 border p-2 rounded" />
+              <input
+                {...field}
+                placeholder="Value"
+                className="flex-1 border p-2 rounded"
+              />
             )}
           />
           <button

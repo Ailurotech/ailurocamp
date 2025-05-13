@@ -1,10 +1,16 @@
 'use client';
 
 import React from 'react';
-import { useFieldArray, Controller,Control  } from 'react-hook-form';
+import { useFieldArray, Controller, Control } from 'react-hook-form';
 import { Assignment } from '@/types/assignment';
 
-const CodingTestCasesFields = ({ nestIndex, control }: { nestIndex: number; control: Control<Assignment> }) => {
+const CodingTestCasesFields = ({
+  nestIndex,
+  control,
+}: {
+  nestIndex: number;
+  control: Control<Assignment>;
+}) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: `questions.${nestIndex}.testCases`,
@@ -19,14 +25,22 @@ const CodingTestCasesFields = ({ nestIndex, control }: { nestIndex: number; cont
             name={`questions.${nestIndex}.testCases.${index}.input`}
             control={control}
             render={({ field }) => (
-              <input {...field} placeholder="Input" className="w-full border p-2 mb-2 rounded" />
+              <input
+                {...field}
+                placeholder="Input"
+                className="w-full border p-2 mb-2 rounded"
+              />
             )}
           />
           <Controller
             name={`questions.${nestIndex}.testCases.${index}.output`}
             control={control}
             render={({ field }) => (
-              <input {...field} placeholder="Expected Output" className="w-full border p-2 rounded" />
+              <input
+                {...field}
+                placeholder="Expected Output"
+                className="w-full border p-2 rounded"
+              />
             )}
           />
           <div className="flex justify-end">

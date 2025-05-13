@@ -6,7 +6,9 @@ import { Assignment } from '@/types/assignment';
 import MultipleChoiceFields from './MultipleChoiceFields';
 import CodingTestCasesFields from './CodingTestCasesFields';
 
-const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({ onSubmit }) => {
+const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
+  onSubmit,
+}) => {
   const { control, handleSubmit } = useForm<Assignment>({
     defaultValues: {
       title: '',
@@ -40,7 +42,11 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({ on
           name="title"
           control={control}
           render={({ field }) => (
-            <input {...field} className="border p-2 w-full rounded" placeholder="Assignment Title" />
+            <input
+              {...field}
+              className="border p-2 w-full rounded"
+              placeholder="Assignment Title"
+            />
           )}
         />
       </div>
@@ -52,7 +58,11 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({ on
           name="description"
           control={control}
           render={({ field }) => (
-            <textarea {...field} className="border p-2 w-full rounded" placeholder="Assignment Description" />
+            <textarea
+              {...field}
+              className="border p-2 w-full rounded"
+              placeholder="Assignment Description"
+            />
           )}
         />
       </div>
@@ -88,7 +98,11 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({ on
                 name={`questions.${index}.title`}
                 control={control}
                 render={({ field }) => (
-                  <input {...field} className="border p-2 w-full mb-2 rounded" placeholder="Question Title" />
+                  <input
+                    {...field}
+                    className="border p-2 w-full mb-2 rounded"
+                    placeholder="Question Title"
+                  />
                 )}
               />
 
@@ -98,7 +112,12 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({ on
                 name={`questions.${index}.points`}
                 control={control}
                 render={({ field }) => (
-                  <input {...field} type="number" className="border p-2 w-full mb-2 rounded" placeholder="Points" />
+                  <input
+                    {...field}
+                    type="number"
+                    className="border p-2 w-full mb-2 rounded"
+                    placeholder="Points"
+                  />
                 )}
               />
 
@@ -126,7 +145,9 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({ on
               )}
               {watchedType === 'file-upload' && (
                 <div className="mt-4 bg-gray-50 p-4 rounded">
-                  <label className="block mb-1 font-medium">Allowed File Type</label>
+                  <label className="block mb-1 font-medium">
+                    Allowed File Type
+                  </label>
                   <Controller
                     name={`questions.${index}.fileType`}
                     control={control}

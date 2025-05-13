@@ -1,5 +1,9 @@
 // question type
-export type QuestionType = 'multiple-choice' | 'coding' | 'file-upload' | 'essay';
+export type QuestionType =
+  | 'multiple-choice'
+  | 'coding'
+  | 'file-upload'
+  | 'essay';
 
 // test case
 type TestCase = {
@@ -24,18 +28,18 @@ type Question = {
   description?: string; // coding
   testCases?: TestCase[];
   fileType?: string; // file upload
-  placeholder?: string;// essay
+  placeholder?: string; // essay
 };
 
 // assignment
 export type Assignment = {
   id: string;
   title: string;
-  description: string; 
+  description: string;
   questions: Question[];
-  dueDate: string; 
+  dueDate: string;
   timeLimit?: number; // minutes
   passingScore?: number;
   createdAt: string;
   updatedAt: string;
-}; 
+};
