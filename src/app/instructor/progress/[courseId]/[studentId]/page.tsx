@@ -867,33 +867,16 @@ export default function StudentProgressDetailPage({
                   <dt className="text-sm font-medium text-gray-500">Actions</dt>
                   <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2 flex space-x-4">
                     <button
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm"
                       onClick={() => {
-                        try {
-                          // Call the export API endpoint
-                          const exportUrl = `/api/instructor/export-progress/${courseId}/${studentId}`;
-
-                          // Create a link element to trigger download
-                          const downloadLink = document.createElement('a');
-                          downloadLink.href = exportUrl;
-                          downloadLink.download = `student_progress_${studentId}.txt`;
-                          document.body.appendChild(downloadLink);
-
-                          // Trigger the download
-                          downloadLink.click();
-
-                          // Clean up
-                          document.body.removeChild(downloadLink);
-                        } catch (error) {
-                          console.error('Error exporting report:', error);
-                          alert('Failed to export report. Please try again.');
-                        }
+                        // Open report in new tab
+                        window.open(`/api/instructor/export-progress/${courseId}/${studentId}`, '_blank');
                       }}
                     >
                       Export Report
                     </button>
                     <button
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="btn-base btn-gray flex-center"
                       onClick={() => {
                         // Send progress notification feature
                         alert(

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// API route for exporting student progress as a text file
+// API route for displaying student progress as an HTML page
 export async function GET(
   request: NextRequest,
   { params }: { params: { courseId: string; studentId: string } }
@@ -69,28 +69,28 @@ export async function GET(
     // Parse the response data
     const progressData = await response.json();
 
-    // Generate the report text
-    const reportText = generateProgressReport(progressData);
+    // Generate the report as HTML
+    const reportHtml = generateProgressReportHtml(progressData);
 
-    // Return the report as a downloadable text file
-    return new NextResponse(reportText, {
+    // Return the report as an HTML page (not as a download)
+    return new NextResponse(reportHtml, {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Content-Disposition': `attachment; filename="student_progress_${studentId}.txt"`,
+        'Content-Type': 'text/html; charset=utf-8',
+        // Removed Content-Disposition header to display in browser instead of downloading
       },
     });
   } catch (error: any) {
     console.error('Error exporting progress report:', error);
 
     return NextResponse.json(
-      { error: `导出进度报告时发生错误: ${error.message}` },
+      { error: `Error exporting progress report: ${error.message}` },
       { status: 500 }
     );
   }
 }
 
-// Function to generate a formatted progress report
-function generateProgressReport(data: any): string {
+// Function to generate a simplified HTML progress report with English content
+function generateProgressReportHtml(data: any): string {
   try {
     // Extract student and course information
     const studentName = data.student?.name || 'Unknown Student';
@@ -143,28 +143,56 @@ function generateProgressReport(data: any): string {
           ).toLocaleString()
         : 'Not started';
 
-    // Build the report header
-    let report = `Student Progress Report
-==========================
-Student Name: ${studentName}
-Student Email: ${studentEmail}
-Course Title: ${courseTitle}
-Generated Time: ${new Date().toLocaleString()}
+    // Generate assessment summary if available
+    let assessmentHtml = '';
+    if (data.assessments && data.assessments.length > 0) {
+      assessmentHtml = `
+        <div class="section">
+          <h2>Assessment Results</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Assessment</th>
+                <th>Type</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Submission Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.assessments
+                .map(
+                  (assessment: any) => `
+                <tr>
+                  <td>${assessment.title}</td>
+                  <td>${assessment.type}</td>
+                  <td>${
+                    assessment.submission?.score !== undefined
+                      ? `${assessment.submission.score}/${assessment.totalPoints}`
+                      : 'Not graded'
+                  }</td>
+                  <td>${
+                    assessment.submission?.status || 'Not submitted'
+                  }</td>
+                  <td>${
+                    assessment.submission?.submittedAt
+                      ? new Date(
+                          assessment.submission.submittedAt
+                        ).toLocaleString()
+                      : 'N/A'
+                  }</td>
+                </tr>
+              `
+                )
+                .join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
 
-Course Completion Status
-==========================
-Overall Progress: ${data.progress?.overallProgress || 0}%
-
-Completed Lessons: ${completedLessonsCount}/${totalLessonsCount}
-Total Learning Time: ${timeSpentHours} hours ${timeSpentMinutes} minutes
-Start Date: ${startDate}
-Last Activity: ${lastActivityDate}
-
-Module Learning Details
-==========================
-`;
-
-    // Add lesson progress details
+    // Build module progress details with simplified format
+    let moduleDetailsHtml = '';
     if (data.progress?.completedLessons?.length > 0) {
       // Sort lessons by module and lesson index
       const sortedLessons = [...data.progress.completedLessons].sort(
@@ -186,150 +214,247 @@ Module Learning Details
         lessonsByModule[lesson.moduleIndex].push(lesson);
       });
 
-      // Add each module and its lessons to the report
-      Object.keys(lessonsByModule).forEach((moduleIndexStr) => {
-        const moduleIndex = parseInt(moduleIndexStr);
-        const moduleLessons = lessonsByModule[moduleIndex];
+      // Generate HTML for each module and its lessons
+      moduleDetailsHtml = `
+        <div class="section">
+          <h2>Module Learning Details</h2>
+          ${Object.keys(lessonsByModule)
+            .map((moduleIndexStr) => {
+              const moduleIndex = parseInt(moduleIndexStr);
+              const moduleLessons = lessonsByModule[moduleIndex];
+              const moduleTitle =
+                data.course?.modules[moduleIndex]?.title ||
+                `Module ${moduleIndex + 1}`;
 
-        // Get module title if available
-        const moduleTitle =
-          data.course?.modules[moduleIndex]?.title ||
-          `Module ${moduleIndex + 1}`;
+              return `
+                <div class="module">
+                  <h3>${moduleTitle}</h3>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Lesson</th>
+                        <th>Status</th>
+                        <th>Time Spent</th>
+                        <th>Started</th>
+                        <th>Completed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${moduleLessons
+                        .map(
+                          (lesson: any) => `
+                        <tr>
+                          <td>${lesson.title || `Lesson ${lesson.lessonIndex + 1}`}</td>
+                          <td>${lesson.completed ? 'Completed' : 'In Progress'}</td>
+                          <td>${Math.floor(lesson.timeSpent / 60)}h ${
+                            lesson.timeSpent % 60
+                          }m</td>
+                          <td>${
+                            lesson.startedAt
+                              ? new Date(lesson.startedAt).toLocaleString()
+                              : 'N/A'
+                          }</td>
+                          <td>${
+                            lesson.completedAt
+                              ? new Date(lesson.completedAt).toLocaleString()
+                              : 'N/A'
+                          }</td>
+                        </tr>
+                      `
+                        )
+                        .join('')}
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            })
+            .join('')}
+        </div>
+      `;
+    }
 
-        report += `\nModule: ${moduleTitle}\n`;
-        report += `${'-'.repeat(moduleTitle.length + 4)}\n`;
-
-        // Add each lesson in the module
-        moduleLessons.forEach((lesson: any) => {
-          // Get lesson title if available
-          const lessonTitle =
-            data.course?.modules[moduleIndex]?.lessons[lesson.lessonIndex]
-              ?.title || `Lesson ${lesson.lessonIndex + 1}`;
-
-          const status = lesson.completed ? 'Completed' : 'In Progress';
-          const timeSpent = formatTime(lesson.timeSpent);
-          const startTime = new Date(lesson.startedAt).toLocaleString();
-          const completedTime = lesson.completedAt
-            ? new Date(lesson.completedAt).toLocaleString()
-            : 'Not completed';
-
-          report += `* ${lessonTitle}\n`;
-          report += `  Status: ${status}\n`;
-          report += `  Learning Time: ${timeSpent}\n`;
-          report += `  Start Time: ${startTime}\n`;
-          if (lesson.completed) {
-            report += `  Completion Time: ${completedTime}\n`;
+    // Build the complete HTML report with simplified CSS and English content
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Progress Report - ${studentName}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
           }
-          report += '\n';
-        });
-      });
-    } else {
-      report += 'No lessons started yet\n';
-    }
-
-    // Add assessment information
-    report += `\nAssessment Completion Status\n`;
-    report += `==========================\n`;
-
-    if (data.assessments && data.assessments.length > 0) {
-      data.assessments.forEach((assessment: any, index: number) => {
-        const assessmentType =
-          assessment.type === 'quiz' ? 'Quiz' : 'Assignment';
-        const submission = assessment.submission;
-
-        report += `${index + 1}. ${assessment.title} (${assessmentType})\n`;
-        report += `   Total Points: ${assessment.totalPoints} points\n`;
-
-        if (submission) {
-          report += `   Submission Time: ${new Date(submission.submittedAt).toLocaleString()}\n`;
-
-          if (submission.score !== undefined) {
-            const scorePercentage = (
-              (submission.score / assessment.totalPoints) *
-              100
-            ).toFixed(1);
-            report += `   Score: ${submission.score}/${assessment.totalPoints} (${scorePercentage}%)\n`;
-            if (submission.gradedAt) {
-              report += `   Grading Time: ${new Date(submission.gradedAt).toLocaleString()}\n`;
-            }
-          } else {
-            report += `   Status: Submitted, Pending Grade\n`;
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
           }
-        } else {
-          report += `   Status: Not Submitted\n`;
-        }
-
-        report += '\n';
-      });
-    } else {
-      report += 'No assessments in this course\n';
-    }
-
-    // Add learning status analysis
-    report += `\nLearning Status Analysis\n`;
-    report += `==========================\n`;
-
-    // Determine if the student is struggling based on criteria
-    let isStruggling = false;
-    let struggleReasons = [];
-
-    // No progress or low progress
-    if (data.progress?.overallProgress < 25) {
-      isStruggling = true;
-      struggleReasons.push('Course completion rate below 25%');
-    }
-
-    // No activity in the last two weeks
-    if (data.progress?.lastAccessedAt) {
-      const lastActivity = new Date(data.progress.lastAccessedAt);
-      const twoWeeksAgo = new Date();
-      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-
-      if (lastActivity < twoWeeksAgo) {
-        isStruggling = true;
-        struggleReasons.push('No learning activity for over two weeks');
-      }
-    }
-
-    // Time spent is much higher than average on some lessons
-    const excessiveTimeSpent = data.progress?.completedLessons?.some(
-      (lesson: any) => lesson.timeSpent > 90 // Over 90 minutes considered abnormal
-    );
-
-    if (excessiveTimeSpent) {
-      isStruggling = true;
-      struggleReasons.push(
-        'Excessive time spent on some lessons, may be facing difficulties'
-      );
-    }
-
-    // Add the analysis to the report
-    if (isStruggling) {
-      report += `Learning Status: Needs Attention\n`;
-      report += `Potential Issues:\n`;
-      struggleReasons.forEach((reason) => {
-        report += `- ${reason}\n`;
-      });
-      report += `\nSuggestion: Consider providing additional learning support and resources.\n`;
-    } else {
-      report += `Learning Status: Good\n`;
-      report += `Student is progressing normally through the course with no apparent learning obstacles.\n`;
-    }
-
-    return report;
+          h1, h2, h3 {
+            color: #2c3e50;
+          }
+          .section {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+          }
+          .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+          .summary-item {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+          }
+          .progress-bar {
+            height: 15px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            margin-top: 8px;
+            overflow: hidden;
+          }
+          .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: ${data.progress?.overallProgress || 0}%;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+          }
+          th, td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+          }
+          th {
+            background-color: #f8f9fa;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #7f8c8d;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Student Progress Report</h1>
+          <p>Generated on: ${new Date().toLocaleString()}</p>
+        </div>
+        
+        <div class="section">
+          <h2>Student Information</h2>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <h3>Student Name</h3>
+              <p>${studentName}</p>
+            </div>
+            <div class="summary-item">
+              <h3>Email</h3>
+              <p>${studentEmail}</p>
+            </div>
+            <div class="summary-item">
+              <h3>Course</h3>
+              <p>${courseTitle}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="section">
+          <h2>Course Completion</h2>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <h3>Overall Progress</h3>
+              <p>${data.progress?.overallProgress || 0}%</p>
+              <div class="progress-bar">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+            <div class="summary-item">
+              <h3>Completed Lessons</h3>
+              <p>${completedLessonsCount}/${totalLessonsCount}</p>
+            </div>
+            <div class="summary-item">
+              <h3>Total Time Spent</h3>
+              <p>${timeSpentHours}h ${timeSpentMinutes}m</p>
+            </div>
+            <div class="summary-item">
+              <h3>Start Date</h3>
+              <p>${startDate}</p>
+            </div>
+            <div class="summary-item">
+              <h3>Last Activity</h3>
+              <p>${lastActivityDate}</p>
+            </div>
+          </div>
+        </div>
+        
+        ${assessmentHtml}
+        
+        ${moduleDetailsHtml}
+        
+        <div class="footer">
+          <p>This report was automatically generated by the Learning Management System</p>
+          <p>© ${new Date().getFullYear()} AiluroCamp. All rights reserved.</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+          <p>Tip: Use your browser's print function (Ctrl+P / Command+P) to save this report as PDF</p>
+        </div>
+      </body>
+      </html>
+    `;
   } catch (error) {
-    console.error('Error generating report text:', error);
-    return `Error generating report.\nPlease contact system administrator.\n\nError details: ${error}`;
+    console.error('Error generating HTML report:', error);
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Error Generating Report</title>
+      </head>
+      <body>
+        <h1>Error Generating Report</h1>
+        <p>An error occurred while generating the progress report: ${error}</p>
+      </body>
+      </html>
+    `;
   }
 }
 
-// Helper function to format time in minutes to a readable string
-function formatTime(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = Math.round(minutes % 60);
+// Keep the original text report function for backward compatibility if needed
+function generateProgressReport(data: any): string {
+  // Simple implementation that returns a basic text report
+  try {
+    const studentName = data.student?.name || 'Unknown Student';
+    const studentEmail = data.student?.email || 'Unknown Email';
+    const courseTitle = data.course?.title || 'Unknown Course';
+    
+    return `
+Student Progress Report
+----------------------
+Generated: ${new Date().toLocaleString()}
 
-  if (hours > 0) {
-    return `${hours} hours ${mins} minutes`;
+Student: ${studentName} (${studentEmail})
+Course: ${courseTitle}
+
+Progress Summary:
+- Overall Progress: ${data.progress?.overallProgress || 0}%
+- Completed Lessons: ${data.progress?.completedLessons?.filter((l: any) => l.completed)?.length || 0}
+    `;
+  } catch (error) {
+    console.error('Error generating text report:', error);
+    return `Error generating report: ${error}`;
   }
-  return `${mins} minutes`;
 }
