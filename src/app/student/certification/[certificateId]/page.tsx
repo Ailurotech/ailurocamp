@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import Link from 'next/link';
 
 interface Certificate {
   courseTitle: string;
@@ -108,12 +109,12 @@ export default function CertificateDetailPage() {
         Certificate ID: {certificate.certificateId}
       </p>
       <div className="mt-8">
-        <a
+        <Link
           href="/student/certification"
           className="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
         >
           ← Back to My Certificates
-        </a>
+        </Link>
       </div>
     </div>
   );
