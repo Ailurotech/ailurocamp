@@ -38,7 +38,13 @@ export async function POST(req: Request) {
     const octokit = new Octokit({ auth: token });
 
     try {
-      const response = await octokit.rest.projects.createForRepo({
+      // const response = await octokit.rest.projects.createForRepo({
+      //   owner,
+      //   repo,
+      //   name,
+      //   body: description || 'Created from AiluroCamp',
+      // });
+      const response = await octokit.request('POST /repos/{owner}/{repo}/projects', {
         owner,
         repo,
         name,
@@ -51,7 +57,7 @@ export async function POST(req: Request) {
       const createdColumns: ProjectColumn[] = [];
 
       for (const columnName of columns) {
-        const columnResponse = await octokit.rest.projects.createColumn({
+        const columnResponse = await octokit.request('POST /projects/{project_id}/columns', {
           project_id: projectId,
           name: columnName,
         });

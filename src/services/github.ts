@@ -1,9 +1,9 @@
 const GITHUB_RATE_LIMIT_API = 'https://api.github.com/rate_limit';
 const GITHUB_GRAPHQL_API = 'https://api.github.com/graphql';
 
-import { Octokit } from 'octokit';
+import { Octokit } from '@octokit/rest';
 
-const octokit = new Octokit({
+export const octokit = new Octokit({
   auth: process.env.NEXT_PUBLIC_GITHUB_TOKEN,
 });
 

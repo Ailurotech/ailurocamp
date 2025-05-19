@@ -5,21 +5,21 @@ import connectDB from '@/lib/mongodb';
 import Certificate from '@/models/Certificate';
 import redis from '@/lib/redis';
 
-const CACHE_TTL_SECONDS = 60; // Cache duration: 1 minutes
+const CACHE_TTL_SECONDS = 60; // Cache duration: 1 minute
 
 /**
  * GET /api/student/certification/[certificateId]
  * Returns a specific certificate belonging to the authenticated user.
  */
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { certificateId: string } }
-) {
-  const certificateId = params.certificateId.trim();
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function GET(_req: NextRequest, context: any) {
+  const certificateId = context?.params?.certificateId?.trim();
 
   try {
     const session = await getServerSession(authOptions);
     const userEmail = session?.user?.email;
+
     if (!userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -35,25 +35,18 @@ export async function GET(
     }
 
     await connectDB();
-
     const cert = await Certificate.findOne({
       certificateId,
       userId: userEmail,
     });
 
     if (!cert) {
-      return NextResponse.json(
-        { error: 'Certificate not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
     }
 
     await redis.set(cacheKey, JSON.stringify(cert), 'EX', CACHE_TTL_SECONDS);
 
-    return NextResponse.json({
-      certificate: cert,
-      cached: false,
-    });
+    return NextResponse.json({ certificate: cert, cached: false });
   } catch (err) {
     console.error('[GET /certification/:id] Internal Error:', err);
     return NextResponse.json(

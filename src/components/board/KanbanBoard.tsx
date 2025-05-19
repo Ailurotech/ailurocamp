@@ -15,6 +15,7 @@ import {
 } from '@/services/github';
 import NoProjectFound from './NoProjectFound';
 import Spinner from './Spinner';
+import { useCallback } from 'react';
 
 interface Project {
   id: number;
@@ -113,18 +114,30 @@ export default function KanbanBoard() {
     }
   };
 
-  const fetchUniqueProjects = async () => {
+  // const fetchUniqueProjects = async () => {
+  //   const projects = await fetchAllProjects();
+  //   console.log('projects: ', projects);
+  //   setUniqueProjects(projects);
+
+  //   if (selectedProjectName) {
+  //     const matchedProject = projects.find(
+  //       (p: UniqueProject) => p.title === selectedProjectName
+  //     );
+  //     setUniqueProjectId(matchedProject?.id || '');
+  //   }
+  // };
+  const fetchUniqueProjects = useCallback(async () => {
     const projects = await fetchAllProjects();
     console.log('projects: ', projects);
     setUniqueProjects(projects);
-
+  
     if (selectedProjectName) {
       const matchedProject = projects.find(
         (p: UniqueProject) => p.title === selectedProjectName
       );
       setUniqueProjectId(matchedProject?.id || '');
     }
-  };
+  }, [selectedProjectName]);
 
   const fetchProjectColumns = async (projectId: number) => {
     try {
