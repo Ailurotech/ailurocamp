@@ -33,80 +33,153 @@ type Card = {
   number?: number;
 };
 
+// export async function getProjects() {
+//   try {
+//     try {
+//       const graphqlQuery = `
+//       query {
+//         organization(login: "${owner}") {
+//           projectsV2(first: 10) {
+//             nodes {
+//               id
+//               number
+//               title
+//             }
+//           }
+//         }
+//       }`;
+
+//       const response = (await octokit.graphql(
+//         graphqlQuery
+//       )) as OrgProjectsResponse;
+
+//       if (
+//         response?.organization?.projectsV2?.nodes &&
+//         response.organization.projectsV2.nodes.length > 0
+//       ) {
+//         const formattedProjects = response.organization.projectsV2.nodes.map(
+//           (project: ProjectNode) => ({
+//             id: project.number,
+//             name: project.title,
+//             body: '',
+//             isV2: true,
+//             orgProject: true,
+//           })
+//         );
+
+//         return formattedProjects;
+//       } else {
+//       }
+//     } catch (graphqlError) {
+//       console.error(
+//         'Error fetching organization projects v2:',
+//         graphqlError instanceof Error ? graphqlError.message : 'Unknown error'
+//       );
+//     }
+
+//     try {
+//       const repoResponse = await octokit.rest.projects.listForRepo({
+//         owner,
+//         repo,
+//       });
+
+//       if (repoResponse.data.length > 0) {
+//         return repoResponse.data;
+//       }
+//     } catch (error) {
+//       console.error('Error fetching repository classic projects:', error);
+//     }
+
+//     try {
+//       const orgResponse = await octokit.rest.projects.listForOrg({
+//         org: owner,
+//       });
+
+//       if (orgResponse.data.length > 0) {
+//         return orgResponse.data;
+//       }
+//     } catch (error) {
+//       console.error('Error fetching organization classic projects:', error);
+//     }
+
+//     return [];
+//   } catch (error) {
+//     console.error('Error in getProjects:', error);
+//     return [];
+//   }
+// }
+let cachedProjects: any[] | null = null;
+
 export async function getProjects() {
+  if (cachedProjects) return cachedProjects;
+
   try {
-    try {
-      const graphqlQuery = `
-      query {
-        organization(login: "${owner}") {
-          projectsV2(first: 10) {
-            nodes {
-              id
-              number
-              title
-            }
+    const graphqlQuery = `
+    query {
+      organization(login: "${owner}") {
+        projectsV2(first: 10) {
+          nodes {
+            id
+            number
+            title
           }
         }
-      }`;
-
-      const response = (await octokit.graphql(
-        graphqlQuery
-      )) as OrgProjectsResponse;
-
-      if (
-        response?.organization?.projectsV2?.nodes &&
-        response.organization.projectsV2.nodes.length > 0
-      ) {
-        const formattedProjects = response.organization.projectsV2.nodes.map(
-          (project: ProjectNode) => ({
-            id: project.number,
-            name: project.title,
-            body: '',
-            isV2: true,
-            orgProject: true,
-          })
-        );
-
-        return formattedProjects;
-      } else {
       }
-    } catch (graphqlError) {
-      console.error(
-        'Error fetching organization projects v2:',
-        graphqlError instanceof Error ? graphqlError.message : 'Unknown error'
+    }`;
+
+    const response = (await octokit.graphql(
+      graphqlQuery
+    )) as OrgProjectsResponse;
+
+    if (
+      response?.organization?.projectsV2?.nodes &&
+      response.organization.projectsV2.nodes.length > 0
+    ) {
+      cachedProjects = response.organization.projectsV2.nodes.map(
+        (project: ProjectNode) => ({
+          id: project.number,
+          name: project.title,
+          body: '',
+          isV2: true,
+          orgProject: true,
+        })
       );
+      return cachedProjects;
     }
-
-    try {
-      const repoResponse = await octokit.rest.projects.listForRepo({
-        owner,
-        repo,
-      });
-
-      if (repoResponse.data.length > 0) {
-        return repoResponse.data;
-      }
-    } catch (error) {
-      console.error('Error fetching repository classic projects:', error);
-    }
-
-    try {
-      const orgResponse = await octokit.rest.projects.listForOrg({
-        org: owner,
-      });
-
-      if (orgResponse.data.length > 0) {
-        return orgResponse.data;
-      }
-    } catch (error) {
-      console.error('Error fetching organization classic projects:', error);
-    }
-
-    return [];
-  } catch (error) {
-    console.error('Error in getProjects:', error);
-    return [];
+  } catch (graphqlError) {
+    console.error(
+      'Error fetching organization projects v2:',
+      graphqlError instanceof Error ? graphqlError.message : 'Unknown error'
+    );
   }
+
+  // fallback
+  try {
+    const repoResponse = await octokit.rest.projects.listForRepo({
+      owner,
+      repo,
+    });
+    if (repoResponse.data.length > 0) {
+      cachedProjects = repoResponse.data;
+      return cachedProjects;
+    }
+  } catch (error) {
+    console.error('Error fetching repository classic projects:', error);
+  }
+
+  try {
+    const orgResponse = await octokit.rest.projects.listForOrg({
+      org: owner,
+    });
+    if (orgResponse.data.length > 0) {
+      cachedProjects = orgResponse.data;
+      return cachedProjects;
+    }
+  } catch (error) {
+    console.error('Error fetching organization classic projects:', error);
+  }
+
+  return [];
 }
 
 interface FieldOption {
