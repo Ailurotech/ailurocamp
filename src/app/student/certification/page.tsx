@@ -4,16 +4,35 @@ import { useEffect, useState } from 'react';
 import { saveAs } from 'file-saver';
 import axios from 'axios';
 
+/**
+ * TypeScript interface representing a certificate document
+ */
+
 interface Certificate {
   courseTitle: string;
   completedAt: string;
   certificateId: string;
 }
 
+/**
+ * StudentCertificationPage component
+ * 
+ * Displays a list of certificates earned by the logged-in user.
+ * Provides actions for downloading, printing, and sharing each certificate.
+ */
+
 export default function StudentCertificationPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
 
+    /**
+   * Base URL for certificate sharing and verification
+   */
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  /**
+   * Fetch certificates for the logged-in user from the API
+   */
   useEffect(() => {
     axios
       .get('/api/student/certification', {
@@ -28,6 +47,10 @@ export default function StudentCertificationPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  /**
+   * Download the certificate as a JSON file
+   * @param cert - The certificate to download
+   */
   const downloadCertificate = (cert: Certificate) => {
     const blob = new Blob([JSON.stringify(cert, null, 2)], {
       type: 'application/json',
@@ -35,6 +58,10 @@ export default function StudentCertificationPage() {
     saveAs(blob, `${cert.courseTitle}-certificate.json`);
   };
 
+  /**
+   * Print the certificate in a new browser window
+   * @param cert - The certificate to print
+   */
   const printCertificate = (cert: Certificate) => {
     const content = `
       <h1 style="font-family:sans-serif;">Certificate of Completion</h1>
@@ -50,11 +77,15 @@ export default function StudentCertificationPage() {
     }
   };
 
+  /**
+   * Share the certificate link on LinkedIn
+   * @param cert - The certificate to share
+   */
   const shareToLinkedIn = (cert: Certificate) => {
     const summary = encodeURIComponent(
       `I completed "${cert.courseTitle}" on AiluroCamp! 🎓`
     );
-    const certLink = `http://localhost:3000/student/certification/${cert.certificateId}`;
+    const certLink = `${baseUrl}/student/certification/${cert.certificateId}`;
     const url = `https://www.linkedin.com/sharing/share-offsite/?url=${certLink}&summary=${summary}`;
     window.open(url, '_blank');
   };
@@ -125,12 +156,11 @@ export default function StudentCertificationPage() {
                   🔍 <span className="text-gray-600">Verifiable at:</span>{' '}
                   <a
                     className="text-indigo-600 underline"
-                    href={`http://localhost:3000/student/certification/${cert.certificateId}`}
+                    href={`${baseUrl}/student/certification/${cert.certificateId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    http://localhost:3000/student/certification/
-                    {cert.certificateId}
+                    {baseUrl}/student/certification/{cert.certificateId}
                   </a>
                 </div>
               </div>
