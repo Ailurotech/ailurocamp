@@ -5,7 +5,7 @@ import connectDB from '@/lib/mongodb';
 import Certificate from '@/models/Certificate';
 import redis from '@/lib/redis';
 
-const CACHE_TTL_SECONDS = 60; // Cache duration: 1 minute
+const CACHE_TTL_SECONDS = 60; // Cache duration: 1 minutes
 
 /**
  * GET /api/student/certification/[certificateId]
