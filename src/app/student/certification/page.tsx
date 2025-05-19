@@ -16,7 +16,7 @@ interface Certificate {
 
 /**
  * StudentCertificationPage component
- * 
+ *
  * Displays a list of certificates earned by the logged-in user.
  * Provides actions for downloading, printing, and sharing each certificate.
  */
@@ -25,7 +25,7 @@ export default function StudentCertificationPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
 
-    /**
+  /**
    * Base URL for certificate sharing and verification
    */
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';

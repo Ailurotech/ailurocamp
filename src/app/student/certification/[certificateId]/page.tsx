@@ -14,7 +14,8 @@ interface Certificate {
 axiosRetry(axios, {
   retries: 3,
   retryDelay: (retryCount) => retryCount * 1000, // 1s, 2s, 3s
-  retryCondition: (error) => axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error),
+  retryCondition: (error) =>
+    axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error),
 });
 
 export default function CertificateDetailPage() {
@@ -62,7 +63,8 @@ export default function CertificateDetailPage() {
         <h1 className="text-4xl font-bold text-red-600 mb-2">Oops</h1>
         <p className="text-gray-600 text-lg">{errorMsg}</p>
         <p className="mt-4 text-sm text-gray-400">
-          Please check the certificate link or go back to the certification page.
+          Please check the certificate link or go back to the certification
+          page.
         </p>
       </div>
     );
