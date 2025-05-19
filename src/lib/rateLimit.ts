@@ -1,58 +1,36 @@
 // src/lib/rateLimit.ts
 
-/**
- * Represents a record of requests for a single IP.
- */
-type RateLimitRecord = {
-  timestamp: number; // Time of first request in the current window
-  count: number; // Number of requests in the current window
-};
+import redis from './redis';
 
 /**
- * Stores rate limit data in-memory per IP address.
- * This map is reset automatically based on the window period.
- */
-const rateLimitMap = new Map<string, RateLimitRecord>();
-
-/**
- * Time window duration in milliseconds for rate limiting.
+ * Time window duration in seconds for rate limiting.
  * Clients can make up to `MAX_REQUESTS` requests within this period.
  *
- * For example: 60,000 ms = 1 minute
+ * For example: 60 seconds = 1 minute
  */
-const WINDOW_MS = 60 * 1000;
+const WINDOW_SECONDS = 60;
 
 /**
  * Maximum number of requests allowed from a single IP within the window.
  */
-const MAX_REQUESTS = 10;
+const MAX_REQUESTS = 100;
 
 /**
- * Applies basic in-memory rate limiting based on IP address.
+ * Applies Redis-based rate limiting based on IP address.
  *
- * @param ip - The client's IP address (used as a key)
- * @returns `true` if the request is allowed, or `false` if the IP has exceeded the limit
+ * @param ip - The client's IP address (used as a Redis key)
+ * @returns `true` if the request is allowed, or `false` if the limit is exceeded
  */
-export function applyBasicRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const record = rateLimitMap.get(ip);
+export async function applyRedisRateLimit(ip: string): Promise<boolean> {
+  const key = `ratelimit:${ip}`;
 
-  if (!record) {
-    rateLimitMap.set(ip, { timestamp: now, count: 1 });
-    return true;
+  // Increment the request count for this IP
+  const current = await redis.incr(key);
+
+  // If this is the first request, set the expiration window
+  if (current === 1) {
+    await redis.expire(key, WINDOW_SECONDS);
   }
 
-  if (now - record.timestamp > WINDOW_MS) {
-    // Window has expired, reset the counter
-    rateLimitMap.set(ip, { timestamp: now, count: 1 });
-    return true;
-  }
-
-  if (record.count < MAX_REQUESTS) {
-    record.count += 1;
-    return true;
-  }
-
-  // Request exceeds allowed limit
-  return false;
+  return current <= MAX_REQUESTS;
 }

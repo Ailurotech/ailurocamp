@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Certificate from '@/models/Certificate';
-import { applyBasicRateLimit } from '@/lib/rateLimit';
+import { applyRedisRateLimit } from '@/lib/rateLimit';
 
 function getClientIp(req: Request): string {
   return req.headers.get('x-forwarded-for') || 'unknown';
@@ -11,7 +11,8 @@ function getClientIp(req: Request): string {
 
 export async function GET(req: Request) {
   const ip = getClientIp(req);
-  if (!applyBasicRateLimit(ip)) {
+  const allowed = await applyRedisRateLimit(ip);
+  if (!allowed) {
     return NextResponse.json({ message: 'Too Many Requests' }, { status: 429 });
   }
 
@@ -42,6 +43,12 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  const allowed = await applyRedisRateLimit(ip);
+  if (!allowed) {
+    return NextResponse.json({ message: 'Too Many Requests' }, { status: 429 });
+  }
+
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
