@@ -42,7 +42,10 @@ export async function GET(
     });
 
     if (!cert) {
-      return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Certificate not found' },
+        { status: 404 }
+      );
     }
 
     await redis.set(cacheKey, JSON.stringify(cert), 'EX', CACHE_TTL_SECONDS);
