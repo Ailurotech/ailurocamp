@@ -45,13 +45,17 @@ export default function CertificateDetailPage() {
         if (axios.isAxiosError(err)) {
           const status = err.response?.status;
           const detail = err.response?.data?.message || err.message;
-      
+
           console.error(`[Axios Error] Status ${status}: ${detail}`, err);
-      
+
           if (status === 404) {
-            setErrorMsg('The certificate could not be found. Please check the link.');
+            setErrorMsg(
+              'The certificate could not be found. Please check the link.'
+            );
           } else if (status === 403) {
-            setErrorMsg('Access denied. You may not have permission to view this certificate.');
+            setErrorMsg(
+              'Access denied. You may not have permission to view this certificate.'
+            );
           } else {
             setErrorMsg('Failed to load certificate. Please try again later.');
           }
@@ -59,7 +63,7 @@ export default function CertificateDetailPage() {
           console.error('[Unknown Error]', err);
           setErrorMsg('An unknown error occurred.');
         }
-      
+
         setCertificate(null);
       })
       .finally(() => setLoading(false));

@@ -5,7 +5,7 @@
  */
 type RateLimitRecord = {
   timestamp: number; // Time of first request in the current window
-  count: number;     // Number of requests in the current window
+  count: number; // Number of requests in the current window
 };
 
 /**
@@ -17,7 +17,7 @@ const rateLimitMap = new Map<string, RateLimitRecord>();
 /**
  * Time window duration in milliseconds for rate limiting.
  * Clients can make up to `MAX_REQUESTS` requests within this period.
- * 
+ *
  * For example: 60,000 ms = 1 minute
  */
 const WINDOW_MS = 60 * 1000;
@@ -29,7 +29,7 @@ const MAX_REQUESTS = 10;
 
 /**
  * Applies basic in-memory rate limiting based on IP address.
- * 
+ *
  * @param ip - The client's IP address (used as a key)
  * @returns `true` if the request is allowed, or `false` if the IP has exceeded the limit
  */

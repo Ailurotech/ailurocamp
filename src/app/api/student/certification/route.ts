@@ -24,18 +24,21 @@ export async function GET(req: Request) {
     await connectDB();
     const certificates = await Certificate.find({ userId: session.user.email });
     return NextResponse.json({ certificates });
-    } catch (err) {
-      console.error('[GET /certification] Unexpected Error:', err);
+  } catch (err) {
+    console.error('[GET /certification] Unexpected Error:', err);
 
-      return NextResponse.json(
-        {
-          message: 'Internal server error during certificate retrieval',
-          error: err instanceof Error ? err.message : 'Unknown error',
-          stack: process.env.NODE_ENV !== 'production' && err instanceof Error ? err.stack : undefined,
-        },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json(
+      {
+        message: 'Internal server error during certificate retrieval',
+        error: err instanceof Error ? err.message : 'Unknown error',
+        stack:
+          process.env.NODE_ENV !== 'production' && err instanceof Error
+            ? err.stack
+            : undefined,
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: Request) {
@@ -98,7 +101,10 @@ export async function POST(req: Request) {
       {
         message: 'Internal server error during certificate creation',
         error: err instanceof Error ? err.message : 'Unknown error',
-        stack: process.env.NODE_ENV !== 'production' && err instanceof Error ? err.stack : undefined,
+        stack:
+          process.env.NODE_ENV !== 'production' && err instanceof Error
+            ? err.stack
+            : undefined,
       },
       { status: 500 }
     );
