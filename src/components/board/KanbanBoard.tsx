@@ -130,7 +130,7 @@ export default function KanbanBoard() {
     const projects = await fetchAllProjects();
     console.log('projects: ', projects);
     setUniqueProjects(projects);
-  
+
     if (selectedProjectName) {
       const matchedProject = projects.find(
         (p: UniqueProject) => p.title === selectedProjectName

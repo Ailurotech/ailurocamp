@@ -44,12 +44,15 @@ export async function POST(req: Request) {
       //   name,
       //   body: description || 'Created from AiluroCamp',
       // });
-      const response = await octokit.request('POST /repos/{owner}/{repo}/projects', {
-        owner,
-        repo,
-        name,
-        body: description || 'Created from AiluroCamp',
-      });
+      const response = await octokit.request(
+        'POST /repos/{owner}/{repo}/projects',
+        {
+          owner,
+          repo,
+          name,
+          body: description || 'Created from AiluroCamp',
+        }
+      );
 
       const projectId = response.data.id;
 
@@ -57,10 +60,13 @@ export async function POST(req: Request) {
       const createdColumns: ProjectColumn[] = [];
 
       for (const columnName of columns) {
-        const columnResponse = await octokit.request('POST /projects/{project_id}/columns', {
-          project_id: projectId,
-          name: columnName,
-        });
+        const columnResponse = await octokit.request(
+          'POST /projects/{project_id}/columns',
+          {
+            project_id: projectId,
+            name: columnName,
+          }
+        );
 
         createdColumns.push({
           id: columnResponse.data.id,

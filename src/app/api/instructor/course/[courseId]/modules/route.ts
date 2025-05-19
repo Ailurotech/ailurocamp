@@ -22,7 +22,10 @@ export async function GET(
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ modules: course.modules }, { status: 200 });
@@ -60,7 +63,10 @@ export async function POST(
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     course.modules.push({ title, content, order: +order, duration: +duration });
@@ -95,19 +101,28 @@ export async function PATCH(
     const id: string | null = searchParams.get('moduleId');
 
     if (!id) {
-      return NextResponse.json({ message: 'No moduleId provided' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'No moduleId provided' },
+        { status: 400 }
+      );
     }
 
     const { title, content, order, duration }: IModuleApiReq = await req.json();
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     const moduleToEdit: IModule | null = course.modules.id(id);
     if (!moduleToEdit) {
-      return NextResponse.json({ message: 'Module not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Module not found' },
+        { status: 404 }
+      );
     }
 
     if (title !== undefined) moduleToEdit.title = title;
@@ -149,18 +164,27 @@ export async function DELETE(
     const id: string | null = searchParams.get('moduleId');
 
     if (!id) {
-      return NextResponse.json({ message: 'No moduleId provided' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'No moduleId provided' },
+        { status: 400 }
+      );
     }
 
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     const moduleToDelete: IModule | null = course.modules.id(id);
     if (!moduleToDelete) {
-      return NextResponse.json({ message: 'Module not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Module not found' },
+        { status: 404 }
+      );
     }
 
     await moduleToDelete.deleteOne();
