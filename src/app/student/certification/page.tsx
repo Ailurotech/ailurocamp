@@ -42,7 +42,8 @@ export default function StudentCertificationPage() {
         setCertificates(res.data.certificates || []);
       })
       .catch((err) => {
-        console.error('Error fetching certificates', err);
+        console.error('❌ Failed to fetch certificates:', err);
+        alert('Failed to load your certificates. Please try again later or check the console for more info.');
       })
       .finally(() => setLoading(false));
   }, []);
