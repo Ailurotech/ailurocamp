@@ -4,12 +4,11 @@ import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Certificate from '@/models/Certificate';
 
-// 注意这里的参数使用 async 解构
 export async function GET(
   req: Request,
   context: { params: { certificateId: string } }
 ) {
-  const { certificateId } = await context.params; // ✅ 这是 Next.js 15 新要求
+  const { certificateId } = await context.params;
 
   try {
     const session = await getServerSession(authOptions);
