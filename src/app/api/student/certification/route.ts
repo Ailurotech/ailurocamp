@@ -3,8 +3,18 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Certificate from '@/models/Certificate';
+import { applyBasicRateLimit } from '@/lib/rateLimit';
 
-export async function GET() {
+function getClientIp(req: Request): string {
+  return req.headers.get('x-forwarded-for') || 'unknown';
+}
+
+export async function GET(req: Request) {
+  const ip = getClientIp(req);
+  if (!applyBasicRateLimit(ip)) {
+    return NextResponse.json({ message: 'Too Many Requests' }, { status: 429 });
+  }
+
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -12,7 +22,6 @@ export async function GET() {
     }
 
     await connectDB();
-
     const certificates = await Certificate.find({ userId: session.user.email });
     return NextResponse.json({ certificates });
   } catch (err) {
@@ -22,6 +31,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  if (!applyBasicRateLimit(ip)) {
+    return NextResponse.json({ message: 'Too Many Requests' }, { status: 429 });
+  }
+
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
