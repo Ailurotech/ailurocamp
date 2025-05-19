@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
@@ -12,10 +12,10 @@ const CACHE_TTL_SECONDS = 60; // Cache duration: 1 minute
  * Returns a specific certificate belonging to the authenticated user.
  */
 export async function GET(
-  _req: Request,
-  context: { params: { certificateId: string } }
+  _req: NextRequest,
+  { params }: { params: { certificateId: string } }
 ) {
-  const { certificateId } = context.params;
+  const certificateId = params.certificateId.trim();
 
   try {
     const session = await getServerSession(authOptions);
@@ -24,7 +24,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const cacheKey = `certificate:${userEmail}:${certificateId.trim()}`;
+    const cacheKey = `certificate:${userEmail}:${certificateId}`;
     const cached = await redis.get(cacheKey);
 
     if (cached) {
@@ -37,7 +37,7 @@ export async function GET(
     await connectDB();
 
     const cert = await Certificate.findOne({
-      certificateId: certificateId.trim(),
+      certificateId,
       userId: userEmail,
     });
 
