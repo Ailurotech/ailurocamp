@@ -14,12 +14,26 @@ import {
 import { extractApiErrorMessage } from '@/utils/handleApiError';
 import type { Certificate } from '@/types/certificate';
 
+/**
+ * StudentCertificationPage
+ *
+ * This page displays a list of certificates the current user has earned.
+ * It fetches the certificate data from the backend, handles loading state,
+ * and displays each certificate using the CertificateCard component.
+ */
 export default function StudentCertificationPage() {
+  // Local state to store list of certificates and loading status
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Fallback base URL for rendering certificate links
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
+  /**
+   * useEffect triggers on component mount.
+   * It asynchronously fetches the user's certificate list from the API.
+   * If an error occurs, it logs and displays an alert using a helper util.
+   */
   useEffect(() => {
     fetchCertificates()
       .then(setCertificates)
@@ -30,12 +44,14 @@ export default function StudentCertificationPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Show loading message while fetching certificates
   if (loading) return <p className="p-4">Loading certificates...</p>;
 
   return (
     <ErrorBoundary>
       <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen py-10 px-6">
         <div className="max-w-5xl mx-auto">
+          {/* Navigation link to go back to dashboard */}
           <div className="mb-4">
             <Link
               href="/dashboard"
@@ -45,6 +61,7 @@ export default function StudentCertificationPage() {
             </Link>
           </div>
 
+          {/* Page heading */}
           <h1 className="text-4xl font-bold text-indigo-800 mb-2">
             🎓 My Achievements
           </h1>
@@ -53,6 +70,7 @@ export default function StudentCertificationPage() {
             AiluroCamp courses.
           </p>
 
+          {/* Grid layout for rendering each certificate */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {certificates.map((cert) => (
               <CertificateCard

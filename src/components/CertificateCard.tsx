@@ -1,6 +1,7 @@
 'use client';
 
 import type { Certificate } from '@/types/certificate';
+import Link from 'next/link';
 
 interface Props {
   cert: Certificate;
@@ -11,6 +12,15 @@ interface Props {
   onCopy(cert: Certificate): void;
 }
 
+/**
+ * CertificateCard
+ *
+ * A presentational component that renders a single certificate summary card.
+ * It includes:
+ * - Certificate metadata (title, date, ID)
+ * - Actions: download, print, share, copy
+ * - Verifiability link to the certificate detail page
+ */
 export default function CertificateCard({
   cert,
   baseUrl,
@@ -21,6 +31,7 @@ export default function CertificateCard({
 }: Props) {
   return (
     <div className="bg-white shadow-md border border-gray-200 rounded-lg p-6 flex flex-col justify-between">
+      {/* Certificate metadata section */}
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-1">
           {cert.courseTitle}
@@ -36,6 +47,7 @@ export default function CertificateCard({
         </p>
       </div>
 
+      {/* Action buttons: Download / Share / Print / Copy */}
       <div className="mt-4 grid grid-cols-2 gap-2">
         <button
           onClick={() => onDownload(cert)}
@@ -63,6 +75,7 @@ export default function CertificateCard({
         </button>
       </div>
 
+      {/* Status info and verification link */}
       <div className="mt-4 text-xs text-gray-400 space-y-1">
         <div>
           ✅{' '}
@@ -72,14 +85,13 @@ export default function CertificateCard({
         </div>
         <div>
           🔍 <span className="text-gray-600">Verifiable at:</span>{' '}
-          <a
+          {/* Internal routing: opens within same tab */}
+          <Link
             className="text-indigo-600 underline"
-            href={`${baseUrl}/student/certification/${cert.certificateId}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`/student/certification/${cert.certificateId}`}
           >
-            {baseUrl}/student/certification/{cert.certificateId}
-          </a>
+            {`${baseUrl}/student/certification/${cert.certificateId}`}
+          </Link>
         </div>
       </div>
     </div>
