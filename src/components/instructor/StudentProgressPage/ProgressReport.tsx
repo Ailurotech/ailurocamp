@@ -1,32 +1,12 @@
 'use client';
 
 import React from 'react';
-
-interface ProgressReportData {
-  completedLessonsCount: number;
-  totalLessonsCount: number;
-  percentComplete: number;
-  totalTimeSpent: number;
-  completedAssessments: number;
-  totalAssessments: number;
-  averageScore: number;
-  isStruggling: boolean;
-}
-
-interface StudentData {
-  name: string;
-  id: string;
-}
-
-interface CourseData {
-  title: string;
-  id: string;
-}
+import { ProgressReport as IProgressReport, IStudentUser, IStudentProgressCourse } from '@/types/progress';
 
 interface ProgressReportProps {
-  report: ProgressReportData;
-  student: StudentData;
-  course: CourseData;
+  report: IProgressReport;
+  student: IStudentUser;
+  course: IStudentProgressCourse;
   formatDate: (dateString?: string) => string;
   formatTime: (minutes: number) => string;
 }

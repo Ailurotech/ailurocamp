@@ -18,7 +18,7 @@ import {
   StudentProgressData, 
   ProgressReport as ProgressReportType,
   TabType
-} from '@/components/instructor/StudentProgressPage/types';
+} from '@/types/progress';
 
 interface PageParams {
   courseId: string;

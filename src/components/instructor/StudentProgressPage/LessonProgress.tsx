@@ -1,28 +1,11 @@
-
 'use client';
 
 import React from 'react';
-
-interface LessonProgress {
-  moduleIndex: number;
-  lessonIndex: number;
-  completed: boolean;
-  startedAt: string;
-  completedAt?: string;
-  timeSpent: number;
-  lastPosition?: number;
-}
-
-interface CourseModule {
-  title: string;
-  lessons: {
-    title: string;
-  }[];
-}
+import { LessonProgress as ILessonProgress, ICourseModule } from '@/types/progress';
 
 interface LessonProgressProps {
-  completedLessons: LessonProgress[];
-  courseModules: CourseModule[];
+  completedLessons: ILessonProgress[];
+  courseModules: ICourseModule[];
   formatDate: (dateString?: string) => string;
   formatTime: (minutes: number) => string;
 }

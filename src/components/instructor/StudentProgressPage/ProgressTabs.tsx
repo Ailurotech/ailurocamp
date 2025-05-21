@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-
-type TabType = 'lessons' | 'assessments' | 'report';
+import { TabType } from '@/types/progress';
 
 interface ProgressTabsProps {
   activeTab: TabType;

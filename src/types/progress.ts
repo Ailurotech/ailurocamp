@@ -1,3 +1,4 @@
+import { ICourse } from './course';
 
 export interface LessonProgress {
   moduleIndex: number;
@@ -7,6 +8,12 @@ export interface LessonProgress {
   completedAt?: string;
   timeSpent: number;
   lastPosition?: number;
+}
+
+export interface ModuleProgress {
+  moduleIndex: number;
+  completedAt: string;
+  timeSpent: number;
 }
 
 export interface Assessment {
@@ -21,32 +28,38 @@ export interface Assessment {
   };
 }
 
+export interface IModuleLesson {
+  title: string;
+}
+
+export interface ICourseModule {
+  title: string;
+  lessons: IModuleLesson[];
+}
+
+export interface IStudentProgressCourse {
+  id: string;
+  title: string;
+  modules: ICourseModule[];
+}
+
+export interface IStudentUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface IProgressData {
+  overallProgress: number;
+  completedModules: ModuleProgress[];
+  completedLessons: LessonProgress[];
+  lastAccessedAt: string | null;
+}
+
 export interface StudentProgressData {
-  student: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  course: {
-    id: string;
-    title: string;
-    modules: {
-      title: string;
-      lessons: {
-        title: string;
-      }[];
-    }[];
-  };
-  progress: {
-    overallProgress: number;
-    completedModules: {
-      moduleIndex: number;
-      completedAt: string;
-      timeSpent: number;
-    }[];
-    completedLessons: LessonProgress[];
-    lastAccessedAt: string | null;
-  };
+  student: IStudentUser;
+  course: IStudentProgressCourse;
+  progress: IProgressData;
   assessments: Assessment[];
 }
 

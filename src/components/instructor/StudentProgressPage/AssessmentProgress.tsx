@@ -1,18 +1,7 @@
 'use client';
 
 import React from 'react';
-
-interface Assessment {
-  id: string;
-  title: string;
-  type: 'quiz' | 'assignment';
-  totalPoints: number;
-  submission?: {
-    score?: number;
-    submittedAt: string;
-    gradedAt?: string;
-  };
-}
+import { Assessment } from '@/types/progress';
 
 interface AssessmentProgressProps {
   assessments: Assessment[];
