@@ -6,56 +6,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
 
-interface LessonProgress {
-  moduleIndex: number;
-  lessonIndex: number;
-  completed: boolean;
-  startedAt: string;
-  completedAt?: string;
-  timeSpent: number;
-  lastPosition?: number;
-}
+// Import refactored components
+import ProgressTabs from '@/components/instructor/StudentProgressPage/ProgressTabs';
+import LessonProgress from '@/components/instructor/StudentProgressPage/LessonProgress';
+import AssessmentProgress from '@/components/instructor/StudentProgressPage/AssessmentProgress';
+import ProgressMetrics from '@/components/instructor/StudentProgressPage/ProgressMetrics';
+import ProgressReport from '@/components/instructor/StudentProgressPage/ProgressReport';
 
-interface Assessment {
-  id: string;
-  title: string;
-  type: 'quiz' | 'assignment';
-  totalPoints: number;
-  submission?: {
-    score?: number;
-    submittedAt: string;
-    gradedAt?: string;
-  };
-}
-
-interface StudentProgressData {
-  student: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  course: {
-    id: string;
-    title: string;
-    modules: {
-      title: string;
-      lessons: {
-        title: string;
-      }[];
-    }[];
-  };
-  progress: {
-    overallProgress: number;
-    completedModules: {
-      moduleIndex: number;
-      completedAt: string;
-      timeSpent: number;
-    }[];
-    completedLessons: LessonProgress[];
-    lastAccessedAt: string | null;
-  };
-  assessments: Assessment[];
-}
+// Import types
+import { 
+  StudentProgressData, 
+  ProgressReport as ProgressReportType,
+  TabType
+} from '@/components/instructor/StudentProgressPage/types';
 
 interface PageParams {
   courseId: string;
@@ -79,9 +42,7 @@ export default function StudentProgressDetailPage({
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    'lessons' | 'assessments' | 'report'
-  >('lessons');
+  const [activeTab, setActiveTab] = useState<TabType>('lessons');
 
   useEffect(() => {
     // Redirect unauthenticated users or non-instructor users
@@ -168,7 +129,7 @@ export default function StudentProgressDetailPage({
   };
 
   // Generate progress report
-  const generateReport = () => {
+  const generateReport = (): ProgressReportType | null => {
     if (!progressData) return null;
 
     const completedLessonsCount = progressData.progress.completedLessons.filter(
@@ -255,9 +216,9 @@ export default function StudentProgressDetailPage({
     const percentComplete =
       totalLessonsCount > 0
         ? Math.round((completedLessonsCount / totalLessonsCount) * 100)
-        : progressData.progress.overallProgress; // 如果无法计算，则使用数据库中的值
+        : progressData.progress.overallProgress;
 
-    // 添加调试日志
+    // Add debug logs
     console.log('Progress Data:', {
       completedLessonsCount,
       totalLessonsCount,
@@ -265,7 +226,7 @@ export default function StudentProgressDetailPage({
       calculatedProgress: percentComplete,
     });
 
-    // 如果计算出的进度与数据库中的不同，则更新数据库
+    // If calculated progress differs from the database, update the database
     if (
       percentComplete !== progressData.progress.overallProgress &&
       totalLessonsCount > 0
@@ -285,7 +246,7 @@ export default function StudentProgressDetailPage({
     };
   };
 
-  // 添加更新数据库中进度的函数
+  // Add function to update progress in database
   const updateProgressInDatabase = async (newProgress: number) => {
     try {
       const response = await fetch(
@@ -311,7 +272,7 @@ export default function StudentProgressDetailPage({
 
       console.log('Progress updated in database successfully');
 
-      // 更新本地状态
+      // Update local state
       if (progressData) {
         setProgressData({
           ...progressData,
@@ -411,486 +372,45 @@ export default function StudentProgressDetailPage({
         </div>
 
         {/* Student progress overview */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Progress Overview
-            </h3>
-          </div>
-          <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-3">
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Overall Progress
-                </dt>
-                <dd className="mt-1 flex items-center">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                    <div
-                      className="bg-indigo-600 h-2.5 rounded-full"
-                      style={{
-                        width: `${report?.percentComplete}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {report?.percentComplete}%
-                  </span>
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Completed Lessons
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {report?.completedLessonsCount} of {report?.totalLessonsCount}{' '}
-                  lessons
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Last Activity
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {progressData.progress.lastAccessedAt
-                    ? formatDate(progressData.progress.lastAccessedAt)
-                    : 'No activity yet'}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Total Time Spent
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {formatTime(report?.totalTimeSpent || 0)}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Assessments Completed
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {report?.completedAssessments} of {report?.totalAssessments}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Started On
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {progressData.progress.completedLessons.length > 0
-                    ? formatDate(
-                        [...progressData.progress.completedLessons].sort(
-                          (a, b) =>
-                            new Date(a.startedAt).getTime() -
-                            new Date(b.startedAt).getTime()
-                        )[0]?.startedAt
-                      )
-                    : 'Not started yet'}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
+        {report && (
+          <ProgressMetrics
+            report={report}
+            progressData={progressData.progress}
+            formatDate={formatDate}
+            formatTime={formatTime}
+          />
+        )}
 
         {/* Tab switching */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex">
-            <button
-              className={`${
-                activeTab === 'lessons'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8`}
-              onClick={() => setActiveTab('lessons')}
-            >
-              Lessons Progress
-            </button>
-            <button
-              className={`${
-                activeTab === 'assessments'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm mr-8`}
-              onClick={() => setActiveTab('assessments')}
-            >
-              Assessment Results
-            </button>
-            <button
-              className={`${
-                activeTab === 'report'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              onClick={() => setActiveTab('report')}
-            >
-              Progress Report
-            </button>
-          </nav>
-        </div>
+        <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Lesson progress list */}
         {activeTab === 'lessons' && (
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul role="list" className="divide-y divide-gray-200">
-              {progressData.progress.completedLessons
-                .sort((a, b) => {
-                  // First sort by module index
-                  if (a.moduleIndex !== b.moduleIndex) {
-                    return a.moduleIndex - b.moduleIndex;
-                  }
-                  // Then sort by lesson index
-                  return a.lessonIndex - b.lessonIndex;
-                })
-                .map((lesson) => {
-                  // Get module and lesson titles
-                  const module =
-                    progressData.course.modules[lesson.moduleIndex];
-                  const moduleName = module
-                    ? module.title
-                    : `Module ${lesson.moduleIndex + 1}`;
-
-                  const lessonTitle =
-                    module &&
-                    module.lessons &&
-                    module.lessons[lesson.lessonIndex]
-                      ? module.lessons[lesson.lessonIndex].title
-                      : `Lesson ${lesson.lessonIndex + 1}`;
-
-                  return (
-                    <li key={`${lesson.moduleIndex}-${lesson.lessonIndex}`}>
-                      <div className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center">
-                              {lesson.completed ? (
-                                <svg
-                                  className="text-green-500 h-5 w-5 mr-2"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              ) : (
-                                <svg
-                                  className="text-gray-400 h-5 w-5 mr-2"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 9a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              )}
-                              <div className="text-sm font-medium text-gray-900">
-                                {moduleName} - {lessonTitle}
-                              </div>
-                            </div>
-                            <div className="mt-2 flex text-sm text-gray-500">
-                              <div className="mr-6">
-                                <span className="font-medium text-gray-600">
-                                  Started:
-                                </span>{' '}
-                                {formatDate(lesson.startedAt)}
-                              </div>
-                              {lesson.completed && (
-                                <div>
-                                  <span className="font-medium text-gray-600">
-                                    Completed:
-                                  </span>{' '}
-                                  {formatDate(lesson.completedAt)}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <div className="text-sm text-gray-900 font-medium">
-                              {formatTime(lesson.timeSpent)}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {lesson.completed ? 'Completed' : 'In progress'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-
-              {progressData.progress.completedLessons.length === 0 && (
-                <li>
-                  <div className="px-4 py-5 text-center text-gray-500">
-                    No lesson progress data available
-                  </div>
-                </li>
-              )}
-            </ul>
-          </div>
+          <LessonProgress
+            completedLessons={progressData.progress.completedLessons}
+            courseModules={progressData.course.modules}
+            formatDate={formatDate}
+            formatTime={formatTime}
+          />
         )}
 
         {/* Assessment results list */}
         {activeTab === 'assessments' && (
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul role="list" className="divide-y divide-gray-200">
-              {progressData.assessments.map((assessment) => (
-                <li key={assessment.id}>
-                  <div className="px-4 py-4 sm:px-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center">
-                          {assessment.submission ? (
-                            <svg
-                              className="text-green-500 h-5 w-5 mr-2"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          ) : (
-                            <svg
-                              className="text-gray-400 h-5 w-5 mr-2"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 9a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {assessment.title}
-                            </div>
-                            <div className="text-xs text-gray-500 uppercase mt-1">
-                              {assessment.type}
-                            </div>
-                          </div>
-                        </div>
-                        {assessment.submission && (
-                          <div className="mt-2 flex text-sm text-gray-500">
-                            <div className="mr-6">
-                              <span className="font-medium text-gray-600">
-                                Submitted:
-                              </span>{' '}
-                              {formatDate(assessment.submission.submittedAt)}
-                            </div>
-                            {assessment.submission.gradedAt && (
-                              <div>
-                                <span className="font-medium text-gray-600">
-                                  Graded:
-                                </span>{' '}
-                                {formatDate(assessment.submission.gradedAt)}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-end">
-                        {assessment.submission &&
-                        assessment.submission.score !== undefined ? (
-                          <div className="text-sm font-medium text-gray-900">
-                            {assessment.submission.score} /{' '}
-                            {assessment.totalPoints} points
-                            <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                              {Math.round(
-                                (assessment.submission.score /
-                                  assessment.totalPoints) *
-                                  100
-                              )}
-                              %
-                            </span>
-                          </div>
-                        ) : assessment.submission ? (
-                          <div className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                            Awaiting Grade
-                          </div>
-                        ) : (
-                          <div className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
-                            Not Submitted
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-
-              {progressData.assessments.length === 0 && (
-                <li>
-                  <div className="px-4 py-5 text-center text-gray-500">
-                    No assessments available for this course
-                  </div>
-                </li>
-              )}
-            </ul>
-          </div>
+          <AssessmentProgress
+            assessments={progressData.assessments}
+            formatDate={formatDate}
+          />
         )}
 
         {/* Progress report */}
         {activeTab === 'report' && report && (
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Student Progress Report
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Generated on {new Date().toLocaleDateString()}
-              </p>
-            </div>
-            <div className="border-t border-gray-200">
-              <dl>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Student Name
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {progressData.student.name}
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Course</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {progressData.course.title}
-                  </dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Completion Status
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    <div className="flex items-center">
-                      <div className="w-full max-w-xs bg-gray-200 rounded-full h-2.5 mr-2">
-                        <div
-                          className="bg-indigo-600 h-2.5 rounded-full"
-                          style={{ width: `${report.percentComplete}%` }}
-                        ></div>
-                      </div>
-                      <span>
-                        {report.percentComplete}% Complete (
-                        {report.completedLessonsCount} of{' '}
-                        {report.totalLessonsCount} lessons)
-                      </span>
-                    </div>
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Time Investment
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {formatTime(report.totalTimeSpent)}
-                  </dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Assessment Performance
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {report.completedAssessments > 0 ? (
-                      <div>
-                        <span className="font-medium">
-                          {report.averageScore}%{' '}
-                        </span>
-                        average score ({report.completedAssessments} of{' '}
-                        {report.totalAssessments} completed)
-                      </div>
-                    ) : (
-                      'No assessments completed'
-                    )}
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Learning Status
-                  </dt>
-                  <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2">
-                    {report.isStruggling ? (
-                      <div className="px-4 py-3 bg-red-50 text-red-800 rounded-md">
-                        <div className="flex">
-                          <svg
-                            className="h-5 w-5 text-red-400 mr-2"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          <span className="font-medium">
-                            Potential learning difficulties detected
-                          </span>
-                        </div>
-                        <p className="mt-2">
-                          This student may be struggling with the course
-                          material. Consider providing additional support or
-                          resources.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="px-4 py-3 bg-green-50 text-green-800 rounded-md">
-                        <div className="flex">
-                          <svg
-                            className="h-5 w-5 text-green-400 mr-2"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          <span className="font-medium">On track</span>
-                        </div>
-                        <p className="mt-2">
-                          The student is progressing well through the course
-                          material.
-                        </p>
-                      </div>
-                    )}
-                  </dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Actions</dt>
-                  <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2 flex space-x-4">
-                    <button
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm"
-                      onClick={() => {
-                        // Open report in new tab
-                        window.open(`/api/instructor/export-progress/${courseId}/${studentId}`, '_blank');
-                      }}
-                    >
-                      Export Report
-                    </button>
-                    <button
-                      className="btn-base btn-gray flex-center"
-                      onClick={() => {
-                        // Send progress notification feature
-                        alert(
-                          `Progress notification would be sent to ${progressData.student.name}`
-                        );
-                      }}
-                    >
-                      Send Progress Notification
-                    </button>
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
+          <ProgressReport
+            report={report}
+            student={progressData.student}
+            course={progressData.course}
+            formatDate={formatDate}
+            formatTime={formatTime}
+          />
         )}
       </div>
     </div>

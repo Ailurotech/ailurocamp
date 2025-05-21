@@ -31,18 +31,6 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // // ------------- test -------------
-        // if (process.env.NODE_ENV === 'development') {
-        //   return {
-        //     id: 'test-id',
-        //     email: 'instructor@example.com',
-        //     name: 'Test Instructor',
-        //     roles: ['instructor'],
-        //     currentRole: 'instructor',
-        //   } as CustomUser;
-        // }
-        // // ------------- test -------------
-
         try {
           await connectDB();
 
