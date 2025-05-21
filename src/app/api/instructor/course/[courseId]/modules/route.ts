@@ -13,17 +13,13 @@ export async function GET(
   { params }: { params: Promise<{ courseId: string }> }
 ): Promise<NextResponse> {
   try {
-    // Authenticate the user
     const session: Session | null = await getServerSession(authOptions);
     if (!session?.user?.currentRole) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
-
-    // Find course
     const { courseId } = await params;
-
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
       return NextResponse.json(
@@ -31,6 +27,7 @@ export async function GET(
         { status: 404 }
       );
     }
+
     return NextResponse.json({ modules: course.modules }, { status: 200 });
   } catch (error: unknown) {
     return NextResponse.json(
@@ -46,7 +43,6 @@ export async function POST(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    // Authenticate the user
     const session: Session | null = await getServerSession(authOptions);
     if (!session?.user?.currentRole) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -55,14 +51,7 @@ export async function POST(
     await connectDB();
 
     const { title, content, order, duration }: IModuleApiReq = await req.json();
-
-    // Validate module data
-    const result = moduleSchema.safeParse({
-      title,
-      content,
-      order,
-      duration,
-    });
+    const result = moduleSchema.safeParse({ title, content, order, duration });
 
     if (!result.success) {
       return NextResponse.json(
@@ -71,7 +60,6 @@ export async function POST(
       );
     }
 
-    // Find course
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
@@ -81,9 +69,7 @@ export async function POST(
       );
     }
 
-    // Push new module
     course.modules.push({ title, content, order: +order, duration: +duration });
-
     await course.save();
 
     return NextResponse.json(
@@ -104,7 +90,6 @@ export async function PATCH(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    // Authenticate the user (instructor only)
     const session: Session | null = await getServerSession(authOptions);
     if (session?.user?.currentRole !== 'instructor') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -112,13 +97,17 @@ export async function PATCH(
 
     await connectDB();
 
-    // Get moduleId
     const { searchParams } = new URL(req.url);
     const id: string | null = searchParams.get('moduleId');
 
-    const { title, content, order, duration }: IModuleApiReq = await req.json();
+    if (!id) {
+      return NextResponse.json(
+        { message: 'No moduleId provided' },
+        { status: 400 }
+      );
+    }
 
-    // Find course
+    const { title, content, order, duration }: IModuleApiReq = await req.json();
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
@@ -128,7 +117,6 @@ export async function PATCH(
       );
     }
 
-    // Find the module in the course
     const moduleToEdit: IModule | null = course.modules.id(id);
     if (!moduleToEdit) {
       return NextResponse.json(
@@ -141,8 +129,6 @@ export async function PATCH(
     if (content !== undefined) moduleToEdit.content = content;
     if (order !== undefined) {
       moduleToEdit.order = +order;
-
-      // Sort modules by order
       course.modules.sort((a, b) => a.order - b.order);
     }
     if (duration !== undefined) moduleToEdit.duration = +duration;
@@ -167,7 +153,6 @@ export async function DELETE(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    // Authenticate the user (instructor only)
     const session: Session | null = await getServerSession(authOptions);
     if (session?.user?.currentRole !== 'instructor') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -175,7 +160,6 @@ export async function DELETE(
 
     await connectDB();
 
-    // Get moduleId
     const { searchParams } = new URL(req.url);
     const id: string | null = searchParams.get('moduleId');
 
@@ -186,7 +170,6 @@ export async function DELETE(
       );
     }
 
-    // Find Course
     const { courseId } = await params;
     const course: ICourse | null = await Course.findById(courseId);
     if (!course) {
@@ -196,7 +179,6 @@ export async function DELETE(
       );
     }
 
-    // Delete the module
     const moduleToDelete: IModule | null = course.modules.id(id);
     if (!moduleToDelete) {
       return NextResponse.json(
@@ -204,8 +186,8 @@ export async function DELETE(
         { status: 404 }
       );
     }
-    await moduleToDelete.deleteOne();
 
+    await moduleToDelete.deleteOne();
     await course.save();
 
     return NextResponse.json(

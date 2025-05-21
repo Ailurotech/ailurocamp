@@ -134,3 +134,5 @@ docs/site/
 
 # local folder for storing thumbnail
 public/images
+
+.DS_Store
