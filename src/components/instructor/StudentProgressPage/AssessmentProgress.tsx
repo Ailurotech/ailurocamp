@@ -78,8 +78,8 @@ const AssessmentProgress: React.FC<AssessmentProgressProps> = ({
                   {assessment.submission &&
                   assessment.submission.score !== undefined ? (
                     <div className="text-sm font-medium text-gray-900">
-                      {assessment.submission.score} /{' '}
-                      {assessment.totalPoints} points
+                      {assessment.submission.score} / {assessment.totalPoints}{' '}
+                      points
                       <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
                         {Math.round(
                           (assessment.submission.score /

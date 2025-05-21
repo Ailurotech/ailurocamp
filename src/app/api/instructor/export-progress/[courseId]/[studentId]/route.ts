@@ -171,9 +171,7 @@ function generateProgressReportHtml(data: any): string {
                       ? `${assessment.submission.score}/${assessment.totalPoints}`
                       : 'Not graded'
                   }</td>
-                  <td>${
-                    assessment.submission?.status || 'Not submitted'
-                  }</td>
+                  <td>${assessment.submission?.status || 'Not submitted'}</td>
                   <td>${
                     assessment.submission?.submittedAt
                       ? new Date(
@@ -437,7 +435,7 @@ function generateProgressReport(data: any): string {
     const studentName = data.student?.name || 'Unknown Student';
     const studentEmail = data.student?.email || 'Unknown Email';
     const courseTitle = data.course?.title || 'Unknown Course';
-    
+
     return `
 Student Progress Report
 ----------------------
