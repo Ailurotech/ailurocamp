@@ -1,423 +1,386 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import {
+  useEffect,
+  useState,
+  useLayoutEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, LinkIcon, CalendarIcon } from '@heroicons/react/20/solid';
+import { PlusIcon } from '@heroicons/react/20/solid';
+import { DragDropContext, DragStart, DropResult } from 'react-beautiful-dnd';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import {
+  Project,
+  Column,
+  MoveCardRequest,
+  Card,
+  APIErrorHandler,
+} from '@/types/board';
+import { BoardColumn } from './BoardColumn';
 import CreateProjectModal from './CreateProjectModal';
 import NewIssueModal from './NewIssueModal';
-import {
-  addIssueToProjectBoard,
-  fetchAllProjects,
-  fetchIssuesWithinProjects,
-} from '@/services/github';
-import NoProjectFound from './NoProjectFound';
-import Spinner from './Spinner';
 
-interface Project {
-  id: number;
-  name: string;
-  isV2?: boolean;
-  orgProject?: boolean;
-}
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
-interface UniqueProject {
-  id: string;
-  title: string;
-  url: string;
-}
-
-interface Card {
-  id: number | string;
-  note: string;
-  content_url: string;
-  title?: string;
-  created_at: string;
-  number?: number;
-}
-
-interface Column {
-  id: number | string;
-  name: string;
-  cards: Card[];
-  isV2?: boolean;
-  field_id?: string;
+interface ErrorState {
+  message: string;
+  type: 'error' | 'warning';
+  timestamp: number;
 }
 
 export default function KanbanBoard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [uniqueProjects, setUniqueProjects] = useState<UniqueProject[]>([]);
-  const [, setUniqueProjectId] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
-  const [selectedProjectName, setSelectedProjectName] = useState<string>('');
-  const [, setNewIssueId] = useState<string>('');
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
   const [isNewIssueModalOpen, setIsNewIssueModalOpen] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
-  const [expandedColumns, setExpandedColumns] = useState<
-    Record<string, boolean>
-  >({});
-  const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
+  const [dragError, setDragError] = useState<string | null>(null);
+  const [enabled, setEnabled] = useState(false);
+  const [error, setError] = useState<ErrorState | null>(null);
+  const [columnLoading, setColumnLoading] = useState<Record<string, boolean>>(
+    {}
+  );
 
-  const { status } = useSession();
-  const router = useRouter();
+  const handleError = useCallback((error: unknown, context: string) => {
+    console.error(`Error in ${context}:`, error);
+    setError({
+      message: APIErrorHandler.getErrorMessage(error),
+      type: 'error',
+      timestamp: Date.now(),
+    });
+  }, []);
+
+  const handleAPIRequest = async <T,>(
+    request: Promise<Response>
+  ): Promise<T> => {
+    try {
+      const response = await request;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw data.error || new Error('API request failed');
+      }
+
+      return data;
+    } catch (error) {
+      const errorMessage = APIErrorHandler.getErrorMessage(error);
+      throw new Error(errorMessage);
+    }
+  };
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await handleAPIRequest<{ projects: Project[] }>(
+        fetch('/api/board')
+      );
+
+      setProjects(data.projects);
+      if (data.projects.length > 0) {
+        setSelectedProject(data.projects[0].id);
+      }
+    } catch (error) {
+      handleError(error, 'fetchProjects');
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [handleError]);
+
+  const fetchProjectColumns = useCallback(
+    async (projectId: number) => {
+      try {
+        setLoading(true);
+        const data = await handleAPIRequest<{ columns: Column[] }>(
+          fetch(`/api/board?projectId=${projectId}`)
+        );
+
+        setColumns(data.columns);
+      } catch (error) {
+        handleError(error, 'fetchProjectColumns');
+        setColumns([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [handleError]
+  );
+
+  const persistCardMove = useCallback(
+    async (movedCard: Card, destColumn: Column, destIndex: number) => {
+      const requestBody: MoveCardRequest = {
+        action: 'moveCard',
+        cardId: movedCard.id,
+        columnId: destColumn.id,
+        position: destIndex === 0 ? 'top' : 'bottom',
+        isV2: Boolean(destColumn.isV2),
+        fieldId: destColumn.field_id,
+        projectId: destColumn.project_id,
+      };
+
+      try {
+        setColumnLoading((prev) => ({
+          ...prev,
+          [destColumn.id.toString()]: true,
+        }));
+
+        await handleAPIRequest(
+          fetch('/api/board', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          })
+        );
+      } catch (error) {
+        handleError(error, 'persistCardMove');
+        throw error;
+      } finally {
+        setColumnLoading((prev) => ({
+          ...prev,
+          [destColumn.id.toString()]: false,
+        }));
+      }
+    },
+    [handleError]
+  );
+
+  const updateColumnsState = useCallback(
+    (
+      currentColumns: Column[],
+      sourceColumn: Column,
+      destColumn: Column,
+      sourceIndex: number,
+      destIndex: number,
+      movedCard: Card
+    ) => {
+      const newSourceCards = Array.from(sourceColumn.cards);
+      newSourceCards.splice(sourceIndex, 1);
+      const newDestCards =
+        sourceColumn.id === destColumn.id
+          ? newSourceCards
+          : Array.from(destColumn.cards);
+      newDestCards.splice(destIndex, 0, movedCard);
+
+      return currentColumns.map((col) => {
+        if (col.id.toString() === sourceColumn.id.toString()) {
+          return {
+            ...col,
+            cards:
+              sourceColumn.id === destColumn.id ? newDestCards : newSourceCards,
+          };
+        }
+        if (
+          col.id.toString() === destColumn.id.toString() &&
+          sourceColumn.id !== destColumn.id
+        ) {
+          return { ...col, cards: newDestCards };
+        }
+        return col;
+      });
+    },
+    []
+  );
+
+  const onDragStart = useCallback((result: DragStart) => {
+    console.log('Drag started:', result);
+  }, []);
+
+  const onDragEnd = useCallback(
+    async (result: DropResult) => {
+      const { destination, source } = result;
+
+      if (
+        !destination ||
+        (destination.droppableId === source.droppableId &&
+          destination.index === source.index)
+      ) {
+        return;
+      }
+
+      try {
+        const sourceColumn = columns.find(
+          (col) => col.id.toString() === source.droppableId
+        );
+        const destColumn = columns.find(
+          (col) => col.id.toString() === destination.droppableId
+        );
+        if (!sourceColumn || !destColumn) throw new Error('Invalid column');
+
+        const movedCard = sourceColumn.cards[source.index];
+        if (!movedCard) throw new Error('Card not found');
+
+        const updatedColumns = updateColumnsState(
+          columns,
+          sourceColumn,
+          destColumn,
+          source.index,
+          destination.index,
+          movedCard
+        );
+        setColumns(updatedColumns);
+
+        await persistCardMove(movedCard, destColumn, destination.index);
+      } catch (error) {
+        console.error('Error moving card:', error);
+        setColumns(columns);
+        setDragError('Failed to move card. Changes reverted.');
+      }
+    },
+    [columns, updateColumnsState, persistCardMove]
+  );
+
+  const handleCreateIssue = useCallback(
+    async (title: string, body: string, labels: string[]) => {
+      try {
+        const response = await fetch('/api/board', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'createIssue', title, body, labels }),
+        });
+
+        if (response.ok && selectedProject) {
+          fetchProjectColumns(selectedProject);
+        } else {
+          setDragError('Failed to create issue');
+        }
+      } catch (error) {
+        console.error('Error creating issue:', error);
+        setDragError('Failed to create issue');
+      } finally {
+        setIsNewIssueModalOpen(false);
+      }
+    },
+    [selectedProject, fetchProjectColumns]
+  );
+
+  useIsomorphicLayoutEffect(() => {
+    setEnabled(true);
+  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
+    } else if (status === 'authenticated') {
+      fetchProjects();
     }
-  }, [status, router]);
+  }, [status, router, fetchProjects]);
 
   useEffect(() => {
     if (selectedProject) {
       fetchProjectColumns(selectedProject);
     }
-  }, [selectedProject]);
+  }, [selectedProject, fetchProjectColumns]);
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchProjects();
-      fetchUniqueProjects();
+    if (dragError) {
+      const timer = setTimeout(() => setDragError(null), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [status]);
+  }, [dragError]);
 
-  const fetchProjects = async () => {
-    try {
-      const response = await fetch('/api/board');
-      const data = await response.json();
-
-      if (response.status === 401) {
-        setLoading(false);
-        return;
-      }
-
-      if (data && data.projects) {
-        setProjects(data.projects);
-
-        if (data.projects.length > 0) {
-          setSelectedProject(data.projects[0].id);
-          setSelectedProjectName(data.projects[0].name);
-        }
-      } else {
-        setProjects([]);
-      }
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-      setLoading(false);
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [error]);
 
-  const fetchUniqueProjects = async () => {
-    const projects = await fetchAllProjects();
-    console.log('projects: ', projects);
-    setUniqueProjects(projects);
-
-    if (selectedProjectName) {
-      const matchedProject = projects.find(
-        (p: UniqueProject) => p.title === selectedProjectName
+  const boardContent = useMemo(() => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
       );
-      setUniqueProjectId(matchedProject?.id || '');
     }
-  };
 
-  const fetchProjectColumns = async (projectId: number) => {
-    try {
-      setLoading(true);
-
-      const response = await fetch(`/api/board?projectId=${projectId}`);
-      const data = await response.json();
-
-      if (response.status === 401) {
-        setLoading(false);
-        return;
-      }
-
-      if (data && data.columns) {
-        const processedColumns = data.columns.map((column: Column) => {
-          const processedColumn = {
-            ...column,
-            id: column.id.toString(),
-          };
-
-          if (column.cards && Array.isArray(column.cards)) {
-            processedColumn.cards = column.cards.map((card: Card) => ({
-              ...card,
-              id: card.id.toString(),
-            }));
-          } else {
-            processedColumn.cards = [];
-          }
-
-          return processedColumn;
-        });
-
-        setColumns(processedColumns);
-      } else {
-        setColumns([]);
-      }
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching project columns:', error);
-      setLoading(false);
-      setColumns([]);
-    }
-  };
-
-  const handleSearchChange = (columnId: string, value: string) => {
-    setSearchTerms((prev) => ({
-      ...prev,
-      [columnId]: value.toLowerCase(),
-    }));
-  };
-
-  const handleCreateIssue = async (
-    title: string,
-    body: string,
-    labels: string[]
-  ) => {
-    try {
-      const repoName = selectedProjectName.toLowerCase().replace(/\s+/g, '-');
-
-      await fetch('/api/board', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'createIssue',
-          title,
-          body,
-          labels,
-          repo: repoName,
-        }),
-      });
-
-      if (selectedProject) {
-        fetchProjectColumns(selectedProject);
-
-        const issues = await fetchIssuesWithinProjects(selectedProjectName);
-        const lastIssueId = issues.at(-1)?.id || '';
-
-        const matchedProject = uniqueProjects.find(
-          (p) => p.title === selectedProjectName
-        );
-        const projectId = matchedProject?.id || '';
-
-        if (projectId && lastIssueId) {
-          addIssueToProjectBoard(projectId, lastIssueId);
-        }
-
-        setNewIssueId(lastIssueId);
-        setUniqueProjectId(projectId);
-      }
-
-      setIsNewIssueModalOpen(false);
-    } catch (error) {
-      console.error('Error creating issue:', error);
-    }
-  };
-
-  const handleProjectSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const projectId = Number(e.target.value);
-    const projectName = projects.find((p) => p.id === projectId)?.name || '';
-
-    setSelectedProject(projectId);
-    setSelectedProjectName(projectName);
-
-    const matchedProject = uniqueProjects.find((p) => p.title === projectName);
-    setUniqueProjectId(matchedProject?.id || '');
-  };
-
-  const handleProjectCreated = () => {
-    fetchProjects();
-  };
-
-  const handleCardClick = (card: Card) => {
-    if (card.content_url) {
-      window.open(card.content_url, '_blank');
-    }
-  };
-
-  if (loading && projects.length === 0) {
-    return <Spinner />;
-  }
-
-  if (projects.length === 0) {
     return (
+      <DragDropContext
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        isCombineEnabled={false}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {columns.map((column) => (
+            <BoardColumn
+              key={column.id}
+              column={column}
+              isLoading={columnLoading[column.id.toString()]}
+            />
+          ))}
+        </div>
+      </DragDropContext>
+    );
+  }, [columns, loading, onDragStart, onDragEnd, columnLoading]);
+
+  if (!session || !enabled) return null;
+
+  return (
+    <ErrorBoundary>
       <div className="p-4">
+        {error && (
+          <div
+            className={`fixed top-4 right-4 px-4 py-3 rounded ${error.type === 'error' ? 'bg-red-100 border border-red-400 text-red-700' : 'bg-yellow-100 border border-yellow-400 text-yellow-700'}`}
+          >
+            {error.message}
+          </div>
+        )}
+
+        {dragError && (
+          <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {dragError}
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Agile Board</h1>
-          <Button onClick={() => setIsCreateProjectModalOpen(true)}>
-            Create Project
-          </Button>
+          <div className="flex items-center space-x-4">
+            <select
+              className="px-3 py-2 border rounded-md"
+              value={selectedProject || ''}
+              onChange={(e) => setSelectedProject(Number(e.target.value))}
+              disabled={loading}
+            >
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+
+            <Button
+              onClick={() => setIsNewIssueModalOpen(true)}
+              className="flex items-center"
+              disabled={loading || !selectedProject}
+            >
+              <PlusIcon className="w-5 h-5 mr-1" />
+              New Issue
+            </Button>
+          </div>
         </div>
 
-        <NoProjectFound />
+        {boardContent}
+
+        <NewIssueModal
+          isOpen={isNewIssueModalOpen}
+          onClose={() => setIsNewIssueModalOpen(false)}
+          onSubmit={handleCreateIssue}
+        />
 
         <CreateProjectModal
           isOpen={isCreateProjectModalOpen}
           onClose={() => setIsCreateProjectModalOpen(false)}
-          onProjectCreated={handleProjectCreated}
+          onProjectCreated={fetchProjects}
         />
       </div>
-    );
-  }
-
-  return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Agile Board</h1>
-
-        <div className="flex items-center space-x-4">
-          <select
-            className="px-3 py-2 border rounded-md"
-            value={selectedProject || ''}
-            onChange={handleProjectSelection}
-          >
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-
-          <Button
-            onClick={() => setIsNewIssueModalOpen(true)}
-            className="flex items-center"
-          >
-            <PlusIcon className="w-5 h-5 mr-1" />
-            New Issue
-          </Button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[...columns].reverse().map((column) => {
-            const toggleExpand = (columnId: string) => {
-              setExpandedColumns((prev) => ({
-                ...prev,
-                [columnId]: !prev[columnId],
-              }));
-            };
-
-            const isExpanded = expandedColumns[column.id.toString()];
-
-            const filteredCards = column.cards.filter((card) => {
-              const searchTerm = searchTerms[column.id.toString()] || '';
-              const formattedDate = new Date(
-                card.created_at
-              ).toLocaleDateString();
-              const cardNumber = card.number ? card.number.toString() : '';
-
-              return (
-                card.title?.toLowerCase().includes(searchTerm) ||
-                card.note?.toLowerCase().includes(searchTerm) ||
-                formattedDate.includes(searchTerm) ||
-                cardNumber.includes(searchTerm)
-              );
-            });
-
-            const visibleCards = isExpanded
-              ? filteredCards
-              : filteredCards.slice(0, 5);
-
-            return (
-              <div
-                key={column.id.toString()}
-                className="bg-gray-100 rounded-lg p-2"
-              >
-                <div className="flex justify-between items-center mb-2 px-2">
-                  <h2 className="font-semibold text-lg">{column.name}</h2>
-                  <input
-                    type="text"
-                    className="border px-2 py-1 rounded-md text-sm"
-                    placeholder="Search by any..."
-                    value={searchTerms[column.id.toString()] || ''}
-                    onChange={(e) =>
-                      handleSearchChange(column.id.toString(), e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="min-h-[500px]">
-                  {visibleCards.map((card) => (
-                    <Card
-                      key={card.id.toString()}
-                      className="mb-2 cursor-pointer"
-                      onClick={() => handleCardClick(card)}
-                    >
-                      {card.title && (
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">
-                            {card.title}
-                            {card.number && (
-                              <span className="ml-2 text-gray-500 text-sm">
-                                #{card.number}
-                              </span>
-                            )}
-                          </CardTitle>
-                        </CardHeader>
-                      )}
-
-                      {card.note && (
-                        <CardContent className="py-0 px-4 text-xs text-gray-600">
-                          {card.note.length > 100
-                            ? `${card.note.substring(0, 100)}...`
-                            : card.note}
-                        </CardContent>
-                      )}
-
-                      <CardContent className="py-2 px-4 flex items-center justify-between">
-                        <div className="flex items-center text-xs text-gray-500">
-                          <CalendarIcon className="w-3 h-3 mr-1" />
-                          {new Date(card.created_at).toLocaleDateString()}
-                        </div>
-
-                        {card.content_url && (
-                          <div className="text-blue-500">
-                            <LinkIcon className="w-3 h-3" />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {column.cards.length > 5 && (
-                  <button
-                    className="w-full text-blue-500 text-sm mt-2"
-                    onClick={() => toggleExpand(column.id.toString())}
-                  >
-                    {isExpanded ? 'Show Less' : 'Show More'}
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <NewIssueModal
-        isOpen={isNewIssueModalOpen}
-        onClose={() => setIsNewIssueModalOpen(false)}
-        onSubmit={handleCreateIssue}
-      />
-
-      <CreateProjectModal
-        isOpen={isCreateProjectModalOpen}
-        onClose={() => setIsCreateProjectModalOpen(false)}
-        onProjectCreated={handleProjectCreated}
-      />
-    </div>
+    </ErrorBoundary>
   );
 }
