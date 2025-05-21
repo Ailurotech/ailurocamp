@@ -7,11 +7,7 @@ import redis from '@/lib/redis';
 
 const CACHE_TTL_SECONDS = 60;
 
-/**
- * GET /api/student/certification/[certificateId]
- * Returns a specific certificate belonging to the authenticated user.
- */
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function GET(_req: NextRequest, context: any) {
   const certificateId = context?.params?.certificateId?.trim();
 
