@@ -77,9 +77,12 @@ export default function StudentCertificationPage() {
               ← Back to Dashboard
             </Link>
           </div>
-          <h1 className="text-4xl font-bold text-indigo-800 mb-2">🎓 My Achievements</h1>
+          <h1 className="text-4xl font-bold text-indigo-800 mb-2">
+            🎓 My Achievements
+          </h1>
           <p className="text-gray-600 mb-10">
-            Here you’ll find all the certificates you’ve earned through AiluroCamp courses.
+            Here you’ll find all the certificates you’ve earned through
+            AiluroCamp courses.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

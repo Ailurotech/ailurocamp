@@ -71,7 +71,12 @@ export async function GET(req: NextRequest) {
     await connectDB();
     const certificates = await Certificate.find({ userId: userEmail });
 
-    await redis.set(cacheKey, JSON.stringify(certificates), 'EX', CACHE_TTL_SECONDS);
+    await redis.set(
+      cacheKey,
+      JSON.stringify(certificates),
+      'EX',
+      CACHE_TTL_SECONDS
+    );
 
     return applySecurityHeaders(
       NextResponse.json({ certificates, cached: false })
@@ -121,7 +126,10 @@ export async function POST(req: NextRequest) {
     const certIdRegex = /^[A-Z0-9\-]+$/;
     if (!certIdRegex.test(certificateId)) {
       return applySecurityHeaders(
-        NextResponse.json({ error: 'Invalid certificateId format' }, { status: 400 })
+        NextResponse.json(
+          { error: 'Invalid certificateId format' },
+          { status: 400 }
+        )
       );
     }
 

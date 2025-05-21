@@ -64,9 +64,13 @@ export default function CertificateDetailPage() {
           console.error(`[Axios Error] Status ${status}: ${detail}`, err);
 
           if (status === 404) {
-            setErrorMsg('The certificate could not be found. Please check the link.');
+            setErrorMsg(
+              'The certificate could not be found. Please check the link.'
+            );
           } else if (status === 403) {
-            setErrorMsg('Access denied. You may not have permission to view this certificate.');
+            setErrorMsg(
+              'Access denied. You may not have permission to view this certificate.'
+            );
           } else {
             setErrorMsg('Failed to load certificate. Please try again later.');
           }
@@ -95,7 +99,8 @@ export default function CertificateDetailPage() {
           <h1 className="text-4xl font-bold text-red-600 mb-2">Oops</h1>
           <p className="text-gray-600 text-lg">{errorMsg}</p>
           <p className="mt-4 text-sm text-gray-400">
-            Please check the certificate link or go back to the certification page.
+            Please check the certificate link or go back to the certification
+            page.
           </p>
         </div>
       ) : (
