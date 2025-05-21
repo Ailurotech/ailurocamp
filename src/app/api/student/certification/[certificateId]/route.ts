@@ -7,26 +7,52 @@ import redis from '@/lib/redis';
 
 const CACHE_TTL_SECONDS = 60;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function GET(_req: NextRequest, context: any) {
-  const certificateId = context?.params?.certificateId?.trim();
+interface ParamsContext {
+  params: {
+    certificateId: string;
+  };
+}
+
+/**
+ * Apply standard security headers to response
+ */
+function applySecurityHeaders(res: NextResponse) {
+  res.headers.set('X-Content-Type-Options', 'nosniff');
+  res.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  return res;
+}
+
+/**
+ * GET /api/student/certification/[certificateId]
+ * Returns a specific certificate belonging to the authenticated user.
+ */
+export async function GET(
+  _req: NextRequest,
+  context: ParamsContext
+): Promise<NextResponse> {
+  const certificateId = context.params?.certificateId?.trim();
 
   try {
     const session = await getServerSession(authOptions);
     const userEmail = session?.user?.email;
 
     if (!userEmail) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return applySecurityHeaders(
+        NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      );
     }
 
     const cacheKey = `certificate:${userEmail}:${certificateId}`;
     const cached = await redis.get(cacheKey);
 
     if (cached) {
-      return NextResponse.json({
-        certificate: JSON.parse(cached),
-        cached: true,
-      });
+      return applySecurityHeaders(
+        NextResponse.json({
+          certificate: JSON.parse(cached),
+          cached: true,
+        })
+      );
     }
 
     await connectDB();
@@ -36,23 +62,26 @@ export async function GET(_req: NextRequest, context: any) {
     });
 
     if (!cert) {
-      return NextResponse.json(
-        { error: 'Certificate not found' },
-        { status: 404 }
+      return applySecurityHeaders(
+        NextResponse.json({ error: 'Certificate not found' }, { status: 404 })
       );
     }
 
     await redis.set(cacheKey, JSON.stringify(cert), 'EX', CACHE_TTL_SECONDS);
 
-    return NextResponse.json({ certificate: cert, cached: false });
+    return applySecurityHeaders(
+      NextResponse.json({ certificate: cert, cached: false })
+    );
   } catch (err) {
     console.error('[GET /certification/:id] Internal Error:', err);
-    return NextResponse.json(
-      {
-        error: 'Failed to retrieve certificate',
-        detail: err instanceof Error ? err.message : 'Unknown error',
-      },
-      { status: 500 }
+    return applySecurityHeaders(
+      NextResponse.json(
+        {
+          error: 'Failed to retrieve certificate',
+          detail: err instanceof Error ? err.message : 'Unknown error',
+        },
+        { status: 500 }
+      )
     );
   }
 }
