@@ -1,6 +1,6 @@
 'use client';
 
-import { Certificate } from '@/services/certificateService';
+import type { Certificate } from '@/types/certificate';
 
 interface Props {
   cert: Certificate;

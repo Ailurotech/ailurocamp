@@ -1,11 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { saveAs } from 'file-saver';
-import { fetchCertificates, Certificate } from '@/services/certificateService';
-import CertificateCard from '@/components/CertificateCard';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
 import Link from 'next/link';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import CertificateCard from '@/components/CertificateCard';
+import { fetchCertificates } from '@/services/certificateService';
+import {
+  downloadCertificate,
+  printCertificate,
+  shareToLinkedIn,
+  copyToResume,
+} from '@/utils/certificateActions';
+import { extractApiErrorMessage } from '@/utils/handleApiError';
+import type { Certificate } from '@/types/certificate';
 
 export default function StudentCertificationPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
@@ -18,50 +25,10 @@ export default function StudentCertificationPage() {
       .then(setCertificates)
       .catch((err) => {
         console.error('❌ Failed to fetch certificates:', err);
-        alert('Failed to load your certificates. Please try again later.');
+        alert(extractApiErrorMessage(err));
       })
       .finally(() => setLoading(false));
   }, []);
-
-  const downloadCertificate = (cert: Certificate) => {
-    const blob = new Blob([JSON.stringify(cert, null, 2)], {
-      type: 'application/json',
-    });
-    saveAs(blob, `${cert.courseTitle}-certificate.json`);
-  };
-
-  const printCertificate = (cert: Certificate) => {
-    const content = `
-      <h1 style="font-family:sans-serif;">Certificate of Completion</h1>
-      <p><strong>Course:</strong> ${cert.courseTitle}</p>
-      <p><strong>Completed on:</strong> ${cert.completedAt}</p>
-      <p><strong>ID:</strong> ${cert.certificateId}</p>`;
-    const win = window.open('', '_blank');
-    if (win) {
-      win.document.write(content);
-      win.print();
-      win.close();
-    }
-  };
-
-  const shareToLinkedIn = (cert: Certificate) => {
-    const summary = encodeURIComponent(
-      `I completed "${cert.courseTitle}" on AiluroCamp! 🎓`
-    );
-    const certLink = `${baseUrl}/student/certification/${cert.certificateId}`;
-    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${certLink}&summary=${summary}`;
-    window.open(url, '_blank');
-  };
-
-  const copyToResume = (cert: Certificate) => {
-    const markdown = `**Course Completed:** ${cert.courseTitle}\n**Date:** ${cert.completedAt.slice(
-      0,
-      10
-    )}\n**Certificate ID:** ${cert.certificateId}\n[🔗 View Certificate](${baseUrl}/student/certification/${cert.certificateId})`;
-    navigator.clipboard.writeText(markdown).then(() => {
-      alert('✅ Certificate info copied to clipboard!');
-    });
-  };
 
   if (loading) return <p className="p-4">Loading certificates...</p>;
 
@@ -77,6 +44,7 @@ export default function StudentCertificationPage() {
               ← Back to Dashboard
             </Link>
           </div>
+
           <h1 className="text-4xl font-bold text-indigo-800 mb-2">
             🎓 My Achievements
           </h1>
@@ -91,10 +59,10 @@ export default function StudentCertificationPage() {
                 key={cert.certificateId}
                 cert={cert}
                 baseUrl={baseUrl}
-                onDownload={downloadCertificate}
-                onPrint={printCertificate}
-                onShare={shareToLinkedIn}
-                onCopy={copyToResume}
+                onDownload={() => downloadCertificate(cert)}
+                onPrint={() => printCertificate(cert)}
+                onShare={() => shareToLinkedIn(cert, baseUrl)}
+                onCopy={() => copyToResume(cert, baseUrl)}
               />
             ))}
           </div>

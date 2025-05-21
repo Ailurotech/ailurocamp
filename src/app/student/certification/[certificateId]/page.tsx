@@ -4,19 +4,12 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import Link from 'next/link';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import CertificateDetail from '@/components/CertificateDetail';
+import { extractApiErrorMessage } from '@/utils/handleApiError';
+import type { Certificate } from '@/types/certificate';
 
-/**
- * Represents a single certificate entity.
- */
-interface Certificate {
-  courseTitle: string;
-  completedAt: string;
-  certificateId: string;
-}
-
-// Retry network errors with exponential backoff
+// Enable automatic retry on network errors
 axiosRetry(axios, {
   retries: 3,
   retryDelay: (retryCount) => retryCount * 1000,
@@ -25,10 +18,9 @@ axiosRetry(axios, {
 });
 
 /**
- * CertificateDetailPage component
+ * CertificateDetailPage
  *
- * Displays detailed info about a specific certificate retrieved from the API.
- * Includes error handling, loading state, and navigation link.
+ * Fetches and displays details for a single certificate using the `CertificateDetail` component.
  */
 export default function CertificateDetailPage() {
   const { certificateId } = useParams();
@@ -36,9 +28,6 @@ export default function CertificateDetailPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  /**
-   * Fetch certificate detail by ID on page load.
-   */
   useEffect(() => {
     const id =
       typeof certificateId === 'string' ? certificateId.replace(/\/$/, '') : '';
@@ -57,28 +46,8 @@ export default function CertificateDetailPage() {
         }
       })
       .catch((err) => {
-        if (axios.isAxiosError(err)) {
-          const status = err.response?.status;
-          const detail = err.response?.data?.message || err.message;
-
-          console.error(`[Axios Error] Status ${status}: ${detail}`, err);
-
-          if (status === 404) {
-            setErrorMsg(
-              'The certificate could not be found. Please check the link.'
-            );
-          } else if (status === 403) {
-            setErrorMsg(
-              'Access denied. You may not have permission to view this certificate.'
-            );
-          } else {
-            setErrorMsg('Failed to load certificate. Please try again later.');
-          }
-        } else {
-          console.error('[Unknown Error]', err);
-          setErrorMsg('An unknown error occurred.');
-        }
-
+        console.error('❌ Certificate fetch failed:', err);
+        setErrorMsg(extractApiErrorMessage(err));
         setCertificate(null);
       })
       .finally(() => setLoading(false));
@@ -104,31 +73,7 @@ export default function CertificateDetailPage() {
           </p>
         </div>
       ) : (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 py-12 text-center">
-          <h1 className="text-3xl font-bold text-indigo-700 mb-4">
-            🎉 Certificate of Completion
-          </h1>
-          <p className="text-lg text-gray-700">
-            This certifies that you’ve completed:
-          </p>
-          <h2 className="text-2xl font-semibold text-gray-900 mt-4">
-            {certificate.courseTitle}
-          </h2>
-          <p className="text-gray-600 mt-2">
-            Completed on: {certificate.completedAt.slice(0, 10)}
-          </p>
-          <p className="text-sm text-gray-400 mt-1">
-            Certificate ID: {certificate.certificateId}
-          </p>
-          <div className="mt-8">
-            <Link
-              href="/student/certification"
-              className="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-            >
-              ← Back to My Certificates
-            </Link>
-          </div>
-        </div>
+        <CertificateDetail certificate={certificate} />
       )}
     </ErrorBoundary>
   );

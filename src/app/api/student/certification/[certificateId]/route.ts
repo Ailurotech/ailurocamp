@@ -29,9 +29,10 @@ function applySecurityHeaders(res: NextResponse) {
  */
 export async function GET(
   _req: NextRequest,
-  context: ParamsContext
+  context: { params: Promise<{ certificateId: string }> }
 ): Promise<NextResponse> {
-  const certificateId = context.params?.certificateId?.trim();
+  const { certificateId } = await context.params;
+  const trimmedId = certificateId.trim();
 
   try {
     const session = await getServerSession(authOptions);
@@ -43,7 +44,7 @@ export async function GET(
       );
     }
 
-    const cacheKey = `certificate:${userEmail}:${certificateId}`;
+    const cacheKey = `certificate:${userEmail}:${trimmedId}`;
     const cached = await redis.get(cacheKey);
 
     if (cached) {
@@ -57,7 +58,7 @@ export async function GET(
 
     await connectDB();
     const cert = await Certificate.findOne({
-      certificateId,
+      certificateId: trimmedId,
       userId: userEmail,
     });
 
