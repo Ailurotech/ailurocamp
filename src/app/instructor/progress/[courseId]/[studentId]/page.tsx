@@ -226,22 +226,11 @@ export default function StudentProgressDetailPage({
       calculatedProgress: percentComplete,
     });
 
-    // If calculated progress differs from the database, update local state first
-    // and then update database in background
+    // If calculated progress differs from the database, update the database
     if (
       percentComplete !== progressData.progress.overallProgress &&
       totalLessonsCount > 0
     ) {
-      // Update local state immediately
-      setProgressData({
-        ...progressData,
-        progress: {
-          ...progressData.progress,
-          overallProgress: percentComplete,
-        },
-      });
-
-      // Update database in background
       updateProgressInDatabase(percentComplete);
     }
 
