@@ -105,13 +105,16 @@ export default function StudentProgressDetailPage({
   };
 
   // Identify struggling students (based on completion progress and time)
+  // Identify struggling students based on multiple factors
   const identifyStruggling = (): boolean => {
     if (!progressData) return false;
 
-    // No progress or low progress
+    // Factor 1: No progress or low progress (less than 25%)
+    // Students with minimal progress may need intervention
     if (progressData.progress.overallProgress < 25) return true;
 
-    // No activity in the last two weeks
+    // Factor 2: No activity in the last two weeks
+    // Inactive students may have abandoned the course
     if (progressData.progress.lastAccessedAt) {
       const lastActivity = new Date(progressData.progress.lastAccessedAt);
       const twoWeeksAgo = new Date();
@@ -120,9 +123,10 @@ export default function StudentProgressDetailPage({
       if (lastActivity < twoWeeksAgo) return true;
     }
 
-    // Time spent is much higher than average (assuming estimated module time)
+    // Factor 3: Excessive time spent on lessons
+    // Students spending too much time may be struggling with content
     const excessiveTimeSpent = progressData.progress.completedLessons.some(
-      (lesson) => lesson.timeSpent > 90 // Assuming over 90 minutes is abnormal
+      (lesson) => lesson.timeSpent > 90 // Over 90 minutes on a single lesson indicates difficulty
     );
 
     return excessiveTimeSpent;
@@ -132,17 +136,20 @@ export default function StudentProgressDetailPage({
   const generateReport = (): ProgressReportType | null => {
     if (!progressData) return null;
 
+    // Count lessons that are marked as completed
     const completedLessonsCount = progressData.progress.completedLessons.filter(
       (l) => l.completed
     ).length;
 
     console.log('Course Modules:', progressData.course.modules);
 
+    // Calculate total number of lessons across all modules
     let totalLessonsCount = 0;
     if (
       progressData.course.modules &&
       Array.isArray(progressData.course.modules)
     ) {
+      // Iterate through each module to count all lessons
       progressData.course.modules.forEach((module, index) => {
         console.log(`Module ${index}:`, module);
         console.log(`Module ${index} lessons:`, module.lessons);
@@ -153,17 +160,14 @@ export default function StudentProgressDetailPage({
       });
     }
 
-    // If total lessons count is 0 but there are completed lessons, use completed lessons as reference
+    // Fallback calculation: If total lessons count is 0 but there are completed lessons,
+    // estimate total lessons based on completed lessons data
     if (
       totalLessonsCount === 0 &&
       progressData.progress.completedLessons.length > 0
     ) {
-      // Find the maximum module index and lesson index
-      const maxModuleIndex = Math.max(
-        ...progressData.progress.completedLessons.map((l) => l.moduleIndex)
-      );
-
       // Create a set for each module to record known lesson indices
+      // This helps identify unique lessons when module structure is missing
       const estimatedLessons = progressData.progress.completedLessons.reduce(
         (acc, lesson) => {
           if (!acc[lesson.moduleIndex]) {
@@ -175,7 +179,7 @@ export default function StudentProgressDetailPage({
         {} as Record<number, Set<number>>
       );
 
-      // Calculate estimated total lessons
+      // Calculate estimated total lessons by counting unique lessons across all modules
       totalLessonsCount = Object.values(estimatedLessons).reduce(
         (sum, set) => sum + set.size,
         0
@@ -187,38 +191,45 @@ export default function StudentProgressDetailPage({
       );
     }
 
-    // If still 0, use database progress value for reverse calculation
+    // Second fallback: If still 0, use database progress value for reverse calculation
+    // This assumes the database percentage is correct and works backwards
     if (totalLessonsCount === 0 && progressData.progress.overallProgress > 0) {
-      // Assuming database progress is correct, calculate total lessons count
+      // Formula: completedLessons = (totalLessons * progressPercentage) / 100
+      // Rearranged to: totalLessons = (completedLessons * 100) / progressPercentage
       totalLessonsCount = Math.ceil(
         (completedLessonsCount * 100) / progressData.progress.overallProgress
       );
       console.log('Reverse calculated total lessons:', totalLessonsCount);
     }
 
+    // Calculate total time spent across all lessons
     const totalTimeSpent = progressData.progress.completedLessons.reduce(
       (total, lesson) => total + lesson.timeSpent,
       0
     );
 
+    // Count completed assessments (those with submissions)
     const completedAssessments = progressData.assessments.filter(
       (a) => a.submission
     ).length;
 
+    // Calculate average assessment score, filtering out assessments without scores
     const averageScore =
       progressData.assessments
         .filter((a) => a.submission && a.submission.score !== undefined)
         .reduce((total, a) => total + (a.submission?.score || 0), 0) /
       (progressData.assessments.filter(
         (a) => a.submission && a.submission.score !== undefined
-      ).length || 1);
+      ).length || 1); // Avoid division by zero
 
+    // Calculate completion percentage based on lessons
+    // If we have valid lesson counts, calculate percentage, otherwise use stored value
     const percentComplete =
       totalLessonsCount > 0
         ? Math.round((completedLessonsCount / totalLessonsCount) * 100)
         : progressData.progress.overallProgress;
 
-    // Add debug logs
+    // Add debug logs for troubleshooting progress calculations
     console.log('Progress Data:', {
       completedLessonsCount,
       totalLessonsCount,
@@ -227,6 +238,7 @@ export default function StudentProgressDetailPage({
     });
 
     // If calculated progress differs from the database, update the database
+    // This ensures consistency between UI and stored values
     if (
       percentComplete !== progressData.progress.overallProgress &&
       totalLessonsCount > 0
@@ -246,9 +258,11 @@ export default function StudentProgressDetailPage({
     };
   };
 
-  // Add function to update progress in database
+  // 3. 更新学生进度到数据库的逻辑
+  // Update progress in database when calculated value differs from stored value
   const updateProgressInDatabase = async (newProgress: number) => {
     try {
+      // Call the API endpoint to update progress
       const response = await fetch(
         `/api/instructor/update-progress/${courseId}/${studentId}`,
         {
@@ -262,6 +276,7 @@ export default function StudentProgressDetailPage({
         }
       );
 
+      // Handle unsuccessful API responses
       if (!response.ok) {
         console.error(
           'Failed to update progress in database:',
@@ -272,7 +287,8 @@ export default function StudentProgressDetailPage({
 
       console.log('Progress updated in database successfully');
 
-      // Update local state
+      // Update local state to reflect the new progress value
+      // This ensures UI consistency without requiring a page refresh
       if (progressData) {
         setProgressData({
           ...progressData,

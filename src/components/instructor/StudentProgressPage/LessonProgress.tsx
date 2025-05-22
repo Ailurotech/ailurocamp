@@ -24,11 +24,13 @@ const LessonProgress: React.FC<LessonProgressProps> = ({
       <ul role="list" className="divide-y divide-gray-200">
         {completedLessons
           .sort((a, b) => {
-            // First sort by module index
+            // First sort by module index to group lessons by module
+            // This ensures lessons appear in the correct module order
             if (a.moduleIndex !== b.moduleIndex) {
               return a.moduleIndex - b.moduleIndex;
             }
-            // Then sort by lesson index
+            // Then sort by lesson index within each module
+            // This ensures lessons within a module appear in the correct sequence
             return a.lessonIndex - b.lessonIndex;
           })
           .map((lesson) => {

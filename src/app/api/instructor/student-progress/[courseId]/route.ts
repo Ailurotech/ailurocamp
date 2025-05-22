@@ -76,17 +76,18 @@ export async function GET(
 
     // Fetch the students enrolled in the course
     const enrolledStudents = await User.find({
-      _id: { $in: course.enrolledStudents }, // Match student IDs in enrolledStudents
+      _id: { $in: course.enrolledStudents }, // Match student IDs in enrolledStudents array
       roles: 'student', // Ensure the user is a student
     }).select('_id name email'); // Select only the necessary fields (ID, name, email)
 
     // Find students who are enrolled in the course but don't have progress data
+    // This identifies students who haven't started the course yet
     const studentIds = progressData.map((p) => p.student._id.toString());
     const studentsWithoutProgress = enrolledStudents.filter(
       (student) => !studentIds.includes(student._id.toString())
     );
 
-    // Prepare the response data
+    // Prepare the response data with comprehensive course progress information
     const response = {
       course: {
         id: course._id,

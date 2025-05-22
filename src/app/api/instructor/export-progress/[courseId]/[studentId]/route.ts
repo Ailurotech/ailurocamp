@@ -92,46 +92,50 @@ export async function GET(
 // Function to generate a simplified HTML progress report with English content
 function generateProgressReportHtml(data: any): string {
   try {
-    // Extract student and course information
+    // Extract basic student and course information
     const studentName = data.student?.name || 'Unknown Student';
     const studentEmail = data.student?.email || 'Unknown Email';
     const courseTitle = data.course?.title || 'Unknown Course';
 
     // Calculate completion statistics
+    // Count lessons that have been marked as completed
     const completedLessonsCount =
       data.progress?.completedLessons?.filter((l: any) => l.completed)
         ?.length || 0;
 
-    // Calculate total lessons from course modules
+    // Calculate total lessons from course modules structure
     let totalLessonsCount = 0;
     if (data.course?.modules) {
+      // Sum up lessons across all modules
       totalLessonsCount = data.course.modules.reduce(
         (count: number, module: any) => count + (module.lessons?.length || 0),
         0
       );
     }
 
-    // Calculate completion percentage
+    // Calculate completion percentage with proper formatting
     const completionPercentage =
       totalLessonsCount > 0
         ? ((completedLessonsCount / totalLessonsCount) * 100).toFixed(1)
         : '0.0';
 
-    // Calculate time metrics
+    // Calculate time metrics - total minutes spent learning
     const totalTimeSpent =
       data.progress?.completedLessons?.reduce(
         (total: number, lesson: any) => total + (lesson.timeSpent || 0),
         0
       ) || 0;
 
+    // Convert total minutes to hours and minutes format
     const timeSpentHours = Math.floor(totalTimeSpent / 60);
     const timeSpentMinutes = Math.round(totalTimeSpent % 60);
 
-    // Format date strings
+    // Format date strings for better readability
     const lastActivityDate = data.progress?.lastAccessedAt
       ? new Date(data.progress.lastAccessedAt).toLocaleString()
       : 'No record';
 
+    // Find the earliest lesson start date to determine when student began the course
     const startDate =
       data.progress?.completedLessons?.length > 0
         ? new Date(

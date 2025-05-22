@@ -100,12 +100,17 @@ export default function CourseProgressPage({
   }, [courseId, session, status, router]);
 
   // Filter student list
+  // Filter student list based on search query
+  // This enables instructors to quickly find specific students
   const filteredStudentsProgress = studentsProgress.filter(
     (progress) =>
+      // Match by student name (case-insensitive)
       progress.student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      // Match by student email (case-insensitive)
       progress.student.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Similarly filter students without progress records
   const filteredStudentsWithoutProgress = studentsWithoutProgress.filter(
     (student) =>
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
