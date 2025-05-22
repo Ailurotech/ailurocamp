@@ -8,10 +8,7 @@ interface ProgressTabsProps {
   setActiveTab: (tab: TabType) => void;
 }
 
-const ProgressTabs: React.FC<ProgressTabsProps> = ({
-  activeTab,
-  setActiveTab,
-}) => {
+const ProgressTabs: React.FC<ProgressTabsProps> = ({ activeTab, setActiveTab }) => {
   return (
     <div className="border-b border-gray-200 mb-6">
       <nav className="-mb-px flex">

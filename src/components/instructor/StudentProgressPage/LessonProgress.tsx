@@ -1,10 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  LessonProgress as ILessonProgress,
-  ICourseModule,
-} from '@/types/progress';
+import { LessonProgress as ILessonProgress, ICourseModule } from '@/types/progress';
 
 interface LessonProgressProps {
   completedLessons: ILessonProgress[];
@@ -39,7 +36,9 @@ const LessonProgress: React.FC<LessonProgressProps> = ({
               : `Module ${lesson.moduleIndex + 1}`;
 
             const lessonTitle =
-              module && module.lessons && module.lessons[lesson.lessonIndex]
+              module &&
+              module.lessons &&
+              module.lessons[lesson.lessonIndex]
                 ? module.lessons[lesson.lessonIndex].title
                 : `Lesson ${lesson.lessonIndex + 1}`;
 
