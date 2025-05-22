@@ -2,63 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// Simple in-memory rate limiting store
-const rateLimitStore: Record<string, { count: number; timestamp: number }> = {};
-
-// Rate limit configuration
-const RATE_LIMIT = 10; // Maximum requests (lower for export operations)
-const RATE_LIMIT_WINDOW = 60 * 1000; // Time window in milliseconds (1 minute)
-
-// Helper function to check rate limit
-function checkRateLimit(ip: string): { limited: boolean; remaining: number } {
-  const now = Date.now();
-
-  // Initialize or reset expired entries
-  if (
-    !rateLimitStore[ip] ||
-    now - rateLimitStore[ip].timestamp > RATE_LIMIT_WINDOW
-  ) {
-    rateLimitStore[ip] = { count: 0, timestamp: now };
-  }
-
-  // Increment request count
-  rateLimitStore[ip].count++;
-
-  // Check if rate limit is exceeded
-  const isLimited = rateLimitStore[ip].count > RATE_LIMIT;
-  const remaining = Math.max(0, RATE_LIMIT - rateLimitStore[ip].count);
-
-  return { limited: isLimited, remaining };
-}
-
 // API route for displaying student progress as an HTML page
 export async function GET(
   request: NextRequest,
   { params }: { params: { courseId: string; studentId: string } }
 ) {
-  // Get client IP for rate limiting
-  const ip = request.headers.get('x-forwarded-for') || 'unknown';
-
-  // Check rate limit
-  const rateLimit = checkRateLimit(ip);
-
-  // If rate limit exceeded, return 429 Too Many Requests
-  if (rateLimit.limited) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded. Please try again later.' },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': RATE_LIMIT.toString(),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': (
-            Math.ceil(Date.now() / RATE_LIMIT_WINDOW) * RATE_LIMIT_WINDOW
-          ).toString(),
-        },
-      }
-    );
-  }
-
   // Retrieve the current session using NextAuth
   const session = await getServerSession(authOptions);
 
@@ -124,15 +72,11 @@ export async function GET(
     // Generate the report as HTML
     const reportHtml = generateProgressReportHtml(progressData);
 
-    // Return the report as an HTML page with rate limit headers
+    // Return the report as an HTML page (not as a download)
     return new NextResponse(reportHtml, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'X-RateLimit-Limit': RATE_LIMIT.toString(),
-        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
-        'X-RateLimit-Reset': (
-          Math.ceil(Date.now() / RATE_LIMIT_WINDOW) * RATE_LIMIT_WINDOW
-        ).toString(),
+        // Removed Content-Disposition header to display in browser instead of downloading
       },
     });
   } catch (error: any) {
@@ -227,9 +171,7 @@ function generateProgressReportHtml(data: any): string {
                       ? `${assessment.submission.score}/${assessment.totalPoints}`
                       : 'Not graded'
                   }</td>
-                  <td>${
-                    assessment.submission?.status || 'Not submitted'
-                  }</td>
+                  <td>${assessment.submission?.status || 'Not submitted'}</td>
                   <td>${
                     assessment.submission?.submittedAt
                       ? new Date(
@@ -493,7 +435,7 @@ function generateProgressReport(data: any): string {
     const studentName = data.student?.name || 'Unknown Student';
     const studentEmail = data.student?.email || 'Unknown Email';
     const courseTitle = data.course?.title || 'Unknown Course';
-    
+
     return `
 Student Progress Report
 ----------------------

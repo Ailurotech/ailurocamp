@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -54,9 +53,7 @@ const ProgressMetrics: React.FC<ProgressMetricsProps> = ({
             </dd>
           </div>
           <div className="sm:col-span-1">
-            <dt className="text-sm font-medium text-gray-500">
-              Last Activity
-            </dt>
+            <dt className="text-sm font-medium text-gray-500">Last Activity</dt>
             <dd className="mt-1 text-sm text-gray-900">
               {progressData.lastAccessedAt
                 ? formatDate(progressData.lastAccessedAt)
@@ -80,9 +77,7 @@ const ProgressMetrics: React.FC<ProgressMetricsProps> = ({
             </dd>
           </div>
           <div className="sm:col-span-1">
-            <dt className="text-sm font-medium text-gray-500">
-              Started On
-            </dt>
+            <dt className="text-sm font-medium text-gray-500">Started On</dt>
             <dd className="mt-1 text-sm text-gray-900">
               {progressData.completedLessons.length > 0
                 ? formatDate(

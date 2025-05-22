@@ -14,10 +14,10 @@ import ProgressMetrics from '@/components/instructor/StudentProgressPage/Progres
 import ProgressReport from '@/components/instructor/StudentProgressPage/ProgressReport';
 
 // Import types
-import { 
-  StudentProgressData, 
+import {
+  StudentProgressData,
   ProgressReport as ProgressReportType,
-  TabType
+  TabType,
 } from '@/types/progress';
 
 interface PageParams {

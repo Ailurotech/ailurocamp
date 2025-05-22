@@ -1,7 +1,11 @@
 'use client';
 
 import React from 'react';
-import { ProgressReport as IProgressReport, IStudentUser, IStudentProgressCourse } from '@/types/progress';
+import {
+  ProgressReport as IProgressReport,
+  IStudentUser,
+  IStudentProgressCourse,
+} from '@/types/progress';
 
 interface ProgressReportProps {
   report: IProgressReport;
@@ -31,9 +35,7 @@ const ProgressReport: React.FC<ProgressReportProps> = ({
       <div className="border-t border-gray-200">
         <dl>
           <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">
-              Student Name
-            </dt>
+            <dt className="text-sm font-medium text-gray-500">Student Name</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
               {student.name}
             </dd>
@@ -57,8 +59,9 @@ const ProgressReport: React.FC<ProgressReportProps> = ({
                   ></div>
                 </div>
                 <span>
-                  {report.percentComplete}% Complete ({report.completedLessonsCount} of{' '}
-                  {report.totalLessonsCount} lessons)
+                  {report.percentComplete}% Complete (
+                  {report.completedLessonsCount} of {report.totalLessonsCount}{' '}
+                  lessons)
                 </span>
               </div>
             </dd>
@@ -78,9 +81,7 @@ const ProgressReport: React.FC<ProgressReportProps> = ({
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
               {report.completedAssessments > 0 ? (
                 <div>
-                  <span className="font-medium">
-                    {report.averageScore}%{' '}
-                  </span>
+                  <span className="font-medium">{report.averageScore}% </span>
                   average score ({report.completedAssessments} of{' '}
                   {report.totalAssessments} completed)
                 </div>
@@ -113,9 +114,8 @@ const ProgressReport: React.FC<ProgressReportProps> = ({
                     </span>
                   </div>
                   <p className="mt-2">
-                    This student may be struggling with the course
-                    material. Consider providing additional support or
-                    resources.
+                    This student may be struggling with the course material.
+                    Consider providing additional support or resources.
                   </p>
                 </div>
               ) : (
@@ -135,8 +135,7 @@ const ProgressReport: React.FC<ProgressReportProps> = ({
                     <span className="font-medium">On track</span>
                   </div>
                   <p className="mt-2">
-                    The student is progressing well through the course
-                    material.
+                    The student is progressing well through the course material.
                   </p>
                 </div>
               )}
@@ -149,7 +148,10 @@ const ProgressReport: React.FC<ProgressReportProps> = ({
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm"
                 onClick={() => {
                   // Open report in new tab
-                  window.open(`/api/instructor/export-progress/${course.id}/${student.id}`, '_blank');
+                  window.open(
+                    `/api/instructor/export-progress/${course.id}/${student.id}`,
+                    '_blank'
+                  );
                 }}
               >
                 Export Report
