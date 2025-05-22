@@ -146,65 +146,7 @@ export async function GET(
 }
 
 // Function to generate a simplified HTML progress report with English content
-// Define interfaces for the progress report data structure
-interface StudentInfo {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface CourseModule {
-  title: string;
-  lessons: Array<{
-    title: string;
-    order: number;
-  }>;
-}
-
-interface CourseInfo {
-  id: string;
-  title: string;
-  modules: CourseModule[];
-}
-
-interface CompletedLesson {
-  moduleIndex: number;
-  lessonIndex: number;
-  title: string;
-  completed: boolean;
-  timeSpent: number;
-  startedAt: string;
-  completedAt?: string;
-}
-
-interface AssessmentSubmission {
-  score?: number;
-  status: 'submitted' | 'graded' | 'pending';
-  submittedAt: string;
-}
-
-interface Assessment {
-  title: string;
-  type: 'quiz' | 'assignment' | 'exam';
-  totalPoints: number;
-  submission?: AssessmentSubmission;
-}
-
-interface Progress {
-  overallProgress: number;
-  completedLessons: CompletedLesson[];
-  lastAccessedAt: string | null;
-}
-
-interface ProgressReportData {
-  student: StudentInfo;
-  course: CourseInfo;
-  progress: Progress;
-  assessments?: Assessment[];
-}
-
-// Update the function signature with the new interface
-function generateProgressReportHtml(data: ProgressReportData): string {
+function generateProgressReportHtml(data: any): string {
   try {
     // Extract student and course information
     const studentName = data.student?.name || 'Unknown Student';
