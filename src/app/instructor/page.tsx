@@ -129,6 +129,18 @@ export default function InstructorDashboard() {
         </div>
       </div>
 
+      {/* button to progress */}
+      <div className="mt-8 flex">
+        <Link href="/instructor/progress">
+          <button
+            type="button"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            Student Progress
+          </button>
+        </Link>
+      </div>
+
       {/* Recent Activity */}
       <div className="mt-8">
         <h2 className="text-lg font-medium text-gray-900">Recent Activity</h2>
