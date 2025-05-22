@@ -1,12 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import connectDB from '@/lib/mongodb';
+import Course from '@/models/Course';
+import User from '@/models/User';
+import StudentProgress from '@/models/StudentProgress';
+import Assessment from '@/models/Assessment';
+
+// Simple in-memory rate limiting store
+const rateLimitStore: Record<string, { count: number; timestamp: number }> = {};
+
+// Rate limit configuration
+const RATE_LIMIT = 10; // Maximum requests (lower for export operations)
+const RATE_LIMIT_WINDOW = 60 * 1000; // Time window in milliseconds (1 minute)
+
+// Helper function to check rate limit
+function checkRateLimit(ip: string): { limited: boolean; remaining: number } {
+  const now = Date.now();
+
+  // Initialize or reset expired entries
+  if (
+    !rateLimitStore[ip] ||
+    now - rateLimitStore[ip].timestamp > RATE_LIMIT_WINDOW
+  ) {
+    rateLimitStore[ip] = { count: 0, timestamp: now };
+  }
+
+  // Increment request count
+  rateLimitStore[ip].count++;
+
+  // Check if rate limit is exceeded
+  const isLimited = rateLimitStore[ip].count > RATE_LIMIT;
+  const remaining = Math.max(0, RATE_LIMIT - rateLimitStore[ip].count);
+
+  return { limited: isLimited, remaining };
+}
 
 // API route for displaying student progress as an HTML page
 export async function GET(
   request: NextRequest,
   { params }: { params: { courseId: string; studentId: string } }
 ) {
+  // Get client IP for rate limiting
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+
+  // Check rate limit
+  const rateLimit = checkRateLimit(ip);
+
+  // If rate limit exceeded, return 429 Too Many Requests
+  if (rateLimit.limited) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': RATE_LIMIT.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': (
+            Math.ceil(Date.now() / RATE_LIMIT_WINDOW) * RATE_LIMIT_WINDOW
+          ).toString(),
+        },
+      }
+    );
+  }
+
   // Retrieve the current session using NextAuth
   const session = await getServerSession(authOptions);
 
@@ -42,41 +99,98 @@ export async function GET(
   }
 
   try {
-    // Use the existing API to fetch the student progress data
-    const apiUrl = new URL(request.url);
-    const baseUrl = `${apiUrl.protocol}//${apiUrl.host}`;
+    // Connect to the MongoDB database
+    await connectDB();
 
-    // Make request to your existing API endpoint
-    const response = await fetch(
-      `${baseUrl}/api/instructor/student-progress/${courseId}/${studentId}`,
-      {
-        headers: {
-          // Forward cookies and auth headers for session validation
-          cookie: request.headers.get('cookie') || '',
-          authorization: request.headers.get('authorization') || '',
-        },
-      }
-    );
+    // Fetch the course using the courseId and populate its modules
+    const course = await Course.findById(courseId).populate('modules');
 
-    // Check if the API request was successful
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.error || `API returned status: ${response.status}`
+    // If the course is not found, return an error
+    if (!course) {
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+    }
+
+    // Ensure the instructor is either an admin or the course instructor
+    if (
+      !session.user?.roles?.includes('admin') &&
+      course.instructor.toString() !== session.user?.id
+    ) {
+      return NextResponse.json(
+        { error: "You do not have permission to view this student's progress" },
+        { status: 403 }
       );
     }
 
-    // Parse the response data
-    const progressData = await response.json();
+    // Fetch the student by their ID and select name and email
+    const student = await User.findById(studentId).select('name email');
+
+    // If the student is not found, return an error
+    if (!student) {
+      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+    }
+
+    // Ensure the student is enrolled in the course
+    if (!course.enrolledStudents.includes(student._id)) {
+      return NextResponse.json(
+        { error: 'This student is not enrolled in this course' },
+        { status: 404 }
+      );
+    }
+
+    // Fetch the student's progress for the given course
+    const progress = await StudentProgress.findOne({
+      course: courseId,
+      student: studentId,
+    });
+
+    // Fetch the student's assessment submissions for the given course
+    const assessments = await Assessment.find({
+      course: courseId,
+      'submissions.student': studentId,
+    }).select('title type totalPoints submissions.$');
+
+    // Prepare the response with the student's details, course, progress, and assessments
+    const progressData = {
+      student: {
+        id: student._id,
+        name: student.name,
+        email: student.email,
+      },
+      course: {
+        id: course._id,
+        title: course.title,
+        modules: course.modules.map((module: any) => ({
+          title: module.title,
+          lessons: module.lessons || [], // Ensure modules have lessons
+        })),
+      },
+      progress: progress || {
+        overallProgress: 0,
+        completedModules: [],
+        completedLessons: [],
+        lastAccessedAt: null,
+      },
+      assessments: assessments.map((assessment) => ({
+        id: assessment._id,
+        title: assessment.title,
+        type: assessment.type,
+        totalPoints: assessment.totalPoints,
+        submission: assessment.submissions[0] || null, // Return the first submission
+      })),
+    };
 
     // Generate the report as HTML
     const reportHtml = generateProgressReportHtml(progressData);
 
-    // Return the report as an HTML page (not as a download)
+    // Return the report as an HTML page with rate limit headers
     return new NextResponse(reportHtml, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        // Removed Content-Disposition header to display in browser instead of downloading
+        'X-RateLimit-Limit': RATE_LIMIT.toString(),
+        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+        'X-RateLimit-Reset': (
+          Math.ceil(Date.now() / RATE_LIMIT_WINDOW) * RATE_LIMIT_WINDOW
+        ).toString(),
       },
     });
   } catch (error: any) {

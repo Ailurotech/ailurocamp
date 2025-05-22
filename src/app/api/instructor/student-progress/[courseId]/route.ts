@@ -6,11 +6,63 @@ import Course from '@/models/Course';
 import User from '@/models/User';
 import StudentProgress from '@/models/StudentProgress';
 
+// Simple in-memory rate limiting store
+const rateLimitStore: Record<string, { count: number; timestamp: number }> = {};
+
+// Rate limit configuration
+const RATE_LIMIT = 30; // Maximum requests
+const RATE_LIMIT_WINDOW = 60 * 1000; // Time window in milliseconds (1 minute)
+
+// Helper function to check rate limit
+function checkRateLimit(ip: string): { limited: boolean; remaining: number } {
+  const now = Date.now();
+
+  // Initialize or reset expired entries
+  if (
+    !rateLimitStore[ip] ||
+    now - rateLimitStore[ip].timestamp > RATE_LIMIT_WINDOW
+  ) {
+    rateLimitStore[ip] = { count: 0, timestamp: now };
+  }
+
+  // Increment request count
+  rateLimitStore[ip].count++;
+
+  // Check if rate limit is exceeded
+  const isLimited = rateLimitStore[ip].count > RATE_LIMIT;
+  const remaining = Math.max(0, RATE_LIMIT - rateLimitStore[ip].count);
+
+  return { limited: isLimited, remaining };
+}
+
 // API route for fetching the progress of students in a specific course
 export async function GET(
   request: NextRequest,
   { params }: { params: { courseId: string } }
 ) {
+  // Get client IP for rate limiting
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+
+  // Check rate limit
+  const rateLimit = checkRateLimit(ip);
+
+  // If rate limit exceeded, return 429 Too Many Requests
+  if (rateLimit.limited) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': RATE_LIMIT.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': (
+            Math.ceil(Date.now() / RATE_LIMIT_WINDOW) * RATE_LIMIT_WINDOW
+          ).toString(),
+        },
+      }
+    );
+  }
+
   // Retrieve the current session using NextAuth
   const session = await getServerSession(authOptions);
 
@@ -98,8 +150,16 @@ export async function GET(
       totalWithProgress: progressData.length, // Number of students with progress data
     };
 
-    // Return the response as JSON
-    return NextResponse.json(response);
+    // Return the response as JSON with rate limit headers
+    return NextResponse.json(response, {
+      headers: {
+        'X-RateLimit-Limit': RATE_LIMIT.toString(),
+        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+        'X-RateLimit-Reset': (
+          Math.ceil(Date.now() / RATE_LIMIT_WINDOW) * RATE_LIMIT_WINDOW
+        ).toString(),
+      },
+    });
   } catch (error) {
     console.error('Error fetching student progress:', error);
     // If an error occurs, return a 500 error
