@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import AssignmentForm from '@/components/assignment/AssignmentForm';
 import { Assignment } from '@/types/assignment';
 
-export default function EditAssignmentPage({ params }: { params: { id: string } }) {
+export default function EditAssignmentPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const router = useRouter();
 

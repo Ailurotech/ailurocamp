@@ -18,11 +18,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 }) => {
   const router = useRouter();
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-  } = useForm<Assignment>({
+  const { control, handleSubmit, reset } = useForm<Assignment>({
     defaultValues: defaultValues ?? {
       title: '',
       description: '',
@@ -54,7 +50,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const internalSubmit = async (data: Assignment) => {
     await onSubmit(data);
-    router.push(defaultValues?.id ? `/assignments/${defaultValues.id}` : '/assignments');
+    router.push(
+      defaultValues?.id ? `/assignments/${defaultValues.id}` : '/assignments'
+    );
   };
 
   return (
@@ -166,7 +164,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               )}
               {watchedType === 'file-upload' && (
                 <div className="mt-4 bg-gray-50 p-4 rounded">
-                  <label className="block mb-1 font-medium">Allowed File Type</label>
+                  <label className="block mb-1 font-medium">
+                    Allowed File Type
+                  </label>
                   <Controller
                     name={`questions.${index}.fileType`}
                     control={control}

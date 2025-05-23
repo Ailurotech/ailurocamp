@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Assignment } from '@/types/assignment';
 import Link from 'next/link';
+import DeleteButton from '@/components/assignment/DeleteButton'; // 👈 新增
 
 async function getAssignment(id: string): Promise<Assignment> {
   const baseUrl =
@@ -21,7 +22,6 @@ type PageProps = {
 
 export default async function AssignmentDetailPage({ params }: PageProps) {
   const assignment = await getAssignment(params.id);
-
   if (!assignment) {
     notFound();
   }
@@ -42,6 +42,7 @@ export default async function AssignmentDetailPage({ params }: PageProps) {
             ✏️ Edit
           </button>
         </Link>
+        <DeleteButton id={assignment.id} />
 
         <p className="text-gray-700 mb-8">{assignment.description}</p>
 
