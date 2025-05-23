@@ -1,16 +1,29 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { Assignment } from '@/types/assignment';
+import { useRouter } from 'next/navigation';
 import MultipleChoiceFields from './MultipleChoiceFields';
 import CodingTestCasesFields from './CodingTestCasesFields';
 
-const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
+type AssignmentFormProps = {
+  defaultValues?: Assignment;
+  onSubmit: (data: Assignment) => Promise<void>;
+};
+
+const AssignmentForm: React.FC<AssignmentFormProps> = ({
+  defaultValues,
   onSubmit,
 }) => {
-  const { control, handleSubmit } = useForm<Assignment>({
-    defaultValues: {
+  const router = useRouter();
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+  } = useForm<Assignment>({
+    defaultValues: defaultValues ?? {
       title: '',
       description: '',
       questions: [],
@@ -23,6 +36,12 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
     },
   });
 
+  useEffect(() => {
+    if (defaultValues) {
+      reset(defaultValues);
+    }
+  }, [defaultValues, reset]);
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'questions',
@@ -33,9 +52,14 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
     name: 'questions',
   });
 
+  const internalSubmit = async (data: Assignment) => {
+    await onSubmit(data);
+    router.push(defaultValues?.id ? `/assignments/${defaultValues.id}` : '/assignments');
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      {/* Assignment Title */}
+    <form onSubmit={handleSubmit(internalSubmit)}>
+      {/* Title */}
       <div className="mb-4">
         <label className="block mb-1 font-medium">Title</label>
         <Controller
@@ -51,7 +75,7 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
         />
       </div>
 
-      {/* Assignment Description */}
+      {/* Description */}
       <div className="mb-8">
         <label className="block mb-1 font-medium">Description</label>
         <Controller
@@ -81,7 +105,7 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
                 points: 0,
               })
             }
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           >
             ➕ Add Question
           </button>
@@ -92,7 +116,6 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
 
           return (
             <div key={field.id} className="border p-4 rounded mb-6">
-              {/* Question Title */}
               <label className="block mb-1 font-medium">Question Title</label>
               <Controller
                 name={`questions.${index}.title`}
@@ -106,7 +129,6 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
                 )}
               />
 
-              {/* Question Points */}
               <label className="block mb-1 font-medium">Points</label>
               <Controller
                 name={`questions.${index}.points`}
@@ -121,7 +143,6 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
                 )}
               />
 
-              {/* Question Type */}
               <label className="block mb-1 font-medium">Type</label>
               <Controller
                 name={`questions.${index}.type`}
@@ -136,7 +157,7 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
                 )}
               />
 
-              {/* Dynamic fields based on type */}
+              {/* Dynamic subfields */}
               {watchedType === 'multiple-choice' && (
                 <MultipleChoiceFields nestIndex={index} control={control} />
               )}
@@ -145,9 +166,7 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
               )}
               {watchedType === 'file-upload' && (
                 <div className="mt-4 bg-gray-50 p-4 rounded">
-                  <label className="block mb-1 font-medium">
-                    Allowed File Type
-                  </label>
+                  <label className="block mb-1 font-medium">Allowed File Type</label>
                   <Controller
                     name={`questions.${index}.fileType`}
                     control={control}
@@ -164,7 +183,7 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
                 </div>
               )}
 
-              {/* Remove Button */}
+              {/* Remove Question */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -179,7 +198,7 @@ const AssignmentForm: React.FC<{ onSubmit: (data: Assignment) => void }> = ({
         })}
       </div>
 
-      {/* Submit Button */}
+      {/* Submit */}
       <button
         type="submit"
         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
