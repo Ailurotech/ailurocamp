@@ -6,6 +6,7 @@ import { Assignment } from '@/types/assignment';
 import { useRouter } from 'next/navigation';
 import MultipleChoiceFields from './MultipleChoiceFields';
 import CodingTestCasesFields from './CodingTestCasesFields';
+import QuillEditor from './QuillEditor';
 
 type AssignmentFormProps = {
   defaultValues?: Assignment;
@@ -80,10 +81,38 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           name="description"
           control={control}
           render={({ field }) => (
-            <textarea
+            <QuillEditor value={field.value} onChange={field.onChange} />
+          )}
+        />
+      </div>
+      {/* Assignment Due Date */}
+      <div className="mb-4">
+        <label className="block mb-1 font-medium">Due Date</label>
+        <Controller
+          name="dueDate"
+          control={control}
+          render={({ field }) => (
+            <input
               {...field}
+              type="date"
               className="border p-2 w-full rounded"
-              placeholder="Assignment Description"
+            />
+          )}
+        />
+      </div>
+
+      {/* Assignment Time Limit (minutes) */}
+      <div className="mb-4">
+        <label className="block mb-1 font-medium">Time Limit (minutes)</label>
+        <Controller
+          name="timeLimit"
+          control={control}
+          render={({ field }) => (
+            <input
+              {...field}
+              type="number"
+              className="border p-2 w-full rounded"
+              placeholder="Enter time limit in minutes"
             />
           )}
         />

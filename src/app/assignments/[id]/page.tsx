@@ -37,13 +37,27 @@ export default async function AssignmentDetailPage({ params }: PageProps) {
 
       <div className="bg-white shadow-md rounded-lg p-8">
         <h1 className="text-3xl font-bold mb-4">{assignment.title}</h1>
+        {/* Due Date */}
+        <p className="text-gray-600 mb-1">
+          <span className="font-semibold">Due Date:</span>{' '}
+          {assignment.dueDate
+            ? new Date(assignment.dueDate).toLocaleDateString()
+            : 'N/A'}
+        </p>
+
+        {/* Time Limit */}
+        <p className="text-gray-600 mb-6">
+          <span className="font-semibold">Time Limit:</span>{' '}
+          {assignment.timeLimit ? `${assignment.timeLimit} minutes` : 'N/A'}
+        </p>
+
         <Link href={`/assignments/${assignment.id}/edit`}>
           <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
             ✏️ Edit
           </button>
         </Link>
         <DeleteButton id={assignment.id} />
-
+        <h2 className="text-2xl font-semibold mt-8 mb-4">Description:</h2>
         <p className="text-gray-700 mb-8">{assignment.description}</p>
 
         <h2 className="text-2xl font-semibold mb-4">Questions:</h2>
