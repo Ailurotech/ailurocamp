@@ -5,30 +5,17 @@ export type QuestionType =
   | 'file-upload'
   | 'essay';
 
-// test case
-type TestCase = {
-  input: string;
-  output: string;
-};
-
-// choice
-type Choice = {
-  value: string;
-  label: string;
-};
-
 // question
-type Question = {
+export type Question = {
   id: string;
   type: QuestionType;
   title: string;
   points: number;
-  choices?: Choice[]; // multiple choice
-  correctAnswer?: string;
-  description?: string; // coding
-  testCases?: TestCase[];
-  fileType?: string; // file upload
-  placeholder?: string; // essay
+  choices?: { value: string; label: string }[];
+  testCases?: { input: string; output: string }[];
+  fileType?: string;
+  uploadedFile?: File;
+  placeholder?: string;
 };
 
 // assignment
@@ -38,7 +25,7 @@ export type Assignment = {
   description: string;
   questions: Question[];
   dueDate: string;
-  timeLimit?: number; // minutes
+  timeLimit?: number;
   passingScore?: number;
   createdAt: string;
   updatedAt: string;
