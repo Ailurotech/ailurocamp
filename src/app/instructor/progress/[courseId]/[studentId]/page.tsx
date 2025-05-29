@@ -25,13 +25,13 @@ interface PageParams {
   studentId: string;
 }
 
-export default function StudentProgressDetailPage({
+export default function StudentProgressPage({
   params,
 }: {
-  params: { courseId: string; studentId: string };
+  params: Promise<PageParams>;
 }) {
   // Use React.use() to resolve params with proper type casting
-  const resolvedParams = use(params as any) as PageParams;
+  const resolvedParams = use(params) as PageParams;
   const { courseId, studentId } = resolvedParams;
 
   const { data: session, status } = useSession();

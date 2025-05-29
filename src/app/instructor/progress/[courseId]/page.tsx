@@ -36,10 +36,10 @@ interface PageParams {
 export default function CourseProgressPage({
   params,
 }: {
-  params: { courseId: string };
+  params: Promise<PageParams>;
 }) {
   // Use React.use() to resolve params with proper type casting
-  const resolvedParams = use(params as any) as PageParams;
+  const resolvedParams = use(params) as PageParams;
   const courseId = resolvedParams.courseId;
 
   const { data: session, status } = useSession();
@@ -478,9 +478,9 @@ export default function CourseProgressPage({
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Students Not Started
               </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                {filteredStudentsWithoutProgress.length} enrolled students
-                haven't started the course
+              <p className="mt-2 text-sm text-gray-500">
+                You don&apos;t have any courses yet. Create a course to start tracking
+                student progress.
               </p>
             </div>
             <ul role="list" className="divide-y divide-gray-200">

@@ -4,9 +4,15 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChartBarIcon, UsersIcon, BookOpenIcon } from '@/components/ui/Icons';
+import { BookOpenIcon } from '@/components/ui/Icons';
 
 interface Course {
+  id: string;
+  title: string;
+  _id?: string;
+}
+
+interface CourseApiResponse {
   id: string;
   title: string;
   _id?: string;
@@ -50,13 +56,13 @@ export default function InstructorProgressPage() {
 
         // Check if the courses data is an array and format it accordingly
         if (data.courses && Array.isArray(data.courses)) {
-          const formattedCourses = data.courses.map((course: any) => ({
+          const formattedCourses = data.courses.map((course: CourseApiResponse) => ({
             id: course._id || course.id,
             title: course.title,
           }));
           setCourses(formattedCourses);
         } else if (Array.isArray(data)) {
-          const formattedCourses = data.map((course: any) => ({
+          const formattedCourses = data.map((course: CourseApiResponse) => ({
             id: course._id || course.id,
             title: course.title,
           }));

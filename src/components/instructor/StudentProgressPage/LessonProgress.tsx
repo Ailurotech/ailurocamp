@@ -35,14 +35,14 @@ const LessonProgress: React.FC<LessonProgressProps> = ({
           })
           .map((lesson) => {
             // Get module and lesson titles
-            const module = courseModules[lesson.moduleIndex];
-            const moduleName = module
-              ? module.title
+            const courseModule = courseModules[lesson.moduleIndex];
+            const moduleName = courseModule
+              ? courseModule.title
               : `Module ${lesson.moduleIndex + 1}`;
 
             const lessonTitle =
-              module && module.lessons && module.lessons[lesson.lessonIndex]
-                ? module.lessons[lesson.lessonIndex].title
+              courseModule && courseModule.lessons && courseModule.lessons[lesson.lessonIndex]
+                ? courseModule.lessons[lesson.lessonIndex].title
                 : `Lesson ${lesson.lessonIndex + 1}`;
 
             return (

@@ -2,6 +2,62 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+// Define interfaces for type safety
+interface StudentData {
+  name: string;
+  email: string;
+}
+
+interface CourseModule {
+  title: string;
+  lessons?: LessonData[];
+}
+
+interface CourseData {
+  title: string;
+  modules: CourseModule[];
+}
+
+interface LessonProgress {
+  moduleIndex: number;
+  lessonIndex: number;
+  title?: string;
+  completed: boolean;
+  timeSpent: number;
+  startedAt: string;
+  completedAt?: string;
+}
+
+interface AssessmentSubmission {
+  score?: number;
+  status: string;
+  submittedAt?: string;
+}
+
+interface Assessment {
+  title: string;
+  type: string;
+  totalPoints: number;
+  submission?: AssessmentSubmission;
+}
+
+interface ProgressData {
+  overallProgress: number;
+  completedLessons: LessonProgress[];
+  lastAccessedAt?: string;
+}
+
+interface ApiResponseData {
+  student: StudentData;
+  course: CourseData;
+  progress: ProgressData;
+  assessments?: Assessment[];
+}
+
+interface LessonData {
+  title: string;
+}
+
 // API route for displaying student progress as an HTML page
 export async function GET(
   request: NextRequest,
@@ -67,7 +123,7 @@ export async function GET(
     }
 
     // Parse the response data
-    const progressData = await response.json();
+    const progressData: ApiResponseData = await response.json();
 
     // Generate the report as HTML
     const reportHtml = generateProgressReportHtml(progressData);
@@ -79,18 +135,19 @@ export async function GET(
         // Removed Content-Disposition header to display in browser instead of downloading
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error exporting progress report:', error);
 
     return NextResponse.json(
-      { error: `Error exporting progress report: ${error.message}` },
+      { error: `Error exporting progress report: ${errorMessage}` },
       { status: 500 }
     );
   }
 }
 
 // Function to generate a simplified HTML progress report with English content
-function generateProgressReportHtml(data: any): string {
+function generateProgressReportHtml(data: ApiResponseData): string {
   try {
     // Extract basic student and course information
     const studentName = data.student?.name || 'Unknown Student';
@@ -100,7 +157,7 @@ function generateProgressReportHtml(data: any): string {
     // Calculate completion statistics
     // Count lessons that have been marked as completed
     const completedLessonsCount =
-      data.progress?.completedLessons?.filter((l: any) => l.completed)
+      data.progress?.completedLessons?.filter((l: LessonProgress) => l.completed)
         ?.length || 0;
 
     // Calculate total lessons from course modules structure
@@ -108,21 +165,15 @@ function generateProgressReportHtml(data: any): string {
     if (data.course?.modules) {
       // Sum up lessons across all modules
       totalLessonsCount = data.course.modules.reduce(
-        (count: number, module: any) => count + (module.lessons?.length || 0),
+        (count: number, courseModule: CourseModule) => count + (courseModule.lessons?.length || 0),
         0
       );
     }
 
-    // Calculate completion percentage with proper formatting
-    const completionPercentage =
-      totalLessonsCount > 0
-        ? ((completedLessonsCount / totalLessonsCount) * 100).toFixed(1)
-        : '0.0';
-
     // Calculate time metrics - total minutes spent learning
     const totalTimeSpent =
       data.progress?.completedLessons?.reduce(
-        (total: number, lesson: any) => total + (lesson.timeSpent || 0),
+        (total: number, lesson: LessonProgress) => total + (lesson.timeSpent || 0),
         0
       ) || 0;
 
@@ -166,7 +217,7 @@ function generateProgressReportHtml(data: any): string {
             <tbody>
               ${data.assessments
                 .map(
-                  (assessment: any) => `
+                  (assessment: Assessment) => `
                 <tr>
                   <td>${assessment.title}</td>
                   <td>${assessment.type}</td>
@@ -198,7 +249,7 @@ function generateProgressReportHtml(data: any): string {
     if (data.progress?.completedLessons?.length > 0) {
       // Sort lessons by module and lesson index
       const sortedLessons = [...data.progress.completedLessons].sort(
-        (a: any, b: any) => {
+        (a: LessonProgress, b: LessonProgress) => {
           if (a.moduleIndex !== b.moduleIndex) {
             return a.moduleIndex - b.moduleIndex;
           }
@@ -207,9 +258,9 @@ function generateProgressReportHtml(data: any): string {
       );
 
       // Group lessons by module
-      const lessonsByModule: { [key: number]: any[] } = {};
+      const lessonsByModule: { [key: number]: LessonProgress[] } = {};
 
-      sortedLessons.forEach((lesson: any) => {
+      sortedLessons.forEach((lesson: LessonProgress) => {
         if (!lessonsByModule[lesson.moduleIndex]) {
           lessonsByModule[lesson.moduleIndex] = [];
         }
@@ -244,7 +295,7 @@ function generateProgressReportHtml(data: any): string {
                     <tbody>
                       ${moduleLessons
                         .map(
-                          (lesson: any) => `
+                          (lesson: LessonProgress) => `
                         <tr>
                           <td>${lesson.title || `Lesson ${lesson.lessonIndex + 1}`}</td>
                           <td>${lesson.completed ? 'Completed' : 'In Progress'}</td>
@@ -432,28 +483,4 @@ function generateProgressReportHtml(data: any): string {
   }
 }
 
-// Keep the original text report function for backward compatibility if needed
-function generateProgressReport(data: any): string {
-  // Simple implementation that returns a basic text report
-  try {
-    const studentName = data.student?.name || 'Unknown Student';
-    const studentEmail = data.student?.email || 'Unknown Email';
-    const courseTitle = data.course?.title || 'Unknown Course';
-
-    return `
-Student Progress Report
-----------------------
-Generated: ${new Date().toLocaleString()}
-
-Student: ${studentName} (${studentEmail})
-Course: ${courseTitle}
-
-Progress Summary:
-- Overall Progress: ${data.progress?.overallProgress || 0}%
-- Completed Lessons: ${data.progress?.completedLessons?.filter((l: any) => l.completed)?.length || 0}
-    `;
-  } catch (error) {
-    console.error('Error generating text report:', error);
-    return `Error generating report: ${error}`;
-  }
-}
+// Remove unused function generateProgressReport

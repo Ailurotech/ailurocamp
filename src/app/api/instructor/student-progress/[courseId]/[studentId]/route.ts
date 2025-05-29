@@ -7,6 +7,12 @@ import User from '@/models/User';
 import StudentProgress from '@/models/StudentProgress';
 import Assessment from '@/models/Assessment';
 
+// Define the CourseModule interface
+interface CourseModule {
+  title: string;
+  lessons?: unknown[];
+}
+
 // API route for fetching the progress of a student in a specific course
 export async function GET(
   request: NextRequest,
@@ -114,9 +120,9 @@ export async function GET(
       course: {
         id: course._id,
         title: course.title,
-        modules: course.modules.map((module: any) => ({
-          title: module.title,
-          lessons: module.lessons || [], // Ensure modules have lessons
+        modules: course.modules.map((courseModule: CourseModule) => ({
+          title: courseModule.title,
+          lessons: courseModule.lessons || [], // Ensure modules have lessons
         })),
       },
       progress: progress || {
