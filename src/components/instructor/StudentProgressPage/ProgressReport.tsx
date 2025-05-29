@@ -176,4 +176,3 @@ const ProgressReport: React.FC<ProgressReportProps> = ({
 };
 
 export default ProgressReport;
-

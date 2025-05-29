@@ -56,10 +56,12 @@ export default function InstructorProgressPage() {
 
         // Check if the courses data is an array and format it accordingly
         if (data.courses && Array.isArray(data.courses)) {
-          const formattedCourses = data.courses.map((course: CourseApiResponse) => ({
-            id: course._id || course.id,
-            title: course.title,
-          }));
+          const formattedCourses = data.courses.map(
+            (course: CourseApiResponse) => ({
+              id: course._id || course.id,
+              title: course.title,
+            })
+          );
           setCourses(formattedCourses);
         } else if (Array.isArray(data)) {
           const formattedCourses = data.map((course: CourseApiResponse) => ({

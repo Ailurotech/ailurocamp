@@ -479,8 +479,8 @@ export default function CourseProgressPage({
                 Students Not Started
               </h3>
               <p className="mt-2 text-sm text-gray-500">
-                You don&apos;t have any courses yet. Create a course to start tracking
-                student progress.
+                You don&apos;t have any courses yet. Create a course to start
+                tracking student progress.
               </p>
             </div>
             <ul role="list" className="divide-y divide-gray-200">

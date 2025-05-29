@@ -41,7 +41,9 @@ const LessonProgress: React.FC<LessonProgressProps> = ({
               : `Module ${lesson.moduleIndex + 1}`;
 
             const lessonTitle =
-              courseModule && courseModule.lessons && courseModule.lessons[lesson.lessonIndex]
+              courseModule &&
+              courseModule.lessons &&
+              courseModule.lessons[lesson.lessonIndex]
                 ? courseModule.lessons[lesson.lessonIndex].title
                 : `Lesson ${lesson.lessonIndex + 1}`;
 

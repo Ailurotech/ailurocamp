@@ -136,7 +136,8 @@ export async function GET(
       },
     });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     console.error('Error exporting progress report:', error);
 
     return NextResponse.json(
@@ -157,15 +158,17 @@ function generateProgressReportHtml(data: ApiResponseData): string {
     // Calculate completion statistics
     // Count lessons that have been marked as completed
     const completedLessonsCount =
-      data.progress?.completedLessons?.filter((l: LessonProgress) => l.completed)
-        ?.length || 0;
+      data.progress?.completedLessons?.filter(
+        (l: LessonProgress) => l.completed
+      )?.length || 0;
 
     // Calculate total lessons from course modules structure
     let totalLessonsCount = 0;
     if (data.course?.modules) {
       // Sum up lessons across all modules
       totalLessonsCount = data.course.modules.reduce(
-        (count: number, courseModule: CourseModule) => count + (courseModule.lessons?.length || 0),
+        (count: number, courseModule: CourseModule) =>
+          count + (courseModule.lessons?.length || 0),
         0
       );
     }
@@ -173,7 +176,8 @@ function generateProgressReportHtml(data: ApiResponseData): string {
     // Calculate time metrics - total minutes spent learning
     const totalTimeSpent =
       data.progress?.completedLessons?.reduce(
-        (total: number, lesson: LessonProgress) => total + (lesson.timeSpent || 0),
+        (total: number, lesson: LessonProgress) =>
+          total + (lesson.timeSpent || 0),
         0
       ) || 0;
 
