@@ -1,30 +1,54 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { Assignment } from '@/types/assignment';
 import Link from 'next/link';
-import DeleteButton from '@/components/assignment/DeleteButton'; // 👈 新增
+import DeleteButton from '@/components/assignment/DeleteButton';
 
-async function getAssignment(id: string): Promise<Assignment> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
-  const res = await fetch(`${baseUrl}/api/assignments/${id}`, {
-    cache: 'no-store',
-  });
+export default function AssignmentDetailPage({ params }: { params: { id: string } }) {
+  const [assignment, setAssignment] = useState<Assignment | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [file, setFile] = useState<File | null>(null);
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch assignment');
-  }
-  return res.json();
-}
+  useEffect(() => {
+    const fetchAssignment = async () => {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
+      const res = await fetch(`${baseUrl}/api/assignments/${params.id}`, {
+        cache: 'no-store',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAssignment(data);
+      }
+      setLoading(false);
+    };
 
-type PageProps = {
-  params: { id: string };
-};
+    fetchAssignment();
+  }, [params.id]);
 
-export default async function AssignmentDetailPage({ params }: PageProps) {
-  const assignment = await getAssignment(params.id);
-  if (!assignment) {
-    notFound();
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('assignmentId', params.id);
+
+    const res = await fetch('/api/submissions', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (res.ok) {
+      alert('Submitted!');
+    } else {
+      alert('Upload failed');
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (!assignment) return <p>Assignment not found.</p>;
 
   return (
     <div className="max-w-4xl mx-auto p-8 min-h-screen bg-gray-50">
@@ -37,7 +61,7 @@ export default async function AssignmentDetailPage({ params }: PageProps) {
 
       <div className="bg-white shadow-md rounded-lg p-8">
         <h1 className="text-3xl font-bold mb-4">{assignment.title}</h1>
-        {/* Due Date */}
+
         <p className="text-gray-600 mb-1">
           <span className="font-semibold">Due Date:</span>{' '}
           {assignment.dueDate
@@ -45,20 +69,23 @@ export default async function AssignmentDetailPage({ params }: PageProps) {
             : 'N/A'}
         </p>
 
-        {/* Time Limit */}
         <p className="text-gray-600 mb-6">
           <span className="font-semibold">Time Limit:</span>{' '}
           {assignment.timeLimit ? `${assignment.timeLimit} minutes` : 'N/A'}
         </p>
 
         <Link href={`/assignments/${assignment.id}/edit`}>
-          <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+          <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 mr-2">
             ✏️ Edit
           </button>
         </Link>
         <DeleteButton id={assignment.id} />
+
         <h2 className="text-2xl font-semibold mt-8 mb-4">Description:</h2>
-        <p className="text-gray-700 mb-8">{assignment.description}</p>
+        <div
+          className="prose prose-sm text-gray-700 mb-8"
+          dangerouslySetInnerHTML={{ __html: assignment.description }}
+        />
 
         <h2 className="text-2xl font-semibold mb-4">Questions:</h2>
 
@@ -109,6 +136,21 @@ export default async function AssignmentDetailPage({ params }: PageProps) {
             ))}
           </ul>
         )}
+        <form onSubmit={handleSubmit} className="mt-8 border-t pt-4">
+          <label className="block mb-2 font-medium">Submit your work:</label>
+          <input
+            type="file"
+            accept=".pdf,.docx,.zip"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="mb-4"
+          />
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Submit
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -61,7 +61,10 @@ const AssignmentListPage: React.FC = () => {
               >
                 <div>
                   <h2 className="text-lg font-semibold">{assignment.title}</h2>
-                  <p className="text-gray-600">{assignment.description}</p>
+                  <p
+                    className="text-gray-600"
+                    dangerouslySetInnerHTML={{ __html: assignment.description }}
+                  ></p>
                   <p className="text-sm text-gray-400 mt-1">
                     Due: {assignment.dueDate || 'N/A'} | Time Limit:{' '}
                     {assignment.timeLimit} mins | Passing:{' '}

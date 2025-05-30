@@ -10,6 +10,7 @@ import QuillEditor from './QuillEditor';
 
 type AssignmentFormProps = {
   defaultValues?: Assignment;
+  onSubmit?: (data: Assignment) => void;
 };
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
@@ -158,12 +159,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
 
         {fields.map((field, index) => {
           const watchedType = watchedQuestions?.[index]?.type;
-          const selectedType = watchedQuestions?.[index]?.fileType || '';
-          const acceptMap: Record<string, string> = {
-            pdf: 'application/pdf',
-            word: '.doc,.docx',
-            zip: '.zip',
-          };
 
           return (
             <div key={field.id} className="border p-4 rounded mb-6">
@@ -216,26 +211,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
                         <option value="zip">ZIP Archive</option>
                       </select>
                     )}
-                  />
-
-                  <Controller
-                    name={`questions.${index}.uploadedFile`}
-                    control={control}
-                    render={({ field }) => {
-                      const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-                        const file = e.target.files?.[0];
-                        if (file) field.onChange(file); // update form state
-                      };
-
-                      return (
-                        <input
-                          type="file"
-                          accept={acceptMap[selectedType] || '*/*'}
-                          onChange={handleFileUpload}
-                          className="mt-2"
-                        />
-                      );
-                    }}
                   />
                 </div>
               )}

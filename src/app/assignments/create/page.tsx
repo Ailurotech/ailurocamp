@@ -3,6 +3,8 @@
 import React from 'react';
 import AssignmentForm from '@/components/assignment/AssignmentForm';
 import { useRouter } from 'next/navigation';
+import { Assignment } from '@/types/assignment';
+
 
 const CreateAssignmentPage: React.FC = () => {
   const router = useRouter();
@@ -14,7 +16,7 @@ const CreateAssignmentPage: React.FC = () => {
           📚 Create New Assignment
         </h1>
         <AssignmentForm
-          onSubmit={async (data) => {
+          onSubmit={async (data: Assignment ) => {
             await fetch('/api/assignments', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
