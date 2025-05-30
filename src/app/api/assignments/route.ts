@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Assignment, QuestionType, Question } from '@/types/assignment';
+import { Assignment } from '@/types/assignment'; // 移除了未使用的 QuestionType 和 Question
 import { randomUUID } from 'crypto';
 import { assignments } from './assignmentsStore';
 
@@ -9,81 +9,26 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const form = await req.formData();
+    const body = await req.json(); // 修改为解析 JSON 数据
 
     const assignment: Assignment = {
       id: randomUUID(),
-      title: (form.get('title') ?? '') as string,
-      description: (form.get('description') ?? '') as string,
-      dueDate: (form.get('dueDate') ?? '') as string,
-      timeLimit: Number(form.get('timeLimit')) || 0,
-      passingScore: Number(form.get('passingScore')) || 0,
+      title: body.title || '',
+      description: body.description || '',
+      dueDate: body.dueDate || '',
+      timeLimit: body.timeLimit || 0,
+      passingScore: body.passingScore || 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      questions: [],
+      questions: body.questions || [],
     };
 
-    const questions: Question[] = [];
-
-    let index = 0;
-    while (form.has(`questions[${index}][id]`)) {
-      const type = form.get(`questions[${index}][type]`) as QuestionType;
-
-      const base = {
-        id: (form.get(`questions[${index}][id]`) ?? '') as string,
-        title: (form.get(`questions[${index}][title]`) ?? '') as string,
-        type,
-        points: Number(form.get(`questions[${index}][points]`)) || 0,
-      };
-
-      if (type === 'multiple-choice') {
-        const choices: { value: string; label: string }[] = [];
-        let c = 0;
-        while (form.has(`questions[${index}][choices][${c}][label]`)) {
-          choices.push({
-            label: (form.get(`questions[${index}][choices][${c}][label]`) ?? '') as string,
-            value: (form.get(`questions[${index}][choices][${c}][value]`) ?? '') as string,
-          });
-          c++;
-        }
-        questions.push({ ...base, choices });
-
-      } else if (type === 'coding') {
-        const testCases: { input: string; output: string }[] = [];
-        let t = 0;
-        while (form.has(`questions[${index}][testCases][${t}][input]`)) {
-          testCases.push({
-            input: (form.get(`questions[${index}][testCases][${t}][input]`) ?? '') as string,
-            output: (form.get(`questions[${index}][testCases][${t}][output]`) ?? '') as string,
-          });
-          t++;
-        }
-        questions.push({ ...base, testCases });
-
-      } else if (type === 'file-upload') {
-        const fileType = (form.get(`questions[${index}][fileType]`) ?? '') as string;
-        const file = form.get(`questions[${index}][file]`) as File;
-        questions.push({ ...base, fileType, uploadedFile: file });
-
-      } else if (type === 'essay') {
-        const placeholder = (form.get(`questions[${index}][placeholder]`) ?? '') as string;
-        questions.push({ ...base, placeholder });
-
-      } else {
-        questions.push(base); // fallback
-      }
-
-      index++;
-    }
-
-    assignment.questions = questions;
     assignments.push(assignment);
 
     return NextResponse.json(assignment, { status: 201 });
-
   } catch (error) {
-    console.error('❌ Failed to handle form POST:', error);
-    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
+    console.error('❌ Failed to handle JSON POST:', error);
+    return NextResponse.json({ error: 'Invalid JSON data' }, { status: 400 });
   }
 }
 

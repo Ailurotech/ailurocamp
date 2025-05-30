@@ -42,59 +42,29 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
   const watchedQuestions = useWatch({ control, name: 'questions' });
 
   const internalSubmit = async (data: Assignment) => {
-    const formData = new FormData();
+    console.log('Submitting data:', data); // 添加调试日志
 
-    formData.append('title', data.title);
-    formData.append('description', data.description);
-    formData.append('dueDate', data.dueDate);
-    formData.append('timeLimit', data.timeLimit?.toString() || '');
-    formData.append('passingScore', data.passingScore?.toString() || '');
+    const url = data.id ? `/api/assignments/${data.id}` : '/api/assignments';
+    const method = data.id ? 'PUT' : 'POST';
 
-    data.questions.forEach((q, i) => {
-      formData.append(`questions[${i}][id]`, q.id);
-      formData.append(`questions[${i}][type]`, q.type);
-      formData.append(`questions[${i}][title]`, q.title);
-      formData.append(`questions[${i}][points]`, q.points.toString());
+    // 清理数据，确保 JSON 格式正确
+    const cleanedData = {
+      ...data,
+      id: data.id || undefined, // 确保 id 是字符串或 undefined
+    };
 
-      if (q.type === 'multiple-choice' && q.choices) {
-        q.choices.forEach((choice, j) => {
-          formData.append(`questions[${i}][choices][${j}][value]`, choice.value);
-          formData.append(`questions[${i}][choices][${j}][label]`, choice.label);
-        });
-      }
-
-      if (q.type === 'coding' && q.testCases) {
-        q.testCases.forEach((tc, j) => {
-          formData.append(`questions[${i}][testCases][${j}][input]`, tc.input);
-          formData.append(`questions[${i}][testCases][${j}][output]`, tc.output);
-        });
-      }
-
-      if (q.type === 'file-upload') {
-        if (q.fileType) {
-          formData.append(`questions[${i}][fileType]`, q.fileType);
-        }
-        if (q.uploadedFile instanceof File) {
-          formData.append(`questions[${i}][file]`, q.uploadedFile);
-        }
-      }
-
-      if (q.type === 'essay' && q.placeholder) {
-        formData.append(`questions[${i}][placeholder]`, q.placeholder);
-      }
-    });
-
-    const res = await fetch('/api/assignments', {
-      method: 'POST',
-      body: formData,
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cleanedData),
     });
 
     if (!res.ok) {
-      console.error('Failed to submit assignment');
+      console.error('Failed to submit assignment:', await res.text()); // 打印错误响应
       return;
     }
 
-    await res.json(); // optional: could remove
+    await res.json();
     router.push('/assignments');
   };
 

@@ -4,8 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { Assignment } from '@/types/assignment';
 import Link from 'next/link';
 import DeleteButton from '@/components/assignment/DeleteButton';
+import { useParams } from 'next/navigation';
 
-export default function AssignmentDetailPage({ params }: { params: { id: string } }) {
+export default function AssignmentDetailPage() {
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id || ''; // 确保 id 是字符串
+
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [file, setFile] = useState<File | null>(null);
@@ -14,7 +18,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
     const fetchAssignment = async () => {
       const baseUrl =
         process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
-      const res = await fetch(`${baseUrl}/api/assignments/${params.id}`, {
+      const res = await fetch(`${baseUrl}/api/assignments/${id}`, {
         cache: 'no-store',
       });
       if (res.ok) {
@@ -25,7 +29,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
     };
 
     fetchAssignment();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +37,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('assignmentId', params.id);
+    formData.append('assignmentId', id); // id 已确保为字符串
 
     const res = await fetch('/api/submissions', {
       method: 'POST',
