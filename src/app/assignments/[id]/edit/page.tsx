@@ -8,7 +8,7 @@ import { Assignment } from '@/types/assignment';
 
 export default function EditAssignmentPage() {
   const params = useParams();
-  const id = params?.id || ''; // 解包 params
+  const id = params?.id || '';
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function EditAssignmentPage() {
   }, [id]);
 
   const handleSubmit = async (data: Assignment) => {
-    console.log('Submitting data:', data); // 调试日志
+    console.log('Submitting data:', data);
 
     const res = await fetch(`/api/assignments/${id}`, {
       method: 'PUT',
@@ -37,13 +37,13 @@ export default function EditAssignmentPage() {
     });
 
     if (res.ok) {
-      console.log('Update successful, redirecting to:', `/assignments/${id}`); // 调试日志
+      console.log('Update successful, redirecting to:', `/assignments/${id}`);
       const responseBody = await res.json();
-      console.log('API Response:', responseBody); // 打印 API 响应
-      router.push(`/assignments/${id}`); // 提交成功后跳转到详情页面
+      console.log('API Response:', responseBody);
+      router.push(`/assignments/${id}`);
     } else {
       const errorText = await res.text();
-      console.error('Failed to update assignment:', errorText); // 打印错误响应
+      console.error('Failed to update assignment:', errorText);
     }
   };
 

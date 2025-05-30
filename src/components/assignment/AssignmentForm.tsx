@@ -42,15 +42,12 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
   const watchedQuestions = useWatch({ control, name: 'questions' });
 
   const internalSubmit = async (data: Assignment) => {
-    console.log('Submitting data:', data); // 添加调试日志
-
     const url = data.id ? `/api/assignments/${data.id}` : '/api/assignments';
     const method = data.id ? 'PUT' : 'POST';
 
-    // 清理数据，确保 JSON 格式正确
     const cleanedData = {
       ...data,
-      id: data.id || undefined, // 确保 id 是字符串或 undefined
+      id: data.id || undefined,
     };
 
     const res = await fetch(url, {
@@ -60,7 +57,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
     });
 
     if (!res.ok) {
-      console.error('Failed to submit assignment:', await res.text()); // 打印错误响应
       return;
     }
 
@@ -70,9 +66,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
 
   return (
     <form onSubmit={handleSubmit(internalSubmit)}>
-      {/* Title */}
       <div className="mb-4">
-        <label className="block mb-1 font-medium">Title</label>
         <Controller
           name="title"
           control={control}
@@ -82,9 +76,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
         />
       </div>
 
-      {/* Description (Rich Text) */}
       <div className="mb-8">
-        <label className="block mb-1 font-medium">Description</label>
         <Controller
           name="description"
           control={control}
@@ -92,9 +84,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
         />
       </div>
 
-      {/* Due Date */}
       <div className="mb-4">
-        <label className="block mb-1 font-medium">Due Date</label>
         <Controller
           name="dueDate"
           control={control}
@@ -102,9 +92,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
         />
       </div>
 
-      {/* Time Limit */}
       <div className="mb-4">
-        <label className="block mb-1 font-medium">Time Limit (minutes)</label>
         <Controller
           name="timeLimit"
           control={control}
@@ -114,7 +102,6 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
         />
       </div>
 
-      {/* Questions */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Questions</h2>

@@ -5,7 +5,7 @@ export async function GET(
   _req: NextRequest,
   context: { params: { id: string } }
 ) {
-  const { id } = await context.params; // 确保 params 被正确解包
+  const { id } = await context.params;
   const assignment = assignments.find((a) => a.id === id);
 
   if (!assignment) {
@@ -19,7 +19,7 @@ export async function PUT(
   req: NextRequest,
   context: { params: { id: string } }
 ) {
-  const { id } = await context.params; // 确保 params 被正确解包
+  const { id } = await context.params;
   const assignmentIndex = assignments.findIndex((a) => a.id === id);
 
   if (assignmentIndex === -1) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Assignment } from '@/types/assignment'; // 移除了未使用的 QuestionType 和 Question
+import { Assignment } from '@/types/assignment'; 
 import { randomUUID } from 'crypto';
 import { assignments } from './assignmentsStore';
 
@@ -9,7 +9,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json(); // 修改为解析 JSON 数据
+    const body = await req.json(); 
 
     const assignment: Assignment = {
       id: randomUUID(),

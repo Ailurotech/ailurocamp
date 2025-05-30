@@ -8,7 +8,7 @@ import { useParams } from 'next/navigation';
 
 export default function AssignmentDetailPage() {
   const params = useParams();
-  const id = Array.isArray(params?.id) ? params.id[0] : params?.id || ''; // 确保 id 是字符串
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id || '';
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,7 @@ export default function AssignmentDetailPage() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('assignmentId', id); // id 已确保为字符串
+    formData.append('assignmentId', id);
 
     const res = await fetch('/api/submissions', {
       method: 'POST',
