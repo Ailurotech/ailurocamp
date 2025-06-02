@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Assignment } from '@/types/assignment'; 
+import { Assignment } from '@/types/assignment';
 import { randomUUID } from 'crypto';
 import { assignments } from './assignmentsStore';
 
@@ -9,7 +9,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json(); 
+    const body = await req.json();
 
     const assignment: Assignment = {
       id: randomUUID(),

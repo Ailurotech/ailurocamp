@@ -71,7 +71,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
           name="title"
           control={control}
           render={({ field }) => (
-            <input {...field} className="border p-2 w-full rounded" placeholder="Assignment Title" />
+            <input
+              {...field}
+              className="border p-2 w-full rounded"
+              placeholder="Assignment Title"
+            />
           )}
         />
       </div>
@@ -80,24 +84,53 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
         <Controller
           name="description"
           control={control}
-          render={({ field }) => <QuillEditor value={field.value} onChange={field.onChange} />}
+          render={({ field }) => (
+            <QuillEditor value={field.value} onChange={field.onChange} />
+          )}
         />
       </div>
-
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">DueDate</h1>
       <div className="mb-4">
         <Controller
           name="dueDate"
           control={control}
-          render={({ field }) => <input {...field} type="date" className="border p-2 w-full rounded" />}
+          render={({ field }) => (
+            <input
+              {...field}
+              type="date"
+              className="border p-2 w-full rounded"
+            />
+          )}
         />
       </div>
-
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">timeLimit</h1>
       <div className="mb-4">
         <Controller
           name="timeLimit"
           control={control}
           render={({ field }) => (
-            <input {...field} type="number" className="border p-2 w-full rounded" placeholder="Enter time limit in minutes" />
+            <input
+              {...field}
+              type="number"
+              className="border p-2 w-full rounded"
+              placeholder="Enter time limit in minutes"
+            />
+          )}
+        />
+      </div>
+
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">PassingScore</h1>
+      <div className="mb-4">
+        <Controller
+          name="passingScore"
+          control={control}
+          render={({ field }) => (
+            <input
+              {...field}
+              type="number"
+              className="border p-2 w-full rounded"
+              placeholder="Enter passing score"
+            />
           )}
         />
       </div>
@@ -107,7 +140,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
           <h2 className="text-lg font-semibold">Questions</h2>
           <button
             type="button"
-            onClick={() => append({ id: Date.now().toString(), title: '', type: 'multiple-choice', points: 0 })}
+            onClick={() =>
+              append({
+                id: Date.now().toString(),
+                title: '',
+                type: 'multiple-choice',
+                points: 0,
+              })
+            }
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           >
             ➕ Add Question
@@ -124,7 +164,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
                 name={`questions.${index}.title`}
                 control={control}
                 render={({ field }) => (
-                  <input {...field} className="border p-2 w-full mb-2 rounded" placeholder="Question Title" />
+                  <input
+                    {...field}
+                    className="border p-2 w-full mb-2 rounded"
+                    placeholder="Question Title"
+                  />
                 )}
               />
 
@@ -133,7 +177,12 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
                 name={`questions.${index}.points`}
                 control={control}
                 render={({ field }) => (
-                  <input {...field} type="number" className="border p-2 w-full mb-2 rounded" placeholder="Points" />
+                  <input
+                    {...field}
+                    type="number"
+                    className="border p-2 w-full mb-2 rounded"
+                    placeholder="Points"
+                  />
                 )}
               />
 
@@ -151,12 +200,18 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
                 )}
               />
 
-              {watchedType === 'multiple-choice' && <MultipleChoiceFields nestIndex={index} control={control} />}
-              {watchedType === 'coding' && <CodingTestCasesFields nestIndex={index} control={control} />}
+              {watchedType === 'multiple-choice' && (
+                <MultipleChoiceFields nestIndex={index} control={control} />
+              )}
+              {watchedType === 'coding' && (
+                <CodingTestCasesFields nestIndex={index} control={control} />
+              )}
 
               {watchedType === 'file-upload' && (
                 <div className="mt-4 bg-gray-50 p-4 rounded">
-                  <label className="block mb-1 font-medium">Allowed File Type</label>
+                  <label className="block mb-1 font-medium">
+                    Allowed File Type
+                  </label>
                   <Controller
                     name={`questions.${index}.fileType`}
                     control={control}
@@ -173,7 +228,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
               )}
 
               <div className="flex justify-end">
-                <button type="button" onClick={() => remove(index)} className="text-red-600 hover:underline mt-2">
+                <button
+                  type="button"
+                  onClick={() => remove(index)}
+                  className="text-red-600 hover:underline mt-2"
+                >
                   ❌ Remove Question
                 </button>
               </div>
@@ -182,7 +241,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
         })}
       </div>
 
-      <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+      <button
+        type="submit"
+        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
+      >
         Submit
       </button>
     </form>

@@ -3,7 +3,6 @@ import { writeFile } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
-
 const uploadDir = path.join(process.cwd(), 'public/uploads');
 
 export async function POST(req: NextRequest) {
@@ -12,7 +11,10 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File;
 
     if (!file || typeof file === 'string') {
-      return NextResponse.json({ success: false, error: 'No file uploaded' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'No file uploaded' },
+        { status: 400 }
+      );
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -29,6 +31,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, url: fileUrl });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

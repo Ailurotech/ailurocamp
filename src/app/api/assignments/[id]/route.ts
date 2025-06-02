@@ -28,7 +28,10 @@ export async function PUT(
 
   try {
     const updatedAssignment = await req.json();
-    assignments[assignmentIndex] = { ...assignments[assignmentIndex], ...updatedAssignment };
+    assignments[assignmentIndex] = {
+      ...assignments[assignmentIndex],
+      ...updatedAssignment,
+    };
 
     return new Response(JSON.stringify(assignments[assignmentIndex]), {
       status: 200,

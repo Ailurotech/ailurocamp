@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Assignment } from '@/types/assignment';
 import Link from 'next/link';
 
-
 const CreateAssignmentPage: React.FC = () => {
   const router = useRouter();
 
@@ -14,10 +13,7 @@ const CreateAssignmentPage: React.FC = () => {
     <div className="min-h-screen bg-gray-100 px-4 py-10">
       <div className="max-w-2xl mx-auto bg-white shadow-lg rounded-xl p-8">
         <div className="mb-4">
-          <Link
-            href="/assignments"
-            className="text-blue-600 hover:underline"
-          >
+          <Link href="/assignments" className="text-blue-600 hover:underline">
             ← Return to Assignment List
           </Link>
         </div>
@@ -25,7 +21,7 @@ const CreateAssignmentPage: React.FC = () => {
           📚 Create New Assignment
         </h1>
         <AssignmentForm
-          onSubmit={async (data: Assignment ) => {
+          onSubmit={async (data: Assignment) => {
             await fetch('/api/assignments', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
