@@ -5,6 +5,13 @@ export type QuestionType =
   | 'file-upload'
   | 'essay';
 
+// test case type
+export type TestCase = {
+  input: string;
+  output: string;
+  file?: File | null; 
+};
+
 // question
 export type Question = {
   id: string;
@@ -12,7 +19,7 @@ export type Question = {
   title: string;
   points: number;
   choices?: { value: string; label: string }[];
-  testCases?: { input: string; output: string }[];
+  testCases?: TestCase[];
   fileType?: string;
   uploadedFile?: File;
   placeholder?: string;
