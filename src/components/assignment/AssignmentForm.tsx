@@ -45,18 +45,48 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
     const url = data.id ? `/api/assignments/${data.id}` : '/api/assignments';
     const method = data.id ? 'PUT' : 'POST';
 
-    const cleanedData = {
-      ...data,
-      id: data.id || undefined,
-    };
+    console.log('Submitting data:', data); 
+
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(data));
+
+    data.questions.forEach((question) => {
+      if (question.type === 'file-upload' && question.uploadedFile) {
+        formData.append('file', question.uploadedFile);
+      }
+    });
+
+    data.questions.forEach((question, questionIndex) => {
+      if (question.type === 'coding' && question.testCases) {
+        question.testCases.forEach((testCase, testCaseIndex) => {
+          if (testCase.file) {
+            const uniqueKey = `file_question${questionIndex}_testCase${testCaseIndex}`;
+            formData.append(uniqueKey, testCase.file);
+          }
+        });
+      }
+    });
+
+    console.log('Constructed FormData:', Array.from(formData.entries())); // 调试日志
+    console.log('Data object:', data); // 打印 data 对象
+    console.log('FormData entries:', Array.from(formData.entries())); // 打印 FormData 的内容
+
+    data.questions.forEach((question, index) => {
+      if (question.testCases) {
+        question.testCases.forEach((testCase, testCaseIndex) => {
+          console.log(`Question ${index} TestCase ${testCaseIndex}  Output:`, testCase.output ,'file:',testCase.file, 'input:', testCase.input);
+        });
+      }
+    });
 
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cleanedData),
+      body: formData,
     });
 
     if (!res.ok) {
+      const errorText = await res.text();
+      alert(`Upload failed: ${errorText}`); // 显示后端返回的错误信息
       return;
     }
 

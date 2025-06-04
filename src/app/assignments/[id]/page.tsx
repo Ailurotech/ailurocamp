@@ -31,6 +31,28 @@ export default function AssignmentDetailPage() {
     fetchAssignment();
   }, [id]);
 
+  useEffect(() => {
+    if (assignment && assignment.questions) {
+      assignment.questions.forEach((question) => {
+        if (question.type === 'coding' && question.testCases) {
+          question.testCases.forEach((testCase) => {
+            if (
+              testCase.file &&
+              typeof testCase.file === 'object' &&
+              'name' in testCase.file &&
+              'type' in testCase.file &&
+              !(testCase.file instanceof File)
+            ) {
+              // Convert plain object to File instance if necessary
+              const { name, type } = testCase.file as { name: string; type: string };
+              testCase.file = new File([JSON.stringify(testCase.file)], name, { type });
+            }
+          });
+        }
+      });
+    }
+  }, [assignment]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
@@ -125,13 +147,72 @@ export default function AssignmentDetailPage() {
                     {question.testCases.map((testCase, idx) => (
                       <div key={idx} className="text-gray-600">
                         <div>
-                          <span className="font-medium">Input:</span>{' '}
-                          {testCase.input}
+                          <span className="font-medium">Input:</span> {typeof testCase.input === 'string' ? testCase.input : JSON.stringify(testCase.input)}
                         </div>
                         <div>
                           <span className="font-medium">Expected Output:</span>{' '}
-                          {testCase.output}
+                          {typeof testCase.output === 'string' && testCase.output.trim() !== '' && /\.(png|jpe?g|gif|svg|webp)$/.test(testCase.output) ? (
+                            <img
+                              src={testCase.output.startsWith('/') ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${testCase.output}` : testCase.output}
+                              alt="Expected Output"
+                              className="mt-2 max-w-full h-auto rounded-lg border border-gray-300"
+                            />
+                          ) : (
+                            testCase.output
+                          )}
                         </div>
+                        {testCase.file && testCase.file instanceof File && (
+                          <div className="mt-2">
+                            {testCase.file.type.startsWith('image/') ? (
+                              <div>
+                                <span className="font-medium">Uploaded Image:</span>
+                                {(() => {
+                                  try {
+                                    if (!(testCase.file instanceof File)) {
+                                      console.warn('testCase.file is not a valid File object:', testCase.file);
+                                      return <p className="text-red-500">Invalid file format.</p>;
+                                    }
+
+                                    const imageUrl = URL.createObjectURL(testCase.file);
+                                    console.log('Generated image URL:', imageUrl);
+
+                                    return (
+                                      <img
+                                        src={imageUrl}
+                                        alt="Uploaded Preview"
+                                        className="mt-2 max-w-full h-auto rounded-lg border border-gray-300"
+                                        onLoad={() => console.log('Image loaded successfully:', imageUrl)}
+                                        onError={() => console.error('Failed to load image:', imageUrl)}
+                                      />
+                                    );
+                                  } catch (error) {
+                                    console.error('Error creating object URL for image:', error);
+                                    return <p className="text-red-500">Failed to load image preview.</p>;
+                                  }
+                                })()}
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium">Uploaded File:</span>{' '}
+                                <a
+                                  href={(() => {
+                                    try {
+                                      return URL.createObjectURL(testCase.file);
+                                    } catch (error) {
+                                      console.error('Error creating object URL for file:', error);
+                                      return '#';
+                                    }
+                                  })()}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                >
+                                  {testCase.file.name}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

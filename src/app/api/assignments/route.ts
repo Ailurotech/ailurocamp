@@ -9,7 +9,18 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const formData = await req.formData();
+    console.log('Received FormData:', Array.from(formData.entries())); // 调试日志
+
+    const dataField = formData.get('data');
+    if (!dataField) {
+      throw new Error('Missing "data" field in FormData');
+    }
+
+    const body = JSON.parse(dataField as string);
+
+    console.log('Request body:', req.body); // 打印请求体内容
+    console.log('Assignments before push:', assignments); // 打印当前 assignments 状态
 
     const assignment: Assignment = {
       id: randomUUID(),

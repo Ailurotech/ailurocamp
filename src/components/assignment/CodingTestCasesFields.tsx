@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFieldArray, Controller, Control } from 'react-hook-form';
 import { Assignment } from '@/types/assignment';
+import Image from 'next/image';
 
 const CodingTestCasesFields = ({
   nestIndex,
@@ -17,19 +18,37 @@ const CodingTestCasesFields = ({
     keyName: 'id',
   });
 
+  const [previewUrls, setPreviewUrls] = useState<(string | null)[]>([]);
+
+  useEffect(() => {
+    const urls = fields.map((field) => {
+      if (field.file && field.file instanceof File && field.file.type.startsWith('image/')) {
+        return URL.createObjectURL(field.file);
+      }
+      return null;
+    });
+    setPreviewUrls(urls);
+
+    return () => {
+      urls.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+    };
+  }, [fields]);
+
   return (
-    <div className="mt-4 bg-gray-50 p-4 rounded">
-      <h3 className="font-semibold mb-2">Test Cases</h3>
+    <div className="mt-4 bg-white shadow-md p-6 rounded-lg">
+      <h3 className="font-semibold text-lg mb-4 text-gray-800">Test Cases</h3>
       {fields.map((testCase, index) => (
-        <div key={testCase.id} className="mb-2">
+        <div key={testCase.id} className="mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
           <Controller
             name={`questions.${nestIndex}.testCases.${index}.input`}
             control={control}
             render={({ field }) => (
               <input
                 {...field}
-                placeholder="Input"
-                className="w-full border p-2 mb-2 rounded"
+                placeholder="Enter Input"
+                className="w-full border border-gray-300 p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             )}
           />
@@ -37,19 +56,83 @@ const CodingTestCasesFields = ({
             name={`questions.${nestIndex}.testCases.${index}.output`}
             control={control}
             render={({ field }) => (
+              <input
+                {...field}
+                placeholder="Expected Output"
+                className="w-full border border-gray-300 p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            )}
+          />
+          <Controller
+            name={`questions.${nestIndex}.testCases.${index}.file`}
+            control={control}
+            render={({ field }) => (
               <div>
-                <label className="block mb-1 font-medium">Upload Expected Output Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
+                <label className="block mb-2 font-medium text-gray-700">Upload Expected Output Image</label>
+                <div
+                  className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    const inputElement = document.getElementById(`file-upload-output-${index}`) as HTMLInputElement | null;
+                    if (inputElement) {
+                      inputElement.click();
+                    }
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
                     if (file) {
                       field.onChange(file);
                     }
                   }}
-                  className="w-full border p-2 rounded"
-                />
+                  onDragOver={(e) => e.preventDefault()}
+                >
+                  <input
+                    id={`file-upload-output-${index}`}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        field.onChange(file);
+                        setPreviewUrls((prev) => {
+                          const updated = [...prev];
+                          updated[index] = URL.createObjectURL(file);
+                          return updated;
+                        });
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <span className="text-gray-500">Drag & drop or click to upload</span>
+                </div>
+                {previewUrls[index] && (
+                  <Image
+                    src={previewUrls[index]}
+                    alt="Preview"
+                    width={300}
+                    height={200}
+                    className="max-w-full h-auto rounded-lg border border-gray-300"
+                    onLoad={() => {
+                      console.log('Image loaded successfully:', previewUrls[index]);
+                    }}
+                    onError={(e) => {
+                      console.error('Failed to load image preview:', e, 'URL:', previewUrls[index]);
+                      setPreviewUrls((prev) => {
+                        const updated = [...prev];
+                        updated[index] = null;
+                        return updated;
+                      });
+                    }}
+                    unoptimized
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={() => field.onChange(null)}
+                  className="text-red-500 hover:underline text-sm mt-1"
+                >
+                  ❌ Remove Image
+                </button>
               </div>
             )}
           />
@@ -58,26 +141,66 @@ const CodingTestCasesFields = ({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="block mb-1 font-medium">Upload Test Case File</label>
-                <input
-                  type="file"
-                  accept=".json,.txt,.csv.py,.js,.java"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
+                <label className="block mb-2 font-medium text-gray-700">Upload Test Case File</label>
+                <div
+                  className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    const inputElement = document.getElementById(`file-upload-${index}`) as HTMLInputElement | null;
+                    if (inputElement) {
+                      inputElement.click();
+                    }
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
                     if (file) {
                       field.onChange(file);
                     }
                   }}
-                  className="w-full border p-2 rounded"
-                />
+                  onDragOver={(e) => e.preventDefault()}
+                >
+                  <input
+                    id={`file-upload-${index}`}
+                    type="file"
+                    accept=".json,.txt,.csv,.py,.js,.java"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        console.log('File selected:', file);
+                        field.onChange(file);
+                        setPreviewUrls((prev) => {
+                          const updated = [...prev];
+                          updated[index] = URL.createObjectURL(file);
+                          return updated;
+                        });
+                      } else {
+                        console.warn('No file selected');
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <span className="text-gray-500">Drag & drop or click to upload</span>
+                </div>
+                {field.value && typeof field.value === 'object' && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-700">Uploaded File: {field.value.name}</p>
+                    <button
+                      type="button"
+                      onClick={() => field.onChange(null)}
+                      className="text-red-500 hover:underline text-sm mt-1"
+                    >
+                      ❌ Remove File
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           />
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-3">
             <button
               type="button"
               onClick={() => remove(index)}
-              className="text-red-500 hover:underline text-sm mt-1"
+              className="text-red-500 hover:underline text-sm"
             >
               ❌ Remove Test Case
             </button>
@@ -87,7 +210,7 @@ const CodingTestCasesFields = ({
       <button
         type="button"
         onClick={() => append({ input: '', output: '', file: null })}
-        className="text-blue-600 hover:underline text-sm mt-2"
+        className="text-blue-600 hover:underline text-sm mt-4"
       >
         ➕ Add Test Case
       </button>
