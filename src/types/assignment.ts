@@ -9,7 +9,7 @@ export type QuestionType =
 export type TestCase = {
   input: string;
   output: string;
-  file?: File | null; 
+  file?: string | null;
 };
 
 // question

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Assignment } from '@/types/assignment';
+import { Assignment, Question, TestCase } from '@/types/assignment';
 import { randomUUID } from 'crypto';
 import { assignments } from './assignmentsStore';
 import fs from 'fs/promises';
@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     console.log('Received FormData:', Array.from(formData.entries())); // 调试日志
     const file = formData.get('file') as File | null;
+
+    let fileUrl = '';
     if (file) {
       // 确保 uploads 目录存在
       const uploadsDir = path.join(process.cwd(), 'public/uploads');
@@ -24,6 +26,8 @@ export async function POST(req: NextRequest) {
       const fileBuffer = Buffer.from(await file.arrayBuffer());
       await fs.writeFile(filePath, fileBuffer);
 
+      // 生成文件路径
+      fileUrl = `/uploads/${file.name}`;
       console.log(`File saved to: ${filePath}`);
     }
 
@@ -34,8 +38,16 @@ export async function POST(req: NextRequest) {
 
     const body = JSON.parse(dataField as string);
 
-    // console.log('Request body:', req.body); // 打印请求体内容
-    // console.log('Assignments before push:', assignments); // 打印当前 assignments 状态
+    // 遍历 questions 并保存文件路径到 testCase.file
+    body.questions.forEach((question: Question) => {
+      if (question.testCases) {
+        question.testCases.forEach((testCase: TestCase) => {
+          if (fileUrl) {
+            testCase.file = fileUrl; // 保存文件路径
+          }
+        });
+      }
+    });
 
     const assignment: Assignment = {
       id: randomUUID(),

@@ -21,7 +21,10 @@ const CodingTestCasesFields = ({
     <div className="mt-4 bg-white shadow-md p-6 rounded-lg">
       <h3 className="font-semibold text-lg mb-4 text-gray-800">Test Cases</h3>
       {fields.map((testCase, index) => (
-        <div key={testCase.id} className="mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <div
+          key={testCase.id}
+          className="mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50"
+        >
           <Controller
             name={`questions.${nestIndex}.testCases.${index}.input`}
             control={control}
@@ -49,11 +52,15 @@ const CodingTestCasesFields = ({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="block mb-2 font-medium text-gray-700">Upload Test Case File</label>
+                <label className="block mb-2 font-medium text-gray-700">
+                  Upload Test Case File
+                </label>
                 <div
                   className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
-                    const inputElement = document.getElementById(`file-upload-${index}`) as HTMLInputElement | null;
+                    const inputElement = document.getElementById(
+                      `file-upload-${index}`
+                    ) as HTMLInputElement | null;
                     if (inputElement) {
                       inputElement.click();
                     }
@@ -82,20 +89,26 @@ const CodingTestCasesFields = ({
                     }}
                     className="hidden"
                   />
-                  <span className="text-gray-500">Drag & drop or click to upload</span>
+                  <span className="text-gray-500">
+                    Drag & drop or click to upload
+                  </span>
                 </div>
-                {field.value && typeof field.value === 'object' && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-700">Uploaded File: {field.value.name}</p>
-                    <button
-                      type="button"
-                      onClick={() => field.onChange(null)}
-                      className="text-red-500 hover:underline text-sm mt-1"
-                    >
-                      ❌ Remove File
-                    </button>
-                  </div>
-                )}
+                {field.value &&
+                  typeof field.value === 'object' &&
+                  'name' in field.value && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-700">
+                        Uploaded File: {(field.value as File).name}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => field.onChange(null)}
+                        className="text-red-500 hover:underline text-sm mt-1"
+                      >
+                        ❌ Remove File
+                      </button>
+                    </div>
+                  )}
               </div>
             )}
           />

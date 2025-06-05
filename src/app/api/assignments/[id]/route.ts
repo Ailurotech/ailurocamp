@@ -51,8 +51,16 @@ export async function PUT(
       let counter = 1;
       const fileExt = path.extname(file.name);
       const fileNameWithoutExt = path.basename(file.name, fileExt);
-      while (await fs.access(filePath).then(() => true).catch(() => false)) {
-        filePath = path.join(uploadsDir, `${fileNameWithoutExt}(${counter})${fileExt}`);
+      while (
+        await fs
+          .access(filePath)
+          .then(() => true)
+          .catch(() => false)
+      ) {
+        filePath = path.join(
+          uploadsDir,
+          `${fileNameWithoutExt}(${counter})${fileExt}`
+        );
         counter++;
       }
 
@@ -60,13 +68,15 @@ export async function PUT(
       console.log('File written to:', filePath);
 
       const fileUrl = `/uploads/${path.basename(filePath)}`;
-      updatedAssignment.questions.forEach((question: { testCases?: { output: string }[] }) => {
-        if (question.testCases) {
-          question.testCases.forEach((testCase) => {
-            testCase.output = fileUrl;
-          });
+      updatedAssignment.questions.forEach(
+        (question: { testCases?: { output: string }[] }) => {
+          if (question.testCases) {
+            question.testCases.forEach((testCase) => {
+              testCase.output = fileUrl;
+            });
+          }
         }
-      });
+      );
     }
 
     assignments[assignmentIndex] = {
@@ -80,7 +90,8 @@ export async function PUT(
     });
   } catch (error: unknown) {
     console.error('Error handling PUT request:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return new Response(`Invalid request: ${errorMessage}`, { status: 400 });
   }
 }

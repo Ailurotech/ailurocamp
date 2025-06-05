@@ -36,16 +36,8 @@ export default function AssignmentDetailPage() {
       assignment.questions.forEach((question) => {
         if (question.type === 'coding' && question.testCases) {
           question.testCases.forEach((testCase) => {
-            if (
-              testCase.file &&
-              typeof testCase.file === 'object' &&
-              'name' in testCase.file &&
-              'type' in testCase.file &&
-              !(testCase.file instanceof File)
-            ) {
-              // Convert plain object to File instance if necessary
-              const { name, type } = testCase.file as { name: string; type: string };
-              testCase.file = new File([JSON.stringify(testCase.file)], name, { type });
+            if (testCase.file && typeof testCase.file !== 'string') {
+              console.warn('Unexpected testCase.file type:', testCase.file);
             }
           });
         }
@@ -71,6 +63,37 @@ export default function AssignmentDetailPage() {
     } else {
       alert('Upload failed');
     }
+  };
+
+  const renderUploadedFiles = () => {
+    if (!assignment || !assignment.questions) return null;
+
+    return assignment.questions.map((question, questionIndex) => (
+      <div key={questionIndex} className="mb-4">
+        <h3 className="text-lg font-semibold">{question.title}</h3>
+        {question.testCases?.map((testCase, testCaseIndex) => (
+          <div key={testCaseIndex} className="mt-2">
+            {testCase.file && (
+              <div className="mt-2">
+                <span className="font-medium">Uploaded Test Case File:</span>{' '}
+                <a
+                  href={
+                    testCase.file.startsWith('/')
+                      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${testCase.file}`
+                      : testCase.file
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  {testCase.file.split('/').pop()}
+                </a>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    ));
   };
 
   if (loading) return <p>Loading...</p>;
@@ -147,38 +170,23 @@ export default function AssignmentDetailPage() {
                     {question.testCases.map((testCase, idx) => (
                       <div key={idx} className="text-gray-600">
                         <div>
-                          <span className="font-medium">Input:</span> {typeof testCase.input === 'string' ? testCase.input : JSON.stringify(testCase.input)}
+                          <span className="font-medium">Input:</span>{' '}
+                          {typeof testCase.input === 'string'
+                            ? testCase.input
+                            : JSON.stringify(testCase.input)}
                         </div>
                         <div>
-                          <span className="font-medium">Expected Output:</span>{' '}
-                          {typeof testCase.output === 'string' && testCase.output.trim() !== '' && /\.(png|jpe?g|gif|svg|webp)$/.test(testCase.output) ? (
-                            <img
-                              src={testCase.output.startsWith('/') ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${testCase.output}` : testCase.output}
-                              alt="Expected Output"
-                              className="mt-2 max-w-full h-auto rounded-lg border border-gray-300"
-                            />
-                          ) : (
-                            testCase.output
-                          )}
+                          <span className="font-medium">Output:</span>{' '}
+                          {typeof testCase.output === 'string'
+                            ? testCase.output
+                            : JSON.stringify(testCase.output)}
                         </div>
                         {testCase.file && (
                           <div className="mt-2">
-                            <span className="font-medium">Uploaded Test Case File:</span>{' '}
-                            <a
-                              href={(() => {
-                                try {
-                                  return URL.createObjectURL(testCase.file);
-                                } catch (error) {
-                                  console.error('Error creating object URL for file:', error);
-                                  return '#';
-                                }
-                              })()}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              {testCase.file.name}
-                            </a>
+                            <h2 className="text-2xl font-semibold mt-8 mb-4">
+                              Uploaded Files:
+                            </h2>
+                            {renderUploadedFiles()}
                           </div>
                         )}
                       </div>
@@ -189,6 +197,7 @@ export default function AssignmentDetailPage() {
             ))}
           </ul>
         )}
+
         <form onSubmit={handleSubmit} className="mt-8 border-t pt-4">
           <label className="block mb-2 font-medium">Submit your work:</label>
           <input
@@ -197,13 +206,13 @@ export default function AssignmentDetailPage() {
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             className="mb-4"
           />
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Submit
-          </button>
         </form>
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Submit
+        </button>
       </div>
     </div>
   );

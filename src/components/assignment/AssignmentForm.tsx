@@ -45,7 +45,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
     const url = data.id ? `/api/assignments/${data.id}` : '/api/assignments';
     const method = data.id ? 'PUT' : 'POST';
 
-    console.log('Submitting data:', data); 
+    console.log('Submitting data:', data);
 
     const formData = new FormData();
     formData.append('data', JSON.stringify(data));
@@ -74,7 +74,14 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
     data.questions.forEach((question, index) => {
       if (question.testCases) {
         question.testCases.forEach((testCase, testCaseIndex) => {
-          console.log(`Question ${index} TestCase ${testCaseIndex}  Output:`, testCase.output ,'file:',testCase.file, 'input:', testCase.input);
+          console.log(
+            `Question ${index} TestCase ${testCaseIndex}  Output:`,
+            testCase.output,
+            'file:',
+            testCase.file,
+            'input:',
+            testCase.input
+          );
         });
       }
     });
