@@ -191,13 +191,12 @@ function generateProgressReportHtml(data: ApiResponseData): string {
       : 'No record';
 
     // Find the earliest lesson start date to determine when student began the course
-  
+
     const startDate = data.progress?.completedLessons?.length
       ? new Date(
           [...data.progress.completedLessons].sort(
             (a: LessonProgress, b: LessonProgress) =>
-              new Date(a.startedAt).getTime() -
-              new Date(b.startedAt).getTime()
+              new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
           )[0]?.startedAt
         ).toLocaleString()
       : 'Not started';
