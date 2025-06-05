@@ -7,7 +7,7 @@ import StudentProgress from '@/models/StudentProgress';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { courseId: string; studentId: string } }
+  { params }: { params: Promise<{ courseId: string; studentId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,7 +19,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { courseId, studentId } = params;
+    // Await the params since it's now a Promise in Next.js 13.4+
+    const resolvedParams = await params;
+
+    // Extract courseId and studentId from the resolved parameters
+    const courseId = resolvedParams.courseId;
+    const studentId = resolvedParams.studentId;
+
     const { overallProgress } = await request.json();
 
     if (
