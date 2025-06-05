@@ -141,7 +141,7 @@ export default function InstructorProgressPage() {
               No courses found
             </h3>
             <p className="mt-2 text-sm text-gray-500">
-              You don't have any courses yet. Create a course to start tracking
+              You don&apos;t have any courses yet. Create a course to start tracking
               student progress.
             </p>
             <div className="mt-6">

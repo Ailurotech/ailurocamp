@@ -19,7 +19,6 @@ const ProgressReport: React.FC<ProgressReportProps> = ({
   report,
   student,
   course,
-  formatDate,
   formatTime,
 }) => {
   return (

@@ -1,5 +1,3 @@
-import { ICourse } from './course';
-
 export interface LessonProgress {
   moduleIndex: number;
   lessonIndex: number;
