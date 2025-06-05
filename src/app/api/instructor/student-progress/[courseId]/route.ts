@@ -9,7 +9,7 @@ import StudentProgress from '@/models/StudentProgress';
 // API route for fetching the progress of students in a specific course
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   // Retrieve the current session using NextAuth
   const session = await getServerSession(authOptions);
@@ -36,8 +36,11 @@ export async function GET(
   // Connect to the MongoDB database
   await connectDB();
 
-  // Extract courseId from the URL parameters
-  const { courseId } = params;
+  // Await the params since it's now a Promise in Next.js 13.4+
+  const resolvedParams = await params;
+
+  // Extract courseId from the resolved parameters
+  const courseId = resolvedParams.courseId;
 
   // Check if the courseId is provided
   if (!courseId) {

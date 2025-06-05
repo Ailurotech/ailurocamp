@@ -61,7 +61,7 @@ interface LessonData {
 // API route for displaying student progress as an HTML page
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string; studentId: string } }
+  { params }: { params: Promise<{ courseId: string; studentId: string }> }
 ) {
   // Retrieve the current session using NextAuth
   const session = await getServerSession(authOptions);
@@ -85,9 +85,12 @@ export async function GET(
     );
   }
 
+  // Await the params since it's now a Promise
+  const resolvedParams = await params;
+
   // Safely extract courseId and studentId from the params
-  const courseId = params.courseId;
-  const studentId = params.studentId;
+  const courseId = resolvedParams.courseId;
+  const studentId = resolvedParams.studentId;
 
   // Check if the required parameters are provided
   if (!courseId || !studentId) {
@@ -485,5 +488,3 @@ function generateProgressReportHtml(data: ApiResponseData): string {
     `;
   }
 }
-
-// Remove unused function generateProgressReport

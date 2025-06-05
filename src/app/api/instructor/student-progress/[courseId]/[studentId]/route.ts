@@ -16,7 +16,7 @@ interface CourseModule {
 // API route for fetching the progress of a student in a specific course
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string; studentId: string } }
+  { params }: { params: Promise<{ courseId: string; studentId: string }> }
 ) {
   // Retrieve the current session using NextAuth
   const session = await getServerSession(authOptions);
@@ -43,8 +43,12 @@ export async function GET(
   // Connect to the MongoDB database
   await connectDB();
 
-  // Extract courseId and studentId from the URL parameters
-  const { courseId, studentId } = params;
+  // Await the params since it's now a Promise in Next.js 13.4+
+  const resolvedParams = await params;
+
+  // Extract courseId and studentId from the resolved parameters
+  const courseId = resolvedParams.courseId;
+  const studentId = resolvedParams.studentId;
 
   // Check if the courseId is provided
   if (!courseId) {
