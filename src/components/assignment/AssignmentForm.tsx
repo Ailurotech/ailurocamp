@@ -56,11 +56,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
       }
     });
 
-    data.questions.forEach((question, questionIndex) => {
+    data.questions.forEach((question) => {
       if (question.type === 'coding' && question.testCases) {
-        question.testCases.forEach((testCase, testCaseIndex) => {
+        question.testCases.forEach((testCase) => {
           if (testCase.file) {
-            const uniqueKey = `file_question${questionIndex}_testCase${testCaseIndex}`;
+            const uniqueKey = `file`;
             formData.append(uniqueKey, testCase.file);
           }
         });

@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useFieldArray, Controller, Control } from 'react-hook-form';
 import { Assignment } from '@/types/assignment';
-import Image from 'next/image';
 
 const CodingTestCasesFields = ({
   nestIndex,
@@ -17,24 +16,6 @@ const CodingTestCasesFields = ({
     name: `questions.${nestIndex}.testCases`,
     keyName: 'id',
   });
-
-  const [previewUrls, setPreviewUrls] = useState<(string | null)[]>([]);
-
-  useEffect(() => {
-    const urls = fields.map((field) => {
-      if (field.file && field.file instanceof File && field.file.type.startsWith('image/')) {
-        return URL.createObjectURL(field.file);
-      }
-      return null;
-    });
-    setPreviewUrls(urls);
-
-    return () => {
-      urls.forEach((url) => {
-        if (url) URL.revokeObjectURL(url);
-      });
-    };
-  }, [fields]);
 
   return (
     <div className="mt-4 bg-white shadow-md p-6 rounded-lg">
@@ -68,79 +49,6 @@ const CodingTestCasesFields = ({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="block mb-2 font-medium text-gray-700">Upload Expected Output Image</label>
-                <div
-                  className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    const inputElement = document.getElementById(`file-upload-output-${index}`) as HTMLInputElement | null;
-                    if (inputElement) {
-                      inputElement.click();
-                    }
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const file = e.dataTransfer.files?.[0];
-                    if (file) {
-                      field.onChange(file);
-                    }
-                  }}
-                  onDragOver={(e) => e.preventDefault()}
-                >
-                  <input
-                    id={`file-upload-output-${index}`}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        field.onChange(file);
-                        setPreviewUrls((prev) => {
-                          const updated = [...prev];
-                          updated[index] = URL.createObjectURL(file);
-                          return updated;
-                        });
-                      }
-                    }}
-                    className="hidden"
-                  />
-                  <span className="text-gray-500">Drag & drop or click to upload</span>
-                </div>
-                {previewUrls[index] && (
-                  <Image
-                    src={previewUrls[index]}
-                    alt="Preview"
-                    width={300}
-                    height={200}
-                    className="max-w-full h-auto rounded-lg border border-gray-300"
-                    onLoad={() => {
-                      console.log('Image loaded successfully:', previewUrls[index]);
-                    }}
-                    onError={(e) => {
-                      console.error('Failed to load image preview:', e, 'URL:', previewUrls[index]);
-                      setPreviewUrls((prev) => {
-                        const updated = [...prev];
-                        updated[index] = null;
-                        return updated;
-                      });
-                    }}
-                    unoptimized
-                  />
-                )}
-                <button
-                  type="button"
-                  onClick={() => field.onChange(null)}
-                  className="text-red-500 hover:underline text-sm mt-1"
-                >
-                  ❌ Remove Image
-                </button>
-              </div>
-            )}
-          />
-          <Controller
-            name={`questions.${nestIndex}.testCases.${index}.file`}
-            control={control}
-            render={({ field }) => (
-              <div>
                 <label className="block mb-2 font-medium text-gray-700">Upload Test Case File</label>
                 <div
                   className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white hover:bg-gray-100 cursor-pointer"
@@ -162,17 +70,12 @@ const CodingTestCasesFields = ({
                   <input
                     id={`file-upload-${index}`}
                     type="file"
-                    accept=".json,.txt,.csv,.py,.js,.java"
+                    accept=".json,.txt,.csv,.py,.js,.java,image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
                         console.log('File selected:', file);
                         field.onChange(file);
-                        setPreviewUrls((prev) => {
-                          const updated = [...prev];
-                          updated[index] = URL.createObjectURL(file);
-                          return updated;
-                        });
                       } else {
                         console.warn('No file selected');
                       }

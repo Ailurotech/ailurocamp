@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Assignment } from '@/types/assignment';
 import { randomUUID } from 'crypto';
 import { assignments } from './assignmentsStore';
+import fs from 'fs/promises';
+import path from 'path';
 
 export async function GET() {
   return NextResponse.json(assignments);
@@ -11,6 +13,19 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     console.log('Received FormData:', Array.from(formData.entries())); // 调试日志
+    const file = formData.get('file') as File | null;
+    if (file) {
+      // 确保 uploads 目录存在
+      const uploadsDir = path.join(process.cwd(), 'public/uploads');
+      await fs.mkdir(uploadsDir, { recursive: true });
+
+      // 保存文件
+      const filePath = path.join(uploadsDir, file.name);
+      const fileBuffer = Buffer.from(await file.arrayBuffer());
+      await fs.writeFile(filePath, fileBuffer);
+
+      console.log(`File saved to: ${filePath}`);
+    }
 
     const dataField = formData.get('data');
     if (!dataField) {
@@ -19,8 +34,8 @@ export async function POST(req: NextRequest) {
 
     const body = JSON.parse(dataField as string);
 
-    console.log('Request body:', req.body); // 打印请求体内容
-    console.log('Assignments before push:', assignments); // 打印当前 assignments 状态
+    // console.log('Request body:', req.body); // 打印请求体内容
+    // console.log('Assignments before push:', assignments); // 打印当前 assignments 状态
 
     const assignment: Assignment = {
       id: randomUUID(),

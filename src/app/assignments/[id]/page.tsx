@@ -161,56 +161,24 @@ export default function AssignmentDetailPage() {
                             testCase.output
                           )}
                         </div>
-                        {testCase.file && testCase.file instanceof File && (
+                        {testCase.file && (
                           <div className="mt-2">
-                            {testCase.file.type.startsWith('image/') ? (
-                              <div>
-                                <span className="font-medium">Uploaded Image:</span>
-                                {(() => {
-                                  try {
-                                    if (!(testCase.file instanceof File)) {
-                                      console.warn('testCase.file is not a valid File object:', testCase.file);
-                                      return <p className="text-red-500">Invalid file format.</p>;
-                                    }
-
-                                    const imageUrl = URL.createObjectURL(testCase.file);
-                                    console.log('Generated image URL:', imageUrl);
-
-                                    return (
-                                      <img
-                                        src={imageUrl}
-                                        alt="Uploaded Preview"
-                                        className="mt-2 max-w-full h-auto rounded-lg border border-gray-300"
-                                        onLoad={() => console.log('Image loaded successfully:', imageUrl)}
-                                        onError={() => console.error('Failed to load image:', imageUrl)}
-                                      />
-                                    );
-                                  } catch (error) {
-                                    console.error('Error creating object URL for image:', error);
-                                    return <p className="text-red-500">Failed to load image preview.</p>;
-                                  }
-                                })()}
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="font-medium">Uploaded File:</span>{' '}
-                                <a
-                                  href={(() => {
-                                    try {
-                                      return URL.createObjectURL(testCase.file);
-                                    } catch (error) {
-                                      console.error('Error creating object URL for file:', error);
-                                      return '#';
-                                    }
-                                  })()}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  {testCase.file.name}
-                                </a>
-                              </div>
-                            )}
+                            <span className="font-medium">Uploaded Test Case File:</span>{' '}
+                            <a
+                              href={(() => {
+                                try {
+                                  return URL.createObjectURL(testCase.file);
+                                } catch (error) {
+                                  console.error('Error creating object URL for file:', error);
+                                  return '#';
+                                }
+                              })()}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {testCase.file.name}
+                            </a>
                           </div>
                         )}
                       </div>
