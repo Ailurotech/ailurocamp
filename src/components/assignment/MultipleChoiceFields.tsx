@@ -15,6 +15,12 @@ const MultipleChoiceFields: React.FC<Props> = ({ nestIndex, control }) => {
     name: `questions.${nestIndex}.choices`,
   });
 
+  // Function to get the next label based on the current fields
+  const getNextLabel = () => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; // Change to uppercase
+    return alphabet[fields.length % alphabet.length];
+  };
+
   return (
     <div className="mt-4 bg-gray-50 p-4 rounded">
       <h3 className="font-semibold mb-2">Choices</h3>
@@ -53,7 +59,7 @@ const MultipleChoiceFields: React.FC<Props> = ({ nestIndex, control }) => {
       ))}
       <button
         type="button"
-        onClick={() => append({ label: '', value: '' })}
+        onClick={() => append({ label: getNextLabel(), value: '' })}
         className="text-blue-600 hover:underline text-sm"
       >
         ➕ Add Choice
