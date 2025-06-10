@@ -2,9 +2,17 @@
 
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
 
-export default function DeleteButton({ id }: { id: string }) {
+export default function DeleteButton({ 
+  id, 
+  courseId = '6842ba9dfc2972e671d5a48c' 
+}: { 
+  id: string; 
+  courseId?: string;
+}) {
   const router = useRouter();
+  const adapter = new AssignmentApiAdapter();
 
   const handleDelete = async () => {
     const confirmed = confirm(
@@ -12,8 +20,13 @@ export default function DeleteButton({ id }: { id: string }) {
     );
     if (!confirmed) return;
 
-    await fetch(`/api/assignments?id=${id}`, { method: 'DELETE' });
-    router.push('/assignments');
+    try {
+      await adapter.deleteAssignment(id, courseId);
+      router.push('/assignments');
+    } catch (error) {
+      console.error('Failed to delete assignment:', error);
+      alert('Failed to delete assignment. Please try again.');
+    }
   };
 
   return (

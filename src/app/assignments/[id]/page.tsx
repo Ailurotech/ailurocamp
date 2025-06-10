@@ -16,19 +16,49 @@ export default function AssignmentDetailPage() {
 
   useEffect(() => {
     const fetchAssignment = async () => {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
-      const res = await fetch(`${baseUrl}/api/assignments/${id}`, {
-        cache: 'no-store',
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAssignment(data);
+      try {
+        setLoading(true);
+        // 使用新的通用作业API
+        const response = await fetch(`/api/assignments/${id}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch assignment: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success || !result.assignment) {
+          throw new Error(result.error || 'Assignment not found');
+        }
+
+        // 转换为 Assignment 类型
+        const assignment: Assignment = {
+          id: result.assignment.id,
+          title: result.assignment.title,
+          description: result.assignment.description,
+          dueDate: result.assignment.dueDate,
+          points: result.assignment.totalPoints || 100,
+          courseId: result.assignment.courseId,
+          questions: [],
+          timeLimit: 0,
+          passingScore: 0,
+          createdAt: result.assignment.createdAt || new Date().toISOString(),
+          updatedAt: result.assignment.updatedAt || new Date().toISOString(),
+        };
+        
+        setAssignment(assignment);
+      } catch (error) {
+        console.error('Failed to fetch assignment:', error);
+        // 设置错误状态，不再提供误导性的备用数据
+        setAssignment(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    fetchAssignment();
+    if (id) {
+      fetchAssignment();
+    }
   }, [id]);
 
   useEffect(() => {
@@ -96,8 +126,43 @@ export default function AssignmentDetailPage() {
     ));
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!assignment) return <p>Assignment not found.</p>;
+  if (loading) return <div className="max-w-4xl mx-auto p-8"><p>Loading...</p></div>;
+  if (!assignment) return (
+    <div className="max-w-4xl mx-auto p-8 min-h-screen bg-gray-50">
+      <Link
+        href="/assignments"
+        className="inline-block mb-6 text-blue-600 hover:underline"
+      >
+        ← Back to Assignments
+      </Link>
+      <div className="bg-white shadow-md rounded-lg p-8">
+        <h1 className="text-2xl font-bold mb-4 text-red-600">作业未找到</h1>
+        <p className="text-gray-600 mb-4">
+          抱歉，无法找到请求的作业。可能的原因：
+        </p>
+        <ul className="list-disc list-inside text-gray-600 mb-6">
+          <li>作业ID不存在</li>
+          <li>作业已被删除</li>
+          <li>您没有访问权限</li>
+          <li>网络连接问题</li>
+        </ul>
+        <div className="flex gap-4">
+          <Link
+            href="/assignments"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            返回作业列表
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+          >
+            重新加载
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto p-8 min-h-screen bg-gray-50">

@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import AssignmentForm from '@/components/assignment/AssignmentForm';
 import { Assignment } from '@/types/assignment';
+import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
 
 export default function EditAssignmentPage() {
   const params = useParams();
@@ -15,35 +16,65 @@ export default function EditAssignmentPage() {
 
   useEffect(() => {
     const fetchAssignment = async () => {
-      const res = await fetch(`/api/assignments/${id}`);
-      if (!res.ok) {
-        console.error('Failed to fetch assignment');
-        return;
+      try {
+        // 使用通用的作业API端点，不需要课程ID
+        const response = await fetch(`/api/assignments/${id}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch assignment: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success || !result.assignment) {
+          throw new Error(result.error || 'Assignment not found');
+        }
+
+        // 转换为 Assignment 类型
+        const assignment: Assignment = {
+          id: result.assignment.id,
+          title: result.assignment.title,
+          description: result.assignment.description,
+          dueDate: result.assignment.dueDate,
+          points: result.assignment.points || 100,
+          courseId: result.assignment.courseId,
+          questions: [],
+          timeLimit: 0,
+          passingScore: 0,
+          createdAt: result.assignment.createdAt || new Date().toISOString(),
+          updatedAt: result.assignment.updatedAt || new Date().toISOString(),
+        };
+        setAssignment(assignment);
+      } catch (error) {
+        console.error('Failed to fetch assignment:', error);
       }
-      const data = await res.json();
-      setAssignment(data);
     };
 
-    fetchAssignment();
+    if (id) {
+      fetchAssignment();
+    }
   }, [id]);
 
   const handleSubmit = async (data: Assignment) => {
     console.log('Submitting data:', data);
 
-    const res = await fetch(`/api/assignments/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+    try {
+      if (!assignment?.courseId) {
+        throw new Error('无法找到课程ID，无法更新作业');
+      }
 
-    if (res.ok) {
+      const adapter = new AssignmentApiAdapter();
+      await adapter.updateAssignment(assignment.courseId, id as string, {
+        title: data.title,
+        description: data.description,
+        dueDate: data.dueDate,
+        points: data.points || 0
+      });
+      
       console.log('Update successful, redirecting to:', `/assignments/${id}`);
-      const responseBody = await res.json();
-      console.log('API Response:', responseBody);
       router.push(`/assignments/${id}`);
-    } else {
-      const errorText = await res.text();
-      console.error('Failed to update assignment:', errorText);
+    } catch (error) {
+      console.error('Failed to update assignment:', error);
     }
   };
 

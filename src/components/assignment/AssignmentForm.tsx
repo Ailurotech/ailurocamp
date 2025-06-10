@@ -3,18 +3,19 @@
 import React, { useEffect } from 'react';
 import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { Assignment } from '@/types/assignment';
-import { useRouter } from 'next/navigation';
+import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
 import MultipleChoiceFields from './MultipleChoiceFields';
 import CodingTestCasesFields from './CodingTestCasesFields';
 import QuillEditor from './QuillEditor';
 
 type AssignmentFormProps = {
   defaultValues?: Assignment;
-  onSubmit?: (data: Assignment) => void;
+  onSubmit?: (data: Assignment) => void | Promise<void>;
+  courseId?: string; // 新增课程ID支持
 };
 
-const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
-  const router = useRouter();
+const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId, onSubmit }) => {
+  const adapter = new AssignmentApiAdapter();
 
   const { control, handleSubmit, reset } = useForm<Assignment>({
     defaultValues: defaultValues ?? {
@@ -22,6 +23,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
       description: '',
       questions: [],
       dueDate: '',
+      points: 0, // 添加 points 字段
       timeLimit: 0,
       passingScore: 0,
       createdAt: '',
@@ -42,63 +44,38 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
   const watchedQuestions = useWatch({ control, name: 'questions' });
 
   const internalSubmit = async (data: Assignment) => {
-    const url = data.id ? `/api/assignments/${data.id}` : '/api/assignments';
-    const method = data.id ? 'PUT' : 'POST';
-
     console.log('Submitting data:', data);
 
-    const formData = new FormData();
-    formData.append('data', JSON.stringify(data));
+    try {
+      const assignmentRequest = {
+        title: data.title,
+        description: data.description,
+        dueDate: data.dueDate,
+        points: data.points || 0
+      };
 
-    data.questions.forEach((question) => {
-      if (question.type === 'file-upload' && question.uploadedFile) {
-        formData.append('file', question.uploadedFile);
+      if (!courseId) {
+        throw new Error('课程ID是必需的，无法创建或更新作业');
       }
-    });
 
-    data.questions.forEach((question) => {
-      if (question.type === 'coding' && question.testCases) {
-        question.testCases.forEach((testCase) => {
-          if (testCase.file) {
-            const uniqueKey = `file`;
-            formData.append(uniqueKey, testCase.file);
-          }
-        });
+      if (data.id && defaultValues) {
+        // 更新现有作业
+        const result = await adapter.updateAssignment(courseId, data.id, assignmentRequest);
+        console.log('Assignment updated successfully:', result);
+      } else {
+        // 创建新作业
+        const result = await adapter.createAssignment(courseId, assignmentRequest);
+        console.log('Assignment created successfully:', result);
       }
-    });
-
-    console.log('Constructed FormData:', Array.from(formData.entries())); // 调试日志
-    console.log('Data object:', data); // 打印 data 对象
-    console.log('FormData entries:', Array.from(formData.entries())); // 打印 FormData 的内容
-
-    data.questions.forEach((question, index) => {
-      if (question.testCases) {
-        question.testCases.forEach((testCase, testCaseIndex) => {
-          console.log(
-            `Question ${index} TestCase ${testCaseIndex}  Output:`,
-            testCase.output,
-            'file:',
-            testCase.file,
-            'input:',
-            testCase.input
-          );
-        });
+      
+      // 调用外部的 onSubmit 回调
+      if (onSubmit) {
+        await onSubmit(data);
       }
-    });
-
-    const res = await fetch(url, {
-      method,
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      alert(`Upload failed: ${errorText}`); // 显示后端返回的错误信息
-      return;
+    } catch (error) {
+      console.error('提交失败:', error);
+      alert(`提交失败: ${error instanceof Error ? error.message : String(error)}`);
     }
-
-    await res.json();
-    router.push('/assignments');
   };
 
   return (
@@ -167,6 +144,22 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues }) => {
               type="number"
               className="border p-2 w-full rounded"
               placeholder="Enter passing score"
+            />
+          )}
+        />
+      </div>
+
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">Total Points</h1>
+      <div className="mb-4">
+        <Controller
+          name="points"
+          control={control}
+          render={({ field }) => (
+            <input
+              {...field}
+              type="number"
+              className="border p-2 w-full rounded"
+              placeholder="Enter total points for this assignment"
             />
           )}
         />

@@ -1,98 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Assignment, Question, TestCase } from '@/types/assignment';
-import { randomUUID } from 'crypto';
-import { assignments } from './assignmentsStore';
-import fs from 'fs/promises';
-import path from 'path';
+import connectDB from '@/lib/mongodb';
+import Assessment from '@/models/Assessment';
+import Course from '@/models/Course';
 
-export async function GET() {
-  return NextResponse.json(assignments);
+interface ApiAssignmentItem {
+  id: string;
+  title: string;
+  description: string;
+  dueDate?: string;
+  points?: number;
+  courseId?: string;  createdAt?: string;
+  updatedAt?: string;
 }
 
-export async function POST(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const formData = await req.formData();
-    console.log('Received FormData:', Array.from(formData.entries())); // 调试日志
-    const file = formData.get('file') as File | null;
+    await connectDB();
 
-    let fileUrl = '';
-    if (file) {
-      // 确保 uploads 目录存在
-      const uploadsDir = path.join(process.cwd(), 'public/uploads');
-      await fs.mkdir(uploadsDir, { recursive: true });
+    const { searchParams } = new URL(request.url);
+    const instructorId = searchParams.get('instructorId');
+    const userId = searchParams.get('userId');
 
-      // 保存文件
-      const filePath = path.join(uploadsDir, file.name);
-      const fileBuffer = Buffer.from(await file.arrayBuffer());
-      await fs.writeFile(filePath, fileBuffer);
-
-      // 生成文件路径
-      fileUrl = `/uploads/${file.name}`;
-      console.log(`File saved to: ${filePath}`);
+    let assessmentQuery: {
+      type: string;
+      course?: { $in: string[] };
+    } = { type: 'assignment' };
+    
+    if (instructorId) {
+      // 如果指定了instructorId，获取该讲师的所有课程的作业
+      const instructorCourses = await Course.find({ instructor: instructorId }).select('_id');
+      const courseIds = instructorCourses.map(course => course._id);
+      assessmentQuery = { ...assessmentQuery, course: { $in: courseIds } };
+    } else if (userId) {
+      // 如果指定了userId，获取该用户注册课程的作业
+      const userCourses = await Course.find({ enrolledStudents: userId }).select('_id');
+      const courseIds = userCourses.map(course => course._id);
+      assessmentQuery = { ...assessmentQuery, course: { $in: courseIds } };
     }
+    // 如果都没指定，返回所有类型为assignment的作业
 
-    const dataField = formData.get('data');
-    if (!dataField) {
-      throw new Error('Missing "data" field in FormData');
-    }
+    // 从Assessment集合中获取作业
+    const assessments = await Assessment.find(assessmentQuery)
+      .sort({ createdAt: -1 })
+      .lean();      // 转换为API响应格式
+    const assignments: ApiAssignmentItem[] = assessments.map((assessment) => ({
+      id: assessment._id?.toString() || '',
+      title: assessment.title || '',
+      description: assessment.description || '',
+      dueDate: assessment.dueDate?.toISOString(),
+      points: assessment.totalPoints,
+      courseId: assessment.course?.toString(),
+      createdAt: assessment.createdAt?.toISOString(),
+      updatedAt: assessment.updatedAt?.toISOString(),
+    }));
 
-    const body = JSON.parse(dataField as string);
-
-    // 遍历 questions 并保存文件路径到 testCase.file
-    body.questions.forEach((question: Question) => {
-      if (question.testCases) {
-        question.testCases.forEach((testCase: TestCase) => {
-          if (fileUrl) {
-            testCase.file = fileUrl; // 保存文件路径
-          }
-        });
-      }
+    return NextResponse.json({
+      success: true,
+      assignments: assignments
     });
-
-    const assignment: Assignment = {
-      id: randomUUID(),
-      title: body.title || '',
-      description: body.description || '',
-      dueDate: body.dueDate || '',
-      timeLimit: body.timeLimit || 0,
-      passingScore: body.passingScore || 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      questions: body.questions || [],
-    };
-
-    assignments.push(assignment);
-
-    return NextResponse.json(assignment, { status: 201 });
   } catch (error) {
-    console.error('❌ Failed to handle JSON POST:', error);
-    return NextResponse.json({ error: 'Invalid JSON data' }, { status: 400 });
-  }
-}
-
-export async function PUT(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
-  const updatedAssignment: Assignment = await req.json();
-
-  const index = assignments.findIndex((a) => a.id === id);
-  if (index !== -1) {
-    assignments[index] = updatedAssignment;
-    return NextResponse.json(updatedAssignment, { status: 200 });
-  } else {
-    return new NextResponse('Assignment not found', { status: 404 });
-  }
-}
-
-export async function DELETE(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
-
-  const index = assignments.findIndex((a) => a.id === id);
-  if (index !== -1) {
-    assignments.splice(index, 1);
-    return new Response(null, { status: 204 });
-  } else {
-    return new NextResponse('Assignment not found', { status: 404 });
+    console.error('Error fetching assignments:', error);
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch assignments',
+      message: 'Database connection error or internal server error',
+      assignments: []
+    }, { status: 500 });
   }
 }
