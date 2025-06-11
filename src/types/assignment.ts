@@ -84,6 +84,13 @@ export type AssignmentApiRequest = {
   description: string;
   dueDate: string;
   points: number;
+  questions?: {
+    question: string;
+    type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay';
+    options?: string[];
+    correctAnswer?: string | string[];
+    points: number;
+  }[];
 };
 
 export type AssignmentApiResponse = {
@@ -92,6 +99,16 @@ export type AssignmentApiResponse = {
   description: string;
   dueDate: string;
   points: number;
+  courseId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  questions?: {
+    question: string;
+    type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay';
+    options?: string[];
+    correctAnswer?: string | string[];
+    points: number;
+  }[];
 };
 
 export type AssignmentListResponse = {

@@ -40,14 +40,22 @@ export class AssignmentApiAdapter {
     return response.json();
   }  /**
    * 创建作业
-   */
-  async createAssignment(
+   */  async createAssignment(
     courseId: string,
     assignmentData: AssignmentApiRequest
   ): Promise<AssignmentApiResponse> {
     if (!courseId) {
       throw new Error('Course ID is required');
     }
+    
+    console.log('Creating assignment with data:', { courseId, assignmentData });
+    console.log('Assignment data details:');
+    console.log('  title:', assignmentData.title);
+    console.log('  description:', assignmentData.description);
+    console.log('  dueDate:', assignmentData.dueDate);
+    console.log('  points:', assignmentData.points);
+    console.log('API URL:', `${API_BASE}/api/courses/${courseId}/assessments`);
+    console.log('Request body to be sent:', JSON.stringify(assignmentData, null, 2));
     
     const response = await fetch(`${API_BASE}/api/courses/${courseId}/assessments`, {
       method: 'POST',
@@ -58,11 +66,19 @@ export class AssignmentApiAdapter {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create assignment');
+      const errorText = await response.text();
+      console.error('Assignment creation failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Failed to create assignment: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
-    return response.json();
-  }  /**
+    const result = await response.json();
+    console.log('Assignment created successfully:', result);
+    return result;
+  }/**
    * 更新作业
    */
   async updateAssignment(

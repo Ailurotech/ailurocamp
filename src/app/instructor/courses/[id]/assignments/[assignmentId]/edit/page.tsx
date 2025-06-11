@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Assignment } from '@/types/assignment';
+import { Assignment, AssignmentApiResponse } from '@/types/assignment';
 import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
 import AssignmentForm from '@/components/assignment/AssignmentForm';
 import Link from 'next/link';
@@ -40,17 +40,30 @@ export default function EditAssignmentPage({
     }
   }, [session, sessionStatus, router]);  const fetchAssignment = async () => {
     setLoading(true);
-    try {
-      const result = await adapter.getAssignment(courseId, assignmentId);
-      // result 直接是 AssignmentApiResponse 类型，不需要检查 'assignment' 属性
+    try {      const result = await adapter.getAssignment(courseId, assignmentId);
+      // 检查返回的格式是否包含 assignment 属性
+      let apiResponse: AssignmentApiResponse;
+      if ('assignment' in result) {
+        apiResponse = result.assignment as AssignmentApiResponse;
+      } else {
+        apiResponse = result as AssignmentApiResponse;
+      }
+      
       const converted: Assignment = {
-        id: result.id,
-        title: result.title,
-        description: result.description,
+        id: apiResponse.id,
+        title: apiResponse.title,
+        description: apiResponse.description,
         courseId: courseId,
-        dueDate: result.dueDate || '',
-        points: result.points,
-        questions: [],
+        dueDate: apiResponse.dueDate || '',
+        points: apiResponse.points,
+        questions: apiResponse.questions ? apiResponse.questions.map(q => ({
+          id: Date.now().toString() + Math.random(),
+          title: q.question,
+          type: q.type as 'multiple-choice' | 'coding' | 'file-upload' | 'essay',
+          points: q.points,
+          options: q.options,
+          choices: q.options?.map(opt => ({ value: opt, label: opt })) || []
+        })) : [],
         timeLimit: 0,
         passingScore: 0,
         createdAt: new Date().toISOString(),

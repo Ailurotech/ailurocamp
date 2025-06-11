@@ -51,7 +51,14 @@ export default function AssignmentDetailPage({
           description: apiResponse.description,
           dueDate: apiResponse.dueDate,
           points: apiResponse.points,
-          questions: [],
+          questions: apiResponse.questions ? apiResponse.questions.map(q => ({
+            id: Date.now().toString() + Math.random(),
+            title: q.question,
+            type: q.type as 'multiple-choice' | 'coding' | 'file-upload' | 'essay',
+            points: q.points,
+            options: q.options,
+            choices: q.options?.map(opt => ({ value: opt, label: opt })) || []
+          })) : [],
           timeLimit: 0,
           passingScore: 0,
           courseId: courseId,

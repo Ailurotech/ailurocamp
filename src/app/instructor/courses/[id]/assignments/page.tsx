@@ -44,12 +44,18 @@ export default function InstructorAssignmentsPage({
   const fetchAssignments = async () => {
     setLoading(true);
     try {
-      const result = await adapter.getAssignments(courseId);
-      if ('assignments' in result) {
+      const result = await adapter.getAssignments(courseId);      if ('assignments' in result) {
         // 新API返回格式，需要转换为 Assignment 类型
         const converted = result.assignments.map(item => ({
           ...item,
-          questions: [],
+          questions: item.questions ? item.questions.map(q => ({
+            id: Date.now().toString() + Math.random(),
+            title: q.question,
+            type: q.type as 'multiple-choice' | 'coding' | 'file-upload' | 'essay',
+            points: q.points,
+            options: q.options,
+            choices: q.options?.map(opt => ({ value: opt, label: opt })) || []
+          })) : [],
           timeLimit: 0,
           passingScore: 0,
           createdAt: new Date().toISOString(),

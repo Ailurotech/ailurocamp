@@ -6,7 +6,7 @@ import { Assignment } from '@/types/assignment';
 import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
 import MultipleChoiceFields from './MultipleChoiceFields';
 import CodingTestCasesFields from './CodingTestCasesFields';
-import QuillEditor from './QuillEditor';
+import RobustQuillEditor from './QuillEditor';
 
 type AssignmentFormProps = {
   defaultValues?: Assignment;
@@ -22,8 +22,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
       title: '',
       description: '',
       questions: [],
-      dueDate: '',
-      points: 0, // 添加 points 字段
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // 默认7天后
+      points: 100, // 默认分数
       timeLimit: 0,
       passingScore: 0,
       createdAt: '',
@@ -44,15 +44,47 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
   const watchedQuestions = useWatch({ control, name: 'questions' });
 
   const internalSubmit = async (data: Assignment) => {
-    console.log('Submitting data:', data);
+    console.log('Form submission - original data:', data);
+    console.log('Form field values:');
+    console.log('  title:', data.title);
+    console.log('  description:', data.description);
+    console.log('  dueDate:', data.dueDate);
+    console.log('  points:', data.points);
 
     try {
+      // 清理 Quill 编辑器的空内容
+      let cleanDescription = data.description || '';
+      // 移除 Quill 默认的空内容标签
+      cleanDescription = cleanDescription.replace(/<p><br><\/p>/g, '').trim();
+      // 如果只剩下空的 HTML 标签，将其视为空字符串
+      if (cleanDescription === '<p></p>' || cleanDescription === '') {
+        cleanDescription = '';
+      }
+
+      // 转换 questions 数据结构
+      console.log('Original questions data:', data.questions);
+      const convertedQuestions = data.questions?.map(question => ({
+        question: question.title, // 将 title 映射到 question
+        type: question.type as 'multiple-choice' | 'true-false' | 'short-answer' | 'essay',
+        options: question.choices?.map(choice => choice.label) || [], // 将 choices 映射到 options
+        points: question.points || 0
+      })) || [];
+      console.log('Converted questions:', convertedQuestions);
+
       const assignmentRequest = {
         title: data.title,
-        description: data.description,
-        dueDate: data.dueDate,
-        points: data.points || 0
+        description: cleanDescription,
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        points: data.points || 100,
+        questions: convertedQuestions // 包含 questions 数据
       };
+
+      console.log('Converted assignment request data:', assignmentRequest);
+      console.log('Request validation:');
+      console.log('  title valid:', !!assignmentRequest.title);
+      console.log('  description valid:', !!assignmentRequest.description);
+      console.log('  dueDate valid:', !!assignmentRequest.dueDate);
+      console.log('  points valid:', assignmentRequest.points !== undefined);
 
       if (!courseId) {
         throw new Error('课程ID是必需的，无法创建或更新作业');
@@ -81,6 +113,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
   return (
     <form onSubmit={handleSubmit(internalSubmit)}>
       <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Assignment Title
+        </label>
         <Controller
           name="title"
           control={control}
@@ -89,30 +124,52 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
               {...field}
               className="border p-2 w-full rounded"
               placeholder="Assignment Title"
+              required
             />
           )}
         />
       </div>
 
       <div className="mb-8">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Assignment Description
+        </label>
         <Controller
           name="description"
           control={control}
-          render={({ field }) => (
-            <QuillEditor value={field.value} onChange={field.onChange} />
-          )}
+          render={({ field }) => {
+            console.log('Description field render:', field.value);
+            return (
+              <div>
+                {/* 使用防止双重初始化的 Quill 编辑器 */}
+                <RobustQuillEditor 
+                  value={field.value || ''}
+                  onChange={(value) => {
+                    console.log('RobustQuill onChange called with:', value);
+                    field.onChange(value);
+                  }}
+                  placeholder="Enter assignment description..."
+                />
+              </div>
+            );
+          }}
         />
       </div>
+      
       <h1 className="text-2xl font-bold mb-6 text-gray-800">DueDate</h1>
       <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Due Date & Time
+        </label>
         <Controller
           name="dueDate"
           control={control}
           render={({ field }) => (
             <input
               {...field}
-              type="date"
+              type="datetime-local"
               className="border p-2 w-full rounded"
+              placeholder="Select due date and time"
             />
           )}
         />
@@ -149,8 +206,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
         />
       </div>
 
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Total Points</h1>
       <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Total Points
+        </label>
         <Controller
           name="points"
           control={control}
@@ -160,6 +219,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
               type="number"
               className="border p-2 w-full rounded"
               placeholder="Enter total points for this assignment"
+              min="1"
+              required
             />
           )}
         />

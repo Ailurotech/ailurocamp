@@ -78,44 +78,48 @@ export default function AssignmentCard({
             className="prose max-w-none text-gray-700 bg-gray-50 p-4 rounded-lg"
             dangerouslySetInnerHTML={{ __html: assignment.description }}
           />
-        </div>
-
-        {/* Questions Section */}
+        </div>        {/* Questions Section */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">Questions</h2>
           {assignment.questions && assignment.questions.length > 0 ? (
             <div className="space-y-3">
-              {assignment.questions.map((question, index) => (
-                <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-medium text-gray-800">Question {index + 1}</span>
-                    <span className="text-sm text-gray-600">{question.points} points</span>
-                  </div>
-                  <p className="text-gray-700 mb-2">{question.title}</p>
-                  <div className="text-sm text-gray-500">
-                    Type: <span className="font-medium">{question.type}</span>
-                  </div>
-                  {question.choices && question.choices.length > 0 && (
-                    <div className="mt-2">
-                      <div className="text-sm text-gray-500 mb-1">Options:</div>
-                      <ul className="text-sm text-gray-600 list-disc list-inside">
-                        {question.choices.map((choice, choiceIndex) => (
-                          <li key={choiceIndex}>{choice.label}</li>
-                        ))}
-                      </ul>
+              {assignment.questions.map((question, index) => {
+                // 处理不同的数据结构
+                const questionData = question as Record<string, unknown>;
+                const questionText = (questionData.question as string) || (questionData.title as string) || 'No question text';
+                const questionPoints = (questionData.points as number) || 0;
+                const questionType = questionData.type as string;
+                const options = (questionData.options as string[]) || (questionData.choices as Array<{label: string}>);
+                
+                return (
+                  <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-medium text-gray-800">Question {index + 1}</span>
+                      <span className="text-sm text-gray-600">{questionPoints} points</span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    <p className="text-gray-700 mb-2">{questionText}</p>
+                    <div className="text-sm text-gray-500">
+                      Type: <span className="font-medium">{questionType}</span>
+                    </div>
+                    {options && options.length > 0 && (
+                      <div className="mt-2">
+                        <div className="text-sm text-gray-500 mb-1">Options:</div>
+                        <ul className="text-sm text-gray-600 list-disc list-inside">
+                          {options.map((option, optionIndex) => (
+                            <li key={optionIndex}>
+                              {typeof option === 'string' ? option : (option as {label: string}).label || String(option)}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="bg-gray-50 p-6 rounded-lg text-center text-gray-500">
               <p>No questions added yet.</p>
-              <Link href={`/instructor/courses/${courseId}/assignments/${assignment.id}/edit`}>
-                <button className="mt-2 text-sm text-blue-600 hover:underline">
-                  Add Questions
-                </button>
-              </Link>
             </div>
           )}
         </div>
