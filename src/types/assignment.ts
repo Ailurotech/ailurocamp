@@ -1,23 +1,35 @@
-// Assessment type that matches the database model
 export type AssessmentType = 'quiz' | 'assignment';
 
-// Question types supported by Assessment model
 export type QuestionType =
   | 'multiple-choice'
   | 'true-false'
   | 'short-answer'
-  | 'essay';
+  | 'essay'
+  | 'coding'
+  | 'file-upload';
 
-// Question structure for Assessment
 export type AssessmentQuestion = {
   question: string;
   type: QuestionType;
   options?: string[];
   correctAnswer?: string | string[];
   points: number;
+  testCases?: {
+    input: string;
+    output: string;
+    file?:
+      | string
+      | {
+          name: string;
+          url: string;
+          size: number;
+          type: string;
+        };
+  }[];
+  fileType?: string;
+  maxFileSize?: number;
 };
 
-// Submission structure
 export type AssessmentSubmission = {
   student: string;
   answers: {
@@ -30,7 +42,6 @@ export type AssessmentSubmission = {
   gradedAt?: Date;
 };
 
-// Main Assessment type that matches the database model
 export type Assessment = {
   id: string;
   title: string;
@@ -45,16 +56,29 @@ export type Assessment = {
   updatedAt: Date;
 };
 
-// Legacy types for backward compatibility (将逐步移除)
 export type TestCase = {
   input: string;
   output: string;
-  file?: string | null;
+  file?:
+    | string
+    | null
+    | {
+        name: string;
+        url: string;
+        size: number;
+        type: string;
+      };
 };
 
 export type Question = {
   id: string;
-  type: 'multiple-choice' | 'coding' | 'file-upload' | 'essay';
+  type:
+    | 'multiple-choice'
+    | 'true-false'
+    | 'short-answer'
+    | 'essay'
+    | 'coding'
+    | 'file-upload';
   title: string;
   points: number;
   choices?: { value: string; label: string }[];
@@ -62,6 +86,9 @@ export type Question = {
   fileType?: string;
   uploadedFile?: File;
   placeholder?: string;
+  maxFileSize?: number;
+  options?: string[];
+  correctAnswer?: string | string[];
 };
 
 export type Assignment = {
@@ -86,10 +113,30 @@ export type AssignmentApiRequest = {
   points: number;
   questions?: {
     question: string;
-    type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay';
+    type:
+      | 'multiple-choice'
+      | 'true-false'
+      | 'short-answer'
+      | 'essay'
+      | 'coding'
+      | 'file-upload';
     options?: string[];
     correctAnswer?: string | string[];
     points: number;
+    testCases?: {
+      input: string;
+      output: string;
+      file?:
+        | string
+        | {
+            name: string;
+            url: string;
+            size: number;
+            type: string;
+          };
+    }[];
+    fileType?: string;
+    maxFileSize?: number;
   }[];
 };
 
@@ -104,10 +151,30 @@ export type AssignmentApiResponse = {
   updatedAt?: string;
   questions?: {
     question: string;
-    type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay';
+    type:
+      | 'multiple-choice'
+      | 'true-false'
+      | 'short-answer'
+      | 'essay'
+      | 'coding'
+      | 'file-upload';
     options?: string[];
     correctAnswer?: string | string[];
     points: number;
+    testCases?: {
+      input: string;
+      output: string;
+      file?:
+        | string
+        | {
+            name: string;
+            url: string;
+            size: number;
+            type: string;
+          };
+    }[];
+    fileType?: string;
+    maxFileSize?: number;
   }[];
 };
 

@@ -4,11 +4,11 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
 
-export default function DeleteButton({ 
-  id, 
-  courseId = '6842ba9dfc2972e671d5a48c' 
-}: { 
-  id: string; 
+export default function DeleteButton({
+  id,
+  courseId = '6842ba9dfc2972e671d5a48c',
+}: {
+  id: string;
   courseId?: string;
 }) {
   const router = useRouter();

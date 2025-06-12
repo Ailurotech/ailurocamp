@@ -17,16 +17,15 @@ export default function InstructorAssignmentsPage({
 }) {
   const courseId: string = React.use(params).id;
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [selectedAssignment, setSelectedAssignment] =
+    useState<Assignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [popup, setPopup] = useState<PopupProps | null>(null);
   const adapter = new AssignmentApiAdapter();
 
-  // Session and authentication
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
 
-  // Check if user is authenticated and is an instructor
   useEffect(() => {
     if (sessionStatus === 'loading') return;
 
@@ -44,30 +43,42 @@ export default function InstructorAssignmentsPage({
   const fetchAssignments = async () => {
     setLoading(true);
     try {
-      const result = await adapter.getAssignments(courseId);      if ('assignments' in result) {
-        // 新API返回格式，需要转换为 Assignment 类型
-        const converted = result.assignments.map(item => ({
+      const result = await adapter.getAssignments(courseId);
+      if ('assignments' in result) {
+        const converted = result.assignments.map((item) => ({
           ...item,
-          questions: item.questions ? item.questions.map(q => ({
-            id: Date.now().toString() + Math.random(),
-            title: q.question,
-            type: q.type as 'multiple-choice' | 'coding' | 'file-upload' | 'essay',
-            points: q.points,
-            options: q.options,
-            choices: q.options?.map(opt => ({ value: opt, label: opt })) || []
-          })) : [],
+          questions: item.questions
+            ? item.questions.map((q) => ({
+                id: Date.now().toString() + Math.random(),
+                title: q.question,
+                question: q.question,
+                type: q.type as
+                  | 'multiple-choice'
+                  | 'coding'
+                  | 'file-upload'
+                  | 'essay',
+                points: q.points,
+                options: q.options,
+                choices:
+                  q.options?.map((opt) => ({ value: opt, label: opt })) || [],
+                testCases: q.testCases,
+                fileType: q.fileType,
+                maxFileSize: q.maxFileSize,
+                correctAnswer: q.correctAnswer,
+              }))
+            : [],
           timeLimit: 0,
           passingScore: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: item.createdAt || new Date().toISOString(),
+          updatedAt: item.updatedAt || new Date().toISOString(),
         })) as Assignment[];
         setAssignments(converted);
       } else {
-        // 旧API返回格式
         setAssignments(result as Assignment[]);
       }
     } catch (error) {
-      console.error('Failed to fetch assignments:', error);      setPopup({
+      console.error('Failed to fetch assignments:', error);
+      setPopup({
         message: 'Failed to fetch assignments. Please try again.',
         type: 'error',
         onClose: () => setPopup(null),
@@ -79,22 +90,22 @@ export default function InstructorAssignmentsPage({
 
   const handleDeleteAssignment = async (assignmentId: string) => {
     try {
-      const result = await adapter.deleteAssignment(courseId, assignmentId);      if (result.success) {
+      const result = await adapter.deleteAssignment(courseId, assignmentId);
+      if (result.success) {
         setPopup({
           message: 'Assignment deleted successfully!',
           type: 'success',
           onClose: () => setPopup(null),
         });
-        // 如果删除的是当前选中的作业，清除选择
         if (selectedAssignment?.id === assignmentId) {
           setSelectedAssignment(null);
         }
-        fetchAssignments(); // 刷新列表
+        fetchAssignments();
       } else {
         throw new Error('Failed to delete assignment');
       }
-    } catch (error) {
-      console.error('Failed to delete assignment:', error);      setPopup({
+    } catch {
+      setPopup({
         message: 'Failed to delete assignment. Please try again.',
         type: 'error',
         onClose: () => setPopup(null),
@@ -103,17 +114,26 @@ export default function InstructorAssignmentsPage({
   };
 
   const handleEditAssignment = (assignment: Assignment) => {
-    router.push(`/instructor/courses/${courseId}/assignments/${assignment.id}/edit`);
+    router.push(
+      `/instructor/courses/${courseId}/assignments/${assignment.id}/edit`
+    );
   };
 
   const handleDeleteFromCard = (assignment: Assignment) => {
-    if (window.confirm('Are you sure you want to delete this assignment? This action cannot be undone.')) {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this assignment? This action cannot be undone.'
+      )
+    ) {
       handleDeleteAssignment(assignment.id);
     }
   };
 
   useEffect(() => {
-    if (sessionStatus !== 'loading' && session?.user.currentRole === 'instructor') {
+    if (
+      sessionStatus !== 'loading' &&
+      session?.user.currentRole === 'instructor'
+    ) {
       fetchAssignments();
     }
   }, [courseId, session, sessionStatus]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -121,9 +141,8 @@ export default function InstructorAssignmentsPage({
   if (sessionStatus === 'loading' || loading) {
     return <Loading />;
   }
-
   if (!session || session.user.currentRole !== 'instructor') {
-    return null; // 重定向已在 useEffect 中处理
+    return null;
   }
 
   return (
@@ -138,7 +157,6 @@ export default function InstructorAssignmentsPage({
           onDeleteAssignment={handleDeleteAssignment}
         />
       </div>
-
       {/* Assignment Details Card */}
       <div className="w-1/2">
         <AssignmentCard
@@ -147,7 +165,8 @@ export default function InstructorAssignmentsPage({
           onEdit={handleEditAssignment}
           onDelete={handleDeleteFromCard}
         />
-      </div>      {/* Popup Modal */}
+      </div>{' '}
+      {/* Popup Modal */}
       {popup && (
         <PopupModal
           message={popup.message}

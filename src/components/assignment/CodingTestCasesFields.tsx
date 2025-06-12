@@ -65,11 +65,34 @@ const CodingTestCasesFields = ({
                       inputElement.click();
                     }
                   }}
-                  onDrop={(e) => {
+                  onDrop={async (e) => {
                     e.preventDefault();
                     const file = e.dataTransfer.files?.[0];
                     if (file) {
-                      field.onChange(file);
+                      try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+
+                        const response = await fetch('/api/upload', {
+                          method: 'POST',
+                          body: formData,
+                        });
+                        if (response.ok) {
+                          const result = await response.json();
+                          field.onChange({
+                            name: result.fileName,
+                            url: result.fileUrl,
+                            size: result.fileSize,
+                            type: result.mimeType,
+                          });
+                        } else {
+                          console.error('File upload failed');
+                          alert('File upload failed. Please try again.');
+                        }
+                      } catch (error) {
+                        console.error('File upload error:', error);
+                        alert('File upload failed. Please try again.');
+                      }
                     }
                   }}
                   onDragOver={(e) => e.preventDefault()}
@@ -78,13 +101,36 @@ const CodingTestCasesFields = ({
                     id={`file-upload-${index}`}
                     type="file"
                     accept=".json,.txt,.csv,.py,.js,.java,image/*"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        console.log('File selected:', file);
-                        field.onChange(file);
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+
+                          const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData,
+                          });
+
+                          if (response.ok) {
+                            const result = await response.json();
+                            field.onChange({
+                              name: result.fileName,
+                              url: result.fileUrl,
+                              size: result.fileSize,
+                              type: result.mimeType,
+                            });
+                          } else {
+                            console.error('File upload failed');
+                            alert('File upload failed. Please try again.');
+                          }
+                        } catch (error) {
+                          console.error('File upload error:', error);
+                          alert('File upload failed. Please try again.');
+                        }
                       } else {
-                        console.warn('No file selected');
+                        field.onChange(null);
                       }
                     }}
                     className="hidden"
@@ -98,8 +144,25 @@ const CodingTestCasesFields = ({
                   'name' in field.value && (
                     <div className="mt-2">
                       <p className="text-sm text-gray-700">
-                        Uploaded File: {(field.value as File).name}
+                        Uploaded File:
+                        {field.value.url ? (
+                          <a
+                            href={field.value.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline ml-1"
+                          >
+                            {field.value.name}
+                          </a>
+                        ) : (
+                          <span className="ml-1">{field.value.name}</span>
+                        )}
                       </p>
+                      {field.value.size && (
+                        <p className="text-xs text-gray-500">
+                          Size: {Math.round(field.value.size / 1024)} KB
+                        </p>
+                      )}
                       <button
                         type="button"
                         onClick={() => field.onChange(null)}

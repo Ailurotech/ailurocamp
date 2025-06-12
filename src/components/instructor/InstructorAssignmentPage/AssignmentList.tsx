@@ -26,14 +26,14 @@ export default function AssignmentList({
       <div className="p-4 border-b bg-white">
         {/* Course navigation */}
         <div className="mb-3">
-          <Link 
-            href="/instructor/courses" 
+          <Link
+            href="/instructor/courses"
             className="text-sm text-blue-600 hover:underline"
           >
             ← Back to Courses
           </Link>
         </div>
-        
+
         {/* Assignment management */}
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-lg">Assignments</h2>
@@ -46,7 +46,7 @@ export default function AssignmentList({
 
         {/* Course content navigation */}
         <div className="flex space-x-4 text-sm">
-          <Link 
+          <Link
             href={`/instructor/courses/${courseId}/modules`}
             className="text-gray-600 hover:text-blue-600 transition-colors pb-1"
           >
@@ -76,7 +76,8 @@ export default function AssignmentList({
                 key={assignment.id}
                 className={clsx(
                   'p-4 border border-gray-200 rounded-md shadow-sm bg-white cursor-pointer transition-colors hover:bg-gray-50',
-                  selectedAssignmentId === assignment.id && '!border-blue-500 bg-blue-50'
+                  selectedAssignmentId === assignment.id &&
+                    '!border-blue-500 bg-blue-50'
                 )}
                 onClick={() => onSelectAssignment(assignment)}
               >
@@ -86,15 +87,21 @@ export default function AssignmentList({
                       {assignment.title}
                     </h3>
                     <div className="text-sm text-gray-600 mb-2 line-clamp-2">
-                      <div 
-                        dangerouslySetInnerHTML={{ 
-                          __html: assignment.description.substring(0, 100) + 
-                                  (assignment.description.length > 100 ? '...' : '') 
-                        }} 
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            assignment.description.substring(0, 100) +
+                            (assignment.description.length > 100 ? '...' : ''),
+                        }}
                       />
                     </div>
                     <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                      <span>📅 {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date'}</span>
+                      <span>
+                        📅{' '}
+                        {assignment.dueDate
+                          ? new Date(assignment.dueDate).toLocaleDateString()
+                          : 'No due date'}
+                      </span>
                       <span>📊 {assignment.points || 0} points</span>
                       {assignment.timeLimit && assignment.timeLimit > 0 && (
                         <span>⏱️ {assignment.timeLimit} mins</span>
@@ -102,21 +109,25 @@ export default function AssignmentList({
                     </div>
                   </div>
                   <div className="flex gap-1 ml-2">
-                    <Link 
+                    <Link
                       href={`/instructor/courses/${courseId}/assignments/${assignment.id}/edit`}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button 
+                      <button
                         className="p-1 text-yellow-600 hover:bg-yellow-100 rounded text-sm"
                         title="Edit Assignment"
                       >
                         ✏️
                       </button>
                     </Link>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (window.confirm('Are you sure you want to delete this assignment?')) {
+                        if (
+                          window.confirm(
+                            'Are you sure you want to delete this assignment?'
+                          )
+                        ) {
                           onDeleteAssignment(assignment.id);
                         }
                       }}

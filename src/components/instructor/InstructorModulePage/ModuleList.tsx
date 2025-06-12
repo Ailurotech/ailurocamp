@@ -124,14 +124,14 @@ export default function ModuleList({
       <div className="p-4 border-b bg-white">
         {/* Course navigation */}
         <div className="mb-3">
-          <Link 
-            href="/instructor/courses" 
+          <Link
+            href="/instructor/courses"
             className="text-sm text-blue-600 hover:underline"
           >
             ← Back to Courses
           </Link>
         </div>
-        
+
         {/* Module management */}
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-lg">Modules</h2>
@@ -154,7 +154,7 @@ export default function ModuleList({
           <span className="font-medium text-blue-600 border-b-2 border-blue-600 pb-1">
             📚 Modules
           </span>
-          <Link 
+          <Link
             href={`/instructor/courses/${courseId}/assignments`}
             className="text-gray-600 hover:text-blue-600 transition-colors pb-1"
           >

@@ -1,29 +1,38 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { Assignment } from '@/types/assignment';
 import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
 import MultipleChoiceFields from './MultipleChoiceFields';
 import CodingTestCasesFields from './CodingTestCasesFields';
+import TrueFalseFields from './TrueFalseFields';
+import ShortAnswerFields from './ShortAnswerFields';
 import RobustQuillEditor from './QuillEditor';
 
 type AssignmentFormProps = {
   defaultValues?: Assignment;
   onSubmit?: (data: Assignment) => void | Promise<void>;
-  courseId?: string; // 新增课程ID支持
+  courseId?: string;
 };
 
-const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId, onSubmit }) => {
+const AssignmentForm: React.FC<AssignmentFormProps> = ({
+  defaultValues,
+  courseId,
+  onSubmit,
+}) => {
   const adapter = new AssignmentApiAdapter();
+  const previousTypesRef = useRef<string[]>([]);
 
-  const { control, handleSubmit, reset } = useForm<Assignment>({
+  const { control, handleSubmit, reset, setValue } = useForm<Assignment>({
     defaultValues: defaultValues ?? {
       title: '',
       description: '',
       questions: [],
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // 默认7天后
-      points: 100, // 默认分数
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 16),
+      points: 100,
       timeLimit: 0,
       passingScore: 0,
       createdAt: '',
@@ -43,70 +52,142 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
 
   const watchedQuestions = useWatch({ control, name: 'questions' });
 
-  const internalSubmit = async (data: Assignment) => {
-    console.log('Form submission - original data:', data);
-    console.log('Form field values:');
-    console.log('  title:', data.title);
-    console.log('  description:', data.description);
-    console.log('  dueDate:', data.dueDate);
-    console.log('  points:', data.points);
+  useEffect(() => {
+    if (watchedQuestions) {
+      watchedQuestions.forEach((question, index) => {
+        const currentType = question?.type;
+        const previousType = previousTypesRef.current[index];
 
+        if (currentType && previousType && currentType !== previousType) {
+          setValue(`questions.${index}.choices`, undefined);
+          setValue(`questions.${index}.testCases`, undefined);
+          setValue(`questions.${index}.fileType`, undefined);
+          setValue(`questions.${index}.maxFileSize`, undefined);
+        }
+
+        previousTypesRef.current[index] = currentType || '';
+      });
+    }
+  }, [watchedQuestions, setValue]);
+
+  const internalSubmit = async (data: Assignment) => {
     try {
-      // 清理 Quill 编辑器的空内容
       let cleanDescription = data.description || '';
-      // 移除 Quill 默认的空内容标签
       cleanDescription = cleanDescription.replace(/<p><br><\/p>/g, '').trim();
-      // 如果只剩下空的 HTML 标签，将其视为空字符串
       if (cleanDescription === '<p></p>' || cleanDescription === '') {
         cleanDescription = '';
       }
 
-      // 转换 questions 数据结构
-      console.log('Original questions data:', data.questions);
-      const convertedQuestions = data.questions?.map(question => ({
-        question: question.title, // 将 title 映射到 question
-        type: question.type as 'multiple-choice' | 'true-false' | 'short-answer' | 'essay',
-        options: question.choices?.map(choice => choice.label) || [], // 将 choices 映射到 options
-        points: question.points || 0
-      })) || [];
-      console.log('Converted questions:', convertedQuestions);
+      const convertedQuestions =
+        data.questions?.map((question) => {
+          const baseQuestion = {
+            question: question.title,
+            type: question.type as
+              | 'multiple-choice'
+              | 'true-false'
+              | 'short-answer'
+              | 'essay'
+              | 'coding'
+              | 'file-upload',
+            points: question.points || 0,
+          };
+
+          switch (question.type) {
+            case 'multiple-choice':
+              return {
+                ...baseQuestion,
+                options: question.choices?.map((choice) => choice.label) || [],
+              };
+            case 'true-false':
+              return {
+                ...baseQuestion,
+                options: ['True', 'False'],
+                correctAnswer: question.correctAnswer,
+              };
+            case 'short-answer':
+              return {
+                ...baseQuestion,
+                correctAnswer: question.correctAnswer,
+              };
+            case 'coding':
+              return {
+                ...baseQuestion,
+                testCases:
+                  question.testCases?.map((testCase) => {
+                    const testCaseData: {
+                      input: string;
+                      output: string;
+                      file?:
+                        | string
+                        | {
+                            name: string;
+                            url: string;
+                            size: number;
+                            type: string;
+                          };
+                    } = {
+                      input: testCase.input || '',
+                      output: testCase.output || '',
+                    };
+                    if (testCase.file) {
+                      if (
+                        typeof testCase.file === 'string' &&
+                        testCase.file.trim()
+                      ) {
+                        testCaseData.file = testCase.file;
+                      } else if (
+                        typeof testCase.file === 'object' &&
+                        'url' in testCase.file
+                      ) {
+                        testCaseData.file = {
+                          name: testCase.file.name,
+                          url: testCase.file.url,
+                          size: testCase.file.size,
+                          type: testCase.file.type,
+                        };
+                      }
+                    }
+                    return testCaseData;
+                  }) || [],
+              };
+            case 'file-upload':
+              return {
+                ...baseQuestion,
+                fileType: question.fileType,
+                maxFileSize: question.maxFileSize,
+              };
+            default:
+              return baseQuestion;
+          }
+        }) || [];
 
       const assignmentRequest = {
         title: data.title,
         description: cleanDescription,
-        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate: data.dueDate
+          ? new Date(data.dueDate).toISOString()
+          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         points: data.points || 100,
-        questions: convertedQuestions // 包含 questions 数据
+        questions: convertedQuestions,
       };
 
-      console.log('Converted assignment request data:', assignmentRequest);
-      console.log('Request validation:');
-      console.log('  title valid:', !!assignmentRequest.title);
-      console.log('  description valid:', !!assignmentRequest.description);
-      console.log('  dueDate valid:', !!assignmentRequest.dueDate);
-      console.log('  points valid:', assignmentRequest.points !== undefined);
-
       if (!courseId) {
-        throw new Error('课程ID是必需的，无法创建或更新作业');
+        throw new Error('Course ID is required');
       }
 
       if (data.id && defaultValues) {
-        // 更新现有作业
-        const result = await adapter.updateAssignment(courseId, data.id, assignmentRequest);
-        console.log('Assignment updated successfully:', result);
+        await adapter.updateAssignment(courseId, data.id, assignmentRequest);
       } else {
-        // 创建新作业
-        const result = await adapter.createAssignment(courseId, assignmentRequest);
-        console.log('Assignment created successfully:', result);
+        await adapter.createAssignment(courseId, assignmentRequest);
       }
-      
-      // 调用外部的 onSubmit 回调
+
       if (onSubmit) {
         await onSubmit(data);
       }
     } catch (error) {
-      console.error('提交失败:', error);
-      alert(`提交失败: ${error instanceof Error ? error.message : String(error)}`);
+      alert(
+        `Submission failed: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   };
 
@@ -138,14 +219,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
           name="description"
           control={control}
           render={({ field }) => {
-            console.log('Description field render:', field.value);
             return (
               <div>
-                {/* 使用防止双重初始化的 Quill 编辑器 */}
-                <RobustQuillEditor 
+                <RobustQuillEditor
                   value={field.value || ''}
                   onChange={(value) => {
-                    console.log('RobustQuill onChange called with:', value);
                     field.onChange(value);
                   }}
                   placeholder="Enter assignment description..."
@@ -155,7 +233,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
           }}
         />
       </div>
-      
+
       <h1 className="text-2xl font-bold mb-6 text-gray-800">DueDate</h1>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -284,15 +362,23 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ defaultValues, courseId
                 render={({ field }) => (
                   <select {...field} className="border p-2 w-full mb-4 rounded">
                     <option value="multiple-choice">Multiple Choice</option>
+                    <option value="true-false">True/False</option>
+                    <option value="short-answer">Short Answer</option>
+                    <option value="essay">Essay</option>
                     <option value="coding">Coding</option>
                     <option value="file-upload">File Upload</option>
-                    <option value="essay">Essay</option>
                   </select>
                 )}
               />
 
               {watchedType === 'multiple-choice' && (
                 <MultipleChoiceFields nestIndex={index} control={control} />
+              )}
+              {watchedType === 'true-false' && (
+                <TrueFalseFields nestIndex={index} control={control} />
+              )}
+              {watchedType === 'short-answer' && (
+                <ShortAnswerFields nestIndex={index} control={control} />
               )}
               {watchedType === 'coding' && (
                 <CodingTestCasesFields nestIndex={index} control={control} />
