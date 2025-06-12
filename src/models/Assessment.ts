@@ -9,10 +9,30 @@ export interface IAssessment extends mongoose.Document {
   totalPoints: number;
   questions?: {
     question: string;
-    type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay';
+    type:
+      | 'multiple-choice'
+      | 'true-false'
+      | 'short-answer'
+      | 'essay'
+      | 'coding'
+      | 'file-upload';
     options?: string[];
     correctAnswer?: string | string[];
     points: number;
+    testCases?: {
+      input: string;
+      output: string;
+      file?:
+        | string
+        | {
+            name: string;
+            url: string;
+            size: number;
+            type: string;
+          };
+    }[];
+    fileType?: string;
+    maxFileSize?: number;
   }[];
   submissions: {
     student: mongoose.Types.ObjectId;
@@ -66,7 +86,14 @@ const assessmentSchema = new mongoose.Schema<IAssessment>(
         },
         type: {
           type: String,
-          enum: ['multiple-choice', 'true-false', 'short-answer', 'essay'],
+          enum: [
+            'multiple-choice',
+            'true-false',
+            'short-answer',
+            'essay',
+            'coding',
+            'file-upload',
+          ],
           required: true,
         },
         options: [
@@ -81,6 +108,26 @@ const assessmentSchema = new mongoose.Schema<IAssessment>(
           type: Number,
           required: true,
           min: 0,
+        },
+        testCases: [
+          {
+            input: {
+              type: String,
+            },
+            output: {
+              type: String,
+            },
+            file: {
+              type: mongoose.Schema.Types.Mixed,
+            },
+          },
+        ],
+        fileType: {
+          type: String,
+        },
+        maxFileSize: {
+          type: Number,
+          default: 10485760,
         },
       },
     ],
