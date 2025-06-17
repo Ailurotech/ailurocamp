@@ -72,12 +72,10 @@ export const authOptions: NextAuthOptions = {
         token.roles = (user as CustomUser).roles;
         token.currentRole = (user as CustomUser).currentRole;
       }
-
       // Update token from a session update
       if (trigger === 'update' && session?.currentRole) {
         token.currentRole = session.currentRole;
       }
-
       return token as CustomToken;
     },
     async session({ session, token }): Promise<CustomSession> {
