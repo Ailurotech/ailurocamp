@@ -1,7 +1,10 @@
+// src/components/board/BoardCard.tsx
+'use client';
+
 import React, { memo } from 'react';
-import { Draggable } from 'react-beautiful-dnd';
-import { Card } from '@/types/board';
 import { CalendarIcon, LinkIcon } from '@heroicons/react/20/solid';
+import { Card } from '@/types/board';
+import { DraggableWrapper } from './DraggableWrapper';
 
 interface BoardCardProps {
   card: Card;
@@ -15,20 +18,15 @@ export const BoardCard = memo(function BoardCard({
   const cardId = typeof card.id === 'string' ? card.id : `PVTI_${card.id}`;
 
   return (
-    <Draggable key={cardId} draggableId={cardId} index={index}>
-      {(provided, snapshot) => (
+    <DraggableWrapper draggableId={cardId} index={index}>
+      {({ dragProps }) => (
         <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          style={provided.draggableProps.style}
+          ref={dragProps.ref}
+          {...dragProps.draggableProps}
+          {...dragProps.dragHandleProps}
           className="mb-2"
         >
-          <div
-            className={`bg-white rounded-lg shadow p-3 ${
-              snapshot.isDragging ? 'shadow-lg opacity-75' : ''
-            }`}
-          >
+          <div className="bg-white rounded-lg shadow p-3">
             {card.title && (
               <div className="text-sm font-medium mb-2">
                 {card.title}
@@ -64,6 +62,6 @@ export const BoardCard = memo(function BoardCard({
           </div>
         </div>
       )}
-    </Draggable>
+    </DraggableWrapper>
   );
 });

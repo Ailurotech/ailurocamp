@@ -20,8 +20,6 @@ export const BoardColumn = memo(function BoardColumn({
       key={columnId}
       droppableId={columnId}
       isDropDisabled={false}
-      isCombineEnabled={false}
-      ignoreContainerClipping={false}
     >
       {(provided, snapshot) => (
         <div
