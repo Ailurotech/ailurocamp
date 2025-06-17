@@ -304,11 +304,7 @@ export default function KanbanBoard() {
     }
 
     return (
-      <DragDropContext
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        // isCombineEnabled={false}
-      >
+      <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {columns.map((column) => (
             <BoardColumn
