@@ -1,6 +1,5 @@
 // src/types/certificate.ts
 
-
 export interface CertificateDocument {
   /** MongoDB document ID (optional when creating) */
   _id?: string;
@@ -23,7 +22,6 @@ export interface CertificateDocument {
   /** Document update timestamp (managed by Mongoose) */
   updatedAt?: string;
 }
-
 
 export interface Certificate {
   /** The name/title of the course completed */

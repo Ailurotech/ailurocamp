@@ -17,7 +17,6 @@ axiosRetry(axios, {
     axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error),
 });
 
-
 export default function CertificateDetailPage() {
   // Extract certificateId from dynamic route params using Next.js hook
   const { certificateId } = useParams();

@@ -19,7 +19,7 @@ export const BoardColumn = memo(function BoardColumn({
     <StrictModeDroppable
       key={columnId}
       droppableId={columnId}
-      isDropDisabled={false} 
+      isDropDisabled={false}
     >
       {(provided, snapshot) => (
         <div
