@@ -2,18 +2,6 @@
 
 import type { CertificateInput } from '@/types/certificate';
 
-/**
- * Validates the request body used to create a new certificate.
- *
- * Ensures that the payload is:
- *  - a JSON object
- *  - contains all required fields
- *  - contains string values with valid content
- *  - follows specific format rules (e.g., certificateId regex, date parsing)
- *
- * @param body - The unknown request payload from POST request
- * @returns An object with either valid data or an error message
- */
 export function validateCertificatePayload(body: unknown): {
   valid: boolean;
   error?: string;

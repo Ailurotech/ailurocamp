@@ -14,13 +14,6 @@ import {
 import { extractApiErrorMessage } from '@/utils/handleApiError';
 import type { Certificate } from '@/types/certificate';
 
-/**
- * StudentCertificationPage
- *
- * This page displays a list of certificates the current user has earned.
- * It fetches the certificate data from the backend, handles loading state,
- * and displays each certificate using the CertificateCard component.
- */
 export default function StudentCertificationPage() {
   // Local state to store list of certificates and loading status
   const [certificates, setCertificates] = useState<Certificate[]>([]);
@@ -29,11 +22,6 @@ export default function StudentCertificationPage() {
   // Fallback base URL for rendering certificate links
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-  /**
-   * useEffect triggers on component mount.
-   * It asynchronously fetches the user's certificate list from the API.
-   * If an error occurs, it logs and displays an alert using a helper util.
-   */
   useEffect(() => {
     fetchCertificates()
       .then(setCertificates)

@@ -17,15 +17,7 @@ axiosRetry(axios, {
     axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error),
 });
 
-/**
- * CertificateDetailPage
- *
- * This component is responsible for:
- * - Extracting the `certificateId` from the dynamic URL
- * - Fetching a single certificate via `/api/student/certification/[id]`
- * - Displaying the result using the `CertificateDetail` presentation component
- * - Providing graceful fallback UI on error or loading state
- */
+
 export default function CertificateDetailPage() {
   // Extract certificateId from dynamic route params using Next.js hook
   const { certificateId } = useParams();

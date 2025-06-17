@@ -1,13 +1,6 @@
 // src/types/certificate.ts
 
-/**
- * CertificateDocument
- *
- * Represents the full certificate document stored in MongoDB.
- * Includes all necessary metadata fields, such as timestamps and user ownership.
- *
- * Used in server-side contexts where MongoDB documents are queried directly.
- */
+
 export interface CertificateDocument {
   /** MongoDB document ID (optional when creating) */
   _id?: string;
@@ -31,12 +24,7 @@ export interface CertificateDocument {
   updatedAt?: string;
 }
 
-/**
- * Certificate
- *
- * Simplified certificate object used in frontend UI.
- * Contains only fields required for display purposes and client-side logic.
- */
+
 export interface Certificate {
   /** The name/title of the course completed */
   courseTitle: string;
@@ -48,12 +36,6 @@ export interface Certificate {
   certificateId: string;
 }
 
-/**
- * CertificateInput
- *
- * Represents the shape of data expected from client submissions (e.g. POST request payload).
- * This structure is used for input validation and request handling in API routes.
- */
 export interface CertificateInput {
   /** The name/title of the course completed (required) */
   courseTitle: string;
