@@ -6,6 +6,7 @@ import {
   BookOpenIcon,
   ClipboardIcon,
   ChartBarIcon,
+  AcademicCapIcon,
 } from '@/components/ui/Icons';
 
 export default function DashboardPage() {
@@ -23,7 +24,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -36,7 +37,7 @@ export default function DashboardPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Active Courses
+                    My Courses
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
@@ -54,6 +55,41 @@ export default function DashboardPage() {
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
                 View all courses
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <AcademicCapIcon
+                  className="h-6 w-6 text-gray-400"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Modules Completed
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      12
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-50 px-5 py-3">
+            <div className="text-sm">
+              <Link
+                href="/dashboard/progress"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                View progress
               </Link>
             </div>
           </div>
@@ -89,41 +125,6 @@ export default function DashboardPage() {
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
                 View assignments
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <ChartBarIcon
-                  className="h-6 w-6 text-gray-400"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Overall Progress
-                  </dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      75%
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-5 py-3">
-            <div className="text-sm">
-              <Link
-                href="/dashboard/progress"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                View details
               </Link>
             </div>
           </div>
