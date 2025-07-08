@@ -120,19 +120,45 @@ export default function ModuleList({
 
   return (
     <div className="h-full border-r border-gray-200 bg-gray-50 overflow-y-auto">
-      {/* Header with "New Module" button */}
-      <div className="p-4 flex items-center justify-between border-b bg-white">
-        <h2 className="font-semibold text-lg">Modules</h2>
-        <div className="flex space-x-2">
-          <Link href={`/instructor/courses/${courseId}/modules/preview`}>
-            <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
-              Preview
-            </button>
+      {/* Header with navigation and actions */}
+      <div className="p-4 border-b bg-white">
+        {/* Course navigation */}
+        <div className="mb-3">
+          <Link
+            href="/instructor/courses"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            ← Back to Courses
           </Link>
-          <Link href={`/instructor/courses/${courseId}/modules/new`}>
-            <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
-              New Module
-            </button>
+        </div>
+
+        {/* Module management */}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-lg">Modules</h2>
+          <div className="flex space-x-2">
+            <Link href={`/instructor/courses/${courseId}/modules/preview`}>
+              <button className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
+                Preview
+              </button>
+            </Link>
+            <Link href={`/instructor/courses/${courseId}/modules/new`}>
+              <button className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
+                New Module
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Course content navigation */}
+        <div className="flex space-x-4 text-sm">
+          <span className="font-medium text-blue-600 border-b-2 border-blue-600 pb-1">
+            📚 Modules
+          </span>
+          <Link
+            href={`/instructor/courses/${courseId}/assignments`}
+            className="text-gray-600 hover:text-blue-600 transition-colors pb-1"
+          >
+            📋 Assignments
           </Link>
         </div>
       </div>
