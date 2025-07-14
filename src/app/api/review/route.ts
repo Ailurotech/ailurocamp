@@ -14,6 +14,12 @@ interface IReviewApiRequest {
   userId: string;
   rating: number;
   comment?: string;
+  aspectRatings?: {
+    content: number;
+    instructor: number;
+    materials: number;
+  };
+  images?: string[];
 }
 
 // Define a Zod schema for review input validation
@@ -24,10 +30,18 @@ const reviewSchema = z.object({
     (value) => parseFloat(value as string),
     z
       .number()
-      .min(0, { message: 'Rating must be at least 0.' })
-      .max(10, { message: 'Rating cannot be greater than 10.' })
+      .min(1, { message: 'Rating must be at least 1.' })
+      .max(5, { message: 'Rating cannot be greater than 5.' })
   ),
   comment: z.string().optional().or(z.literal('')),
+  aspectRatings: z
+    .object({
+      content: z.number().min(1).max(5),
+      instructor: z.number().min(1).max(5),
+      materials: z.number().min(1).max(5),
+    })
+    .optional(),
+  images: z.array(z.string()).optional(),
 });
 
 // Get all reviews
@@ -48,7 +62,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Find reviews for the course
     const reviews = await Review.find({ courseId })
       .populate('userId', 'name')
-      .select('_id comment rating updatedAt')
+      .select('_id comment rating aspectRatings images instructorResponse reports updatedAt')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -79,7 +93,7 @@ export async function POST(req: NextRequest) {
     const body: IReviewApiRequest = await req.json();
 
     // Check if the required fields are present, comment is optional
-    const { courseId, userId, rating, comment }: IReviewApiRequest = body;
+    const { courseId, userId, rating, comment, aspectRatings, images }: IReviewApiRequest = body;
     if (!courseId || !userId || !rating) {
       return NextResponse.json(
         { message: 'Missing required fields courseId, uerId or rating.' },
@@ -106,7 +120,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create a new review
-    const review: IReview = new Review({ rating, comment, courseId, userId });
+    const review: IReview = new Review({ rating, comment, courseId, userId, aspectRatings, images });
     await review.save();
 
     // Update the course's rating
@@ -139,10 +153,10 @@ export async function PUT(req: NextRequest) {
     await connectDB();
 
     // Parse the request body
-    const body: IReview = await req.json();
+    const body: IReviewApiRequest = await req.json();
 
     // Check if the required fields are present, comment is optional
-    const { courseId, userId, rating, comment } = body;
+    const { courseId, userId, rating, comment, aspectRatings, images } = body;
     if (!courseId || !userId || !rating) {
       return NextResponse.json(
         { message: 'Missing required fields courseId, userId or rating.' },
@@ -181,6 +195,8 @@ export async function PUT(req: NextRequest) {
     // Update the review
     review.rating = rating;
     review.comment = comment;
+    review.aspectRatings = aspectRatings;
+    review.images = images;
     await review.save();
 
     // Update the course's rating
@@ -195,6 +211,79 @@ export async function PUT(req: NextRequest) {
   } catch (error: unknown) {
     return NextResponse.json(
       { message: 'Error updating review.', error: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH: Instructor responds to a review
+export async function PATCH(req: NextRequest) {
+  try {
+    const session: Session | null = await getServerSession(authOptions);
+    if (!session?.user || session?.user?.currentRole !== 'instructor') {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    await connectDB();
+    const { reviewId, instructorResponse } = await req.json();
+    if (!reviewId || !instructorResponse) {
+      return NextResponse.json(
+        { message: 'Missing reviewId or instructorResponse.' },
+        { status: 400 }
+      );
+    }
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return NextResponse.json(
+        { message: 'Review not found.' },
+        { status: 404 }
+      );
+    }
+    review.instructorResponse = instructorResponse;
+    await review.save();
+    return NextResponse.json(
+      { message: 'Instructor response added.', review },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Error adding instructor response.', error: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+// POST: Report a review
+export async function POST_REPORT(req: NextRequest) {
+  try {
+    const session: Session | null = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    await connectDB();
+    const { reviewId, reason } = await req.json();
+    if (!reviewId || !reason) {
+      return NextResponse.json(
+        { message: 'Missing reviewId or reason.' },
+        { status: 400 }
+      );
+    }
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return NextResponse.json(
+        { message: 'Review not found.' },
+        { status: 404 }
+      );
+    }
+    review.reports = review.reports || [];
+    review.reports.push({ userId: session.user.id, reason, date: new Date() });
+    await review.save();
+    return NextResponse.json(
+      { message: 'Review reported.', review },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Error reporting review.', error: (error as Error).message },
       { status: 500 }
     );
   }

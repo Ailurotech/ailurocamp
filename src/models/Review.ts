@@ -5,6 +5,14 @@ export interface IReview extends mongoose.Document {
   userId: mongoose.Types.ObjectId;
   comment?: string;
   rating: number;
+  aspectRatings?: {
+    content: number;
+    instructor: number;
+    materials: number;
+  };
+  images?: string[];
+  instructorResponse?: string;
+  reports?: { userId: mongoose.Types.ObjectId; reason: string; date: Date }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +36,20 @@ const reviewSchema = new mongoose.Schema<IReview>(
       type: Number,
       required: true,
     },
+    aspectRatings: {
+      content: { type: Number, min: 1, max: 5 },
+      instructor: { type: Number, min: 1, max: 5 },
+      materials: { type: Number, min: 1, max: 5 },
+    },
+    images: [{ type: String }],
+    instructorResponse: { type: String },
+    reports: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        reason: String,
+        date: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
