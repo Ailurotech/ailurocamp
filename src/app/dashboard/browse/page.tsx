@@ -2,7 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BookOpenIcon, ClockIcon, UsersIcon, ChevronUpDownIcon } from '@/components/ui/Icons';
+import {
+  BookOpenIcon,
+  ClockIcon,
+  UsersIcon,
+  ChevronUpDownIcon,
+} from '@/components/ui/Icons';
 
 interface Course {
   _id: string;
@@ -35,6 +40,8 @@ export default function BrowseCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [sortBy, setSortBy] = useState<string>('newest');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,7 +53,7 @@ export default function BrowseCoursesPage() {
 
   useEffect(() => {
     fetchCourses();
-  }, [selectedCategory, currentPage]);
+  }, [selectedCategory, priceRange, sortBy, currentPage]);
 
   const fetchCategories = async () => {
     try {
@@ -66,14 +73,22 @@ export default function BrowseCoursesPage() {
       const params = new URLSearchParams({
         category: selectedCategory,
         page: currentPage.toString(),
-        limit: '12'
+        limit: '12',
+        sortBy: sortBy,
       });
-      
+
+      if (priceRange.min) {
+        params.append('minPrice', priceRange.min);
+      }
+      if (priceRange.max) {
+        params.append('maxPrice', priceRange.max);
+      }
+
       const response = await fetch(`/api/courses?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch courses');
       }
-      
+
       const data = await response.json();
       setCourses(data.courses);
       setTotalPages(data.pagination.totalPages);
@@ -89,7 +104,24 @@ export default function BrowseCoursesPage() {
     setCurrentPage(1);
   };
 
-  const allCategories = categories.flatMap(cat => cat.category);
+  const handlePriceRangeChange = (field: 'min' | 'max', value: string) => {
+    setPriceRange((prev) => ({ ...prev, [field]: value }));
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (sort: string) => {
+    setSortBy(sort);
+    setCurrentPage(1);
+  };
+
+  const clearFilters = () => {
+    setSelectedCategory('all');
+    setPriceRange({ min: '', max: '' });
+    setSortBy('newest');
+    setCurrentPage(1);
+  };
+
+  const allCategories = categories.flatMap((cat) => cat.category);
   const uniqueCategories = Array.from(new Set(allCategories));
 
   if (error) {
@@ -124,25 +156,83 @@ export default function BrowseCoursesPage() {
           </Link>
         </div>
 
-        {/* Category Filter */}
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Filter by Category
-          </label>
-          <div className="relative">
-            <select
-              value={selectedCategory}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="block w-full max-w-xs pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        {/* Filters and Sort */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Category Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            <div className="relative">
+              <select
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              >
+                <option value="all">All Categories</option>
+                {uniqueCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              <ChevronUpDownIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Price Range Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Price Range ($)
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="number"
+                placeholder="Min"
+                value={priceRange.min}
+                onChange={(e) => handlePriceRangeChange('min', e.target.value)}
+                className="block w-full px-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              />
+              <input
+                type="number"
+                placeholder="Max"
+                value={priceRange.max}
+                onChange={(e) => handlePriceRangeChange('max', e.target.value)}
+                className="block w-full px-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              />
+            </div>
+          </div>
+
+          {/* Sort By */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Sort By
+            </label>
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+                <option value="title">Title A-Z</option>
+              </select>
+              <ChevronUpDownIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Clear Filters */}
+          <div className="flex items-end">
+            <button
+              onClick={clearFilters}
+              className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              <option value="all">All Categories</option>
-              {uniqueCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-            <ChevronUpDownIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none" />
+              Clear Filters
+            </button>
           </div>
         </div>
       </div>
@@ -158,10 +248,9 @@ export default function BrowseCoursesPage() {
             No courses found
           </h3>
           <p className="mt-1 text-sm text-gray-500">
-            {selectedCategory === 'all' 
+            {selectedCategory === 'all'
               ? 'No courses are currently available'
-              : `No courses found in ${selectedCategory} category`
-            }
+              : `No courses found with current filters`}
           </p>
         </div>
       ) : (
@@ -177,19 +266,23 @@ export default function BrowseCoursesPage() {
             <div className="mt-8 flex justify-center">
               <nav className="flex items-center space-x-2">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                   disabled={currentPage === 1}
                   className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                
+
                 <span className="px-3 py-2 text-sm font-medium text-gray-700">
                   Page {currentPage} of {totalPages}
                 </span>
-                
+
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                   className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -212,13 +305,6 @@ function BrowseCourseCard({ course }: { course: Course }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
-      {course.thumbnail && (
-        <img
-          src={course.thumbnail}
-          alt={course.title}
-          className="w-full h-48 object-cover"
-        />
-      )}
       <div className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
           {course.title}
@@ -226,7 +312,7 @@ function BrowseCourseCard({ course }: { course: Course }) {
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
           {course.description}
         </p>
-        
+
         <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
           <div className="flex items-center">
             <UsersIcon className="h-4 w-4 mr-1" />
@@ -237,7 +323,7 @@ function BrowseCourseCard({ course }: { course: Course }) {
             {Math.round(totalDuration)} min
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between mb-4">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
             {course.level}
@@ -251,14 +337,12 @@ function BrowseCourseCard({ course }: { course: Course }) {
           <span className="text-sm text-gray-500">
             {course.modules.length} modules
           </span>
-          <span className="text-sm text-gray-500">
-            {course.category}
-          </span>
+          <span className="text-sm text-gray-500">{course.category}</span>
         </div>
-        
-        <button className="w-full mt-4 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
+
+        {/* <button className="w-full mt-4 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
           Enroll Now
-        </button>
+        </button> */}
       </div>
     </div>
   );

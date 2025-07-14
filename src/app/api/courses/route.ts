@@ -8,6 +8,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get('category');
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    const sortBy = searchParams.get('sortBy') || 'newest';
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '12', 10);
     const skip = (page - 1) * limit;
@@ -19,11 +22,47 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       query.category = category;
     }
 
+    // Add price range filtering
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) {
+        query.price.$gte = parseFloat(minPrice);
+      }
+      if (maxPrice) {
+        query.price.$lte = parseFloat(maxPrice);
+      }
+    }
+
+    // Build sort object based on sortBy parameter
+    let sortObject: any = {};
+    switch (sortBy) {
+      case 'newest':
+        sortObject = { createdAt: -1 };
+        break;
+      case 'oldest':
+        sortObject = { createdAt: 1 };
+        break;
+      case 'price-low':
+        sortObject = { price: 1 };
+        break;
+      case 'price-high':
+        sortObject = { price: -1 };
+        break;
+      case 'rating':
+        sortObject = { averageRating: -1 };
+        break;
+      case 'title':
+        sortObject = { title: 1 };
+        break;
+      default:
+        sortObject = { createdAt: -1 };
+    }
+
     // Get courses with instructor details
     const courses = await Course.find(query)
       .populate('instructor', 'name email')
       .select('title description thumbnail category level averageRating price modules createdAt')
-      .sort({ createdAt: -1 })
+      .sort(sortObject)
       .skip(skip)
       .limit(limit)
       .lean();
