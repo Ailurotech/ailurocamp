@@ -116,4 +116,89 @@ export class AssignmentApiAdapter {
 
     return response.json();
   }
+
+  // 提交作业答案
+  async submitAssignment(
+    courseId: string,
+    assignmentId: string,
+    answers: { questionId: string; answer: string | string[] | null }[]
+  ): Promise<{
+    id: string;
+    assignmentId: string;
+    studentId: string;
+    answers: { questionId: string; answer: string | string[] | null }[];
+    submittedAt: string;
+    score?: number;
+    feedback?: string;
+    gradedAt?: string;
+  }> {
+    if (!courseId || !assignmentId) {
+      throw new Error('Course ID and Assignment ID are required');
+    }
+
+    const response = await fetch(
+      `${API_BASE}/api/courses/${courseId}/assessments/${assignmentId}/submissions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          answers,
+          submittedAt: new Date().toISOString(),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to submit assignment: ${response.status} ${response.statusText} - ${errorText}`
+      );
+    }
+
+    return response.json();
+  }
+
+  // 获取作业提交记录
+  async getSubmission(
+    courseId: string,
+    assignmentId: string
+  ): Promise<{
+    id: string;
+    assignmentId: string;
+    studentId: string;
+    answers: { questionId: string; answer: string | string[] | null }[];
+    submittedAt: string;
+    score?: number;
+    feedback?: string;
+    gradedAt?: string;
+  }> {
+    if (!courseId || !assignmentId) {
+      throw new Error('Course ID and Assignment ID are required');
+    }
+
+    const response = await fetch(
+      `${API_BASE}/api/courses/${courseId}/assessments/${assignmentId}/submissions`
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('No submission found');
+      }
+      throw new Error('Failed to fetch submission');
+    }
+
+    return response.json();
+  }
+
+  // 检查作业是否已提交
+  async hasSubmitted(courseId: string, assignmentId: string): Promise<boolean> {
+    try {
+      await this.getSubmission(courseId, assignmentId);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
