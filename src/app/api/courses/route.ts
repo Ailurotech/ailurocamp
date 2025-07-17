@@ -8,6 +8,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get('category');
+    const instructorName = searchParams.get('instructorName');
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const sortBy = searchParams.get('sortBy') || 'newest';
@@ -59,10 +60,39 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Get courses with instructor details
-    const courses = await Course.find(query)
+    let coursesQuery = Course.find(query)
       .populate('instructor', 'name email')
       .select('title description thumbnail category level averageRating price modules createdAt')
-      .sort(sortObject)
+      .sort(sortObject);
+
+    // If instructor name is provided, filter after population
+    if (instructorName) {
+      const allCourses = await coursesQuery.lean();
+      const filteredCourses = allCourses.filter(course => 
+        course.instructor && 
+        course.instructor.name && 
+        course.instructor.name.toLowerCase().includes(instructorName.toLowerCase())
+      );
+      
+      // Apply pagination to filtered results
+      const paginatedCourses = filteredCourses.slice(skip, skip + limit);
+      const totalCourses = filteredCourses.length;
+      const totalPages = Math.ceil(totalCourses / limit);
+      
+      return NextResponse.json({
+        courses: paginatedCourses,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalCourses,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1
+        }
+      });
+    }
+
+    // Normal flow without instructor filtering
+    const courses = await coursesQuery
       .skip(skip)
       .limit(limit)
       .lean();

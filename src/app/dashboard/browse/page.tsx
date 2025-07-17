@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   BookOpenIcon,
   ClockIcon,
@@ -21,6 +22,7 @@ interface Course {
     order: number;
   }>;
   instructor: {
+    _id: string;
     name: string;
     email: string;
   };
@@ -34,6 +36,73 @@ interface Course {
 interface Category {
   _id: string;
   category: string[];
+}
+
+function BrowseCourseCard({ course }: { course: Course }) {
+  const router = useRouter();
+
+  const handleCourseClick = () => {
+    router.push(`/dashboard/courses/${course._id}`);
+  };
+
+  const handleInstructorClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/dashboard/instructor/${course.instructor._id}`);
+  };
+
+  // Calculate total duration from modules
+  const totalDuration = course.modules.reduce(
+    (total, module) => total + module.duration,
+    0
+  );
+
+  return (
+    <div
+      className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={handleCourseClick}
+    >
+      <div className="p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+          {course.title}
+        </h3>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+          {course.description}
+        </p>
+
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+          <div className="flex items-center">
+            <UsersIcon className="h-4 w-4 mr-1" />
+            <span
+              className="text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
+              onClick={handleInstructorClick}
+            >
+              {course.instructor.name}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <ClockIcon className="h-4 w-4 mr-1" />
+            {Math.round(totalDuration)} min
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+            {course.level}
+          </span>
+          <span className="text-sm font-medium text-gray-900">
+            ${course.price}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500">
+            {course.modules.length} modules
+          </span>
+          <span className="text-sm text-gray-500">{course.category}</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function BrowseCoursesPage() {
@@ -143,7 +212,7 @@ export default function BrowseCoursesPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Browse Courses</h1>
+            <h1 className="text-3xl font-bold text-gray-900">All Courses</h1>
             <p className="mt-2 text-gray-600">
               Discover and enroll in courses that interest you
             </p>
@@ -293,57 +362,6 @@ export default function BrowseCoursesPage() {
           )}
         </>
       )}
-    </div>
-  );
-}
-
-function BrowseCourseCard({ course }: { course: Course }) {
-  const totalDuration = course.modules.reduce(
-    (sum, module) => sum + module.duration,
-    0
-  );
-
-  return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
-      <div className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {course.title}
-        </h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {course.description}
-        </p>
-
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-          <div className="flex items-center">
-            <UsersIcon className="h-4 w-4 mr-1" />
-            {course.instructor.name}
-          </div>
-          <div className="flex items-center">
-            <ClockIcon className="h-4 w-4 mr-1" />
-            {Math.round(totalDuration)} min
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-4">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-            {course.level}
-          </span>
-          <span className="text-sm font-medium text-gray-900">
-            ${course.price}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">
-            {course.modules.length} modules
-          </span>
-          <span className="text-sm text-gray-500">{course.category}</span>
-        </div>
-
-        {/* <button className="w-full mt-4 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
-          Enroll Now
-        </button> */}
-      </div>
     </div>
   );
 }

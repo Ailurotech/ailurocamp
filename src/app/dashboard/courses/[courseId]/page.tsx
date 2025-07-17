@@ -47,7 +47,7 @@ export default function CourseDetailPage() {
 
   const fetchCourse = async () => {
     try {
-      const response = await fetch(`/api/student/courses/${courseId}`);
+      const response = await fetch(`/api/courses/${courseId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch course');
       }
@@ -95,7 +95,9 @@ export default function CourseDetailPage() {
         >
           ← Back to Courses
         </button>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {course.title}
+        </h1>
         <p className="text-gray-600 mb-4">{course.description}</p>
         <div className="flex items-center space-x-4 text-sm text-gray-500">
           <span>Instructor: {course.instructor.name}</span>
@@ -159,7 +161,9 @@ export default function CourseDetailPage() {
           ) : (
             <div className="bg-gray-50 rounded-lg p-12 text-center">
               <BookOpenIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-gray-500">Select a module to view its content</p>
+              <p className="text-gray-500">
+                Select a module to view its content
+              </p>
             </div>
           )}
         </div>

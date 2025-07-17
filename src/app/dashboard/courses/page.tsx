@@ -147,7 +147,7 @@ function CourseCard({ course }: { course: Course }) {
           <p className="text-gray-600 text-sm mb-4 line-clamp-2">
             {course.description}
           </p>
-          
+
           <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
             <div className="flex items-center">
               <UsersIcon className="h-4 w-4 mr-1" />
@@ -158,7 +158,7 @@ function CourseCard({ course }: { course: Course }) {
               {Math.round(totalDuration)} min
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
               {course.level}
