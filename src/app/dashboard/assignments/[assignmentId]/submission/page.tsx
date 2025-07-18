@@ -5,103 +5,50 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Assignment, Question } from '@/types/assignment';
-import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
+import { getAssignmentById, getSubmissionByAssignmentAndStudent, SubmissionRecord } from '@/lib/mockData';
 
-// 提交记录类型
-interface SubmissionRecord {
-  id: string;
-  assignmentId: string;
-  studentId: string;
-  answers: {
-    questionId: string;
-    answer: string | string[] | null;
-  }[];
-  submittedAt: string;
-  score?: number;
-  feedback?: string;
-  gradedAt?: string;
-}
-
-export default function StudentAssignmentSubmissionPage({
+export default function DashboardAssignmentSubmissionPage({
   params,
 }: {
-  params: Promise<{ courseId: string; assignmentId: string }>;
+  params: Promise<{ assignmentId: string }>;
 }) {
-  const { courseId, assignmentId } = React.use(params);
+  const { assignmentId } = React.use(params);
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [submission, setSubmission] = useState<SubmissionRecord | null>(null);
   const [loading, setLoading] = useState(true);
   
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
-  const adapter = React.useMemo(() => new AssignmentApiAdapter(), []);
 
   const fetchAssignmentAndSubmission = React.useCallback(async () => {
     try {
       setLoading(true);
       
-      // 获取作业信息
-      const assignmentResult = await adapter.getAssignment(courseId, assignmentId);
+      // 使用测试数据获取作业信息
+      const mockAssignment = getAssignmentById(assignmentId);
       
-      if ('assignment' in assignmentResult) {
-        const apiResponse = assignmentResult.assignment as {
-          id: string;
-          title: string;
-          description: string;
-          dueDate: string;
-          points: number;
-          questions?: Array<{
-            question: string;
-            type: string;
-            points: number;
-            options?: string[];
-            correctAnswer?: string | string[];
-            testCases?: Array<{
-              input: string;
-              output: string;
-              file?: string | { name: string; url: string; size: number; type: string };
-            }>;
-            fileType?: string;
-            maxFileSize?: number;
-          }>;
-        };
-        
-        const converted: Assignment = {
-          id: apiResponse.id,
-          title: apiResponse.title,
-          description: apiResponse.description,
-          dueDate: apiResponse.dueDate,
-          points: apiResponse.points,
-          timeLimit: 0,
-          passingScore: 0,
-          courseId: courseId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          questions: apiResponse.questions ? apiResponse.questions.map((q, index) => ({
-            id: `${Date.now()}-${index}`,
-            title: q.question,
-            type: q.type as 'multiple-choice' | 'true-false' | 'short-answer' | 'essay' | 'coding' | 'file-upload',
-            points: q.points,
-            options: q.options,
-            correctAnswer: q.correctAnswer,
-            testCases: q.testCases,
-            fileType: q.fileType,
-            maxFileSize: q.maxFileSize,
-          })) : [],
-        };
-        setAssignment(converted);
+      if (mockAssignment) {
+        setAssignment(mockAssignment);
       }
       
-      // 获取提交记录
-      const submissionResult = await adapter.getSubmission(courseId, assignmentId);
-      setSubmission(submissionResult);
+      // 获取真实的提交记录（如果存在）
+      const studentId = session?.user?.id || 'student-1';
+      const existingSubmission = getSubmissionByAssignmentAndStudent(assignmentId, studentId);
+      
+      if (existingSubmission) {
+        // 使用已存在的提交记录
+        setSubmission(existingSubmission);
+      } else {
+        // 如果没有提交记录，表示学生还没有提交这个作业
+        setSubmission(null);
+      }
       
     } catch (error) {
       console.error('Failed to fetch assignment or submission:', error);
     } finally {
       setLoading(false);
     }
-  }, [courseId, assignmentId, adapter]);
+  }, [assignmentId, session?.user?.id]);
 
   useEffect(() => {
     if (sessionStatus === 'loading') return;
@@ -117,7 +64,7 @@ export default function StudentAssignmentSubmissionPage({
     }
 
     fetchAssignmentAndSubmission();
-  }, [fetchAssignmentAndSubmission, session, sessionStatus, router]);
+  }, [session, sessionStatus, router, fetchAssignmentAndSubmission]);
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -177,19 +124,47 @@ export default function StudentAssignmentSubmissionPage({
     return null;
   }
 
-  if (!assignment || !submission) {
+  if (!assignment) {
     return (
       <div className="min-h-screen bg-gray-100 px-4 py-10">
         <div className="max-w-4xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
-            <h2 className="text-xl font-semibold text-red-800 mb-2">Submission Not Found</h2>
-            <p className="text-red-600 mb-4">The submission record could not be found.</p>
+            <h2 className="text-xl font-semibold text-red-800 mb-2">Assignment Not Found</h2>
+            <p className="text-red-600 mb-4">The assignment could not be found.</p>
             <Link 
-              href={`/student/courses/${courseId}/assignments`}
+              href="/dashboard/assignments"
               className="text-blue-600 hover:underline"
             >
               ← Back to Assignments
             </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!submission) {
+    return (
+      <div className="min-h-screen bg-gray-100 px-4 py-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+            <h2 className="text-xl font-semibold text-yellow-800 mb-2">No Submission Found</h2>
+            <p className="text-yellow-600 mb-4">You haven&apos;t submitted this assignment yet.</p>
+            <div className="space-y-4">
+              <Link 
+                href={`/dashboard/assignments/${assignmentId}`}
+                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Start Assignment
+              </Link>
+              <br />
+              <Link 
+                href="/dashboard/assignments"
+                className="text-blue-600 hover:underline"
+              >
+                ← Back to Assignments
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -202,10 +177,10 @@ export default function StudentAssignmentSubmissionPage({
         {/* Header */}
         <div className="mb-8">
           <Link 
-            href={`/student/courses/${courseId}/assignments`}
+            href="/dashboard/assignments"
             className="text-blue-600 hover:underline mb-4 inline-block"
           >
-            ← Back to Assignments
+            ← Back to All Assignments
           </Link>
           
           <div className="bg-white rounded-lg shadow-sm border p-6">
