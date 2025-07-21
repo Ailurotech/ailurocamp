@@ -34,7 +34,13 @@
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.2",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "@aws-sdk/client-s3": "^3.540.0",
+    "@aws-sdk/s3-request-presigner": "^3.540.0",
+    "quill-table": "^1.0.4",
+    "quill-image-uploader": "^1.2.3",
+    "quill-video-resize-module": "^3.0.0",
+    "quill-math": "^2.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
