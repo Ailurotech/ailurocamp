@@ -13,15 +13,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     await connectDB();
-    
+
     // Find courses where the student is enrolled
     const enrolledCourses = await Course.find({
       enrolledStudents: session.user.id,
-      status: 'published'
+      status: 'published',
     })
-    .populate('instructor', 'name email')
-    .select('title description thumbnail modules price category level averageRating createdAt')
-    .sort({ createdAt: -1 });
+      .populate('instructor', 'name email')
+      .select(
+        'title description thumbnail modules price category level averageRating createdAt'
+      )
+      .sort({ createdAt: -1 });
 
     return NextResponse.json({ courses: enrolledCourses }, { status: 200 });
   } catch (error) {

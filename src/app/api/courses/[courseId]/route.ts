@@ -9,14 +9,16 @@ export async function GET(
   try {
     await connectDB();
     const { courseId } = await params;
-    
+
     // Find published course (no enrollment requirement for viewing)
     const course = await Course.findOne({
       _id: courseId,
-      status: 'published'
+      status: 'published',
     })
-    .populate('instructor', 'name email')
-    .select('title description thumbnail modules price category level averageRating ratingCount createdAt');
+      .populate('instructor', 'name email')
+      .select(
+        'title description thumbnail modules price category level averageRating ratingCount createdAt'
+      );
 
     if (!course) {
       return NextResponse.json(

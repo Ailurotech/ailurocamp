@@ -5,7 +5,7 @@ import Course from '@/models/Course';
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
-    
+
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get('category');
     const instructorName = searchParams.get('instructorName');
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // Build query for published courses only
     let query: any = { status: 'published' };
-    
+
     if (category && category !== 'all') {
       query.category = category;
     }
@@ -62,23 +62,28 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Get courses with instructor details
     let coursesQuery = Course.find(query)
       .populate('instructor', 'name email')
-      .select('title description thumbnail category level averageRating price modules createdAt')
+      .select(
+        'title description thumbnail category level averageRating price modules createdAt'
+      )
       .sort(sortObject);
 
     // If instructor name is provided, filter after population
     if (instructorName) {
       const allCourses = await coursesQuery.lean();
-      const filteredCourses = allCourses.filter(course => 
-        course.instructor && 
-        course.instructor.name && 
-        course.instructor.name.toLowerCase().includes(instructorName.toLowerCase())
+      const filteredCourses = allCourses.filter(
+        (course) =>
+          course.instructor &&
+          course.instructor.name &&
+          course.instructor.name
+            .toLowerCase()
+            .includes(instructorName.toLowerCase())
       );
-      
+
       // Apply pagination to filtered results
       const paginatedCourses = filteredCourses.slice(skip, skip + limit);
       const totalCourses = filteredCourses.length;
       const totalPages = Math.ceil(totalCourses / limit);
-      
+
       return NextResponse.json({
         courses: paginatedCourses,
         pagination: {
@@ -86,16 +91,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           totalPages,
           totalCourses,
           hasNextPage: page < totalPages,
-          hasPrevPage: page > 1
-        }
+          hasPrevPage: page > 1,
+        },
       });
     }
 
     // Normal flow without instructor filtering
-    const courses = await coursesQuery
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const courses = await coursesQuery.skip(skip).limit(limit).lean();
 
     // Get total count for pagination
     const totalCourses = await Course.countDocuments(query);
@@ -108,8 +110,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         totalPages,
         totalCourses,
         hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
-      }
+        hasPrevPage: page > 1,
+      },
     });
   } catch (error) {
     console.error('Error fetching courses:', error);

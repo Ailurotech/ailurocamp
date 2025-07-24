@@ -30,7 +30,7 @@ export async function GET(
       currentRole: user.currentRole,
       avatar: user.avatar,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      updatedAt: user.updatedAt,
     });
   } catch (error) {
     console.error('Error fetching user:', error);

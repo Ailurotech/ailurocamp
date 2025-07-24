@@ -16,15 +16,17 @@ export async function GET(
 
     await connectDB();
     const { courseId } = await params;
-    
+
     // Find course and verify student is enrolled
     const course = await Course.findOne({
       _id: courseId,
       enrolledStudents: session.user.id,
-      status: 'published'
+      status: 'published',
     })
-    .populate('instructor', 'name email')
-    .select('title description thumbnail modules price category level averageRating createdAt');
+      .populate('instructor', 'name email')
+      .select(
+        'title description thumbnail modules price category level averageRating createdAt'
+      );
 
     if (!course) {
       return NextResponse.json(
