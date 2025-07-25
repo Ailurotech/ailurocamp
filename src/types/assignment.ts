@@ -92,20 +92,66 @@ export type Question = {
 };
 
 export type Assignment = {
-  id: string;
+  _id?: string;
+  id?: string;
   title: string;
-  description: string;
-  questions: Question[];
-  dueDate: string;
-  points: number;
-  timeLimit?: number;
-  passingScore?: number;
+  course: string;
   courseId?: string;
-  createdAt: string;
-  updatedAt: string;
+  type: 'assignment' | 'quiz';
+  description: string;
+  dueDate?: Date;
+  totalPoints: number;
+  points?: number;
+  timeLimit?: number;
+  maxAttempts?: number;
+  passingScore?: number;
+  questions?: {
+    question: string;
+    type:
+      | 'multiple-choice'
+      | 'true-false'
+      | 'short-answer'
+      | 'essay'
+      | 'coding'
+      | 'file-upload';
+    options?: string[];
+    correctAnswer?: string | string[];
+    points: number;
+    testCases?: {
+      input: string;
+      output: string;
+      file?:
+        | string
+        | {
+            name: string;
+            url: string;
+            size: number;
+            type: string;
+          };
+    }[];
+    fileType?: string;
+    maxFileSize?: number;
+    id?: string;
+    title?: string;
+    placeholder?: string;
+    choices?: { value: string; label: string }[];
+  }[];
+  submissions: {
+    student: string;
+    answers: {
+      questionIndex: number;
+      questionId?: string;
+      answer: string | string[];
+    }[];
+    score?: number;
+    feedback?: string;
+    submittedAt: Date;
+    gradedAt?: Date;
+  }[];
+  createdAt: Date;
+  updatedAt: Date;
 };
 
-// API request/response types to match documentation
 export type AssignmentApiRequest = {
   title: string;
   description: string;

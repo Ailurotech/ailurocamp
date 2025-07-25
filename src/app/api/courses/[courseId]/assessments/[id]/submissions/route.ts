@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Assessment from '@/models/Assessment';
+import mongoose from 'mongoose';
 
 // 提交作业答案的请求类型
 interface SubmissionRequest {
@@ -31,7 +32,7 @@ interface SubmissionResponse {
 // 数据库中的提交记录类型
 interface SubmissionRecord {
   _id: string;
-  student: string;
+  student: mongoose.Types.ObjectId;
   answers: {
     questionIndex: number;
     answer: string | string[];
@@ -64,23 +65,22 @@ export async function POST(
     const session = await getServerSession(authOptions);
     if (!session || !session.user || session.user.currentRole !== 'student') {
       return NextResponse.json(
-        { error: 'Unauthorized. Only students can submit assignments.' },
+        { error: 'Unauthorized. Only students can submit assessments.' },
         { status: 403 }
       );
     }
 
     await connectDB();
 
-    // 检查作业是否存在
+    // 检查作业/测验是否存在
     const assignment = await Assessment.findOne({
       _id: assignmentId,
       course: courseId,
-      type: 'assignment'
     });
 
     if (!assignment) {
       return NextResponse.json(
-        { error: 'Assignment not found' },
+        { error: 'Assessment not found' },
         { status: 404 }
       );
     }
@@ -105,22 +105,22 @@ export async function POST(
 
     // 检查是否已经提交过
     const existingSubmission = assignment.submissions.find(
-      (sub: SubmissionRecord) => sub.student === session.user.id
+      (sub: SubmissionRecord) => sub.student.toString() === session.user.id
     );
 
     const submissionData = {
-      student: session.user.id,
+      student: new mongoose.Types.ObjectId(session.user.id),
       answers: body.answers.map((ans, index) => ({
         questionIndex: index,
-        answer: ans.answer
+        answer: ans.answer,
       })),
-      submittedAt: new Date(body.submittedAt || new Date())
+      submittedAt: new Date(body.submittedAt || new Date()),
     };
 
     if (existingSubmission) {
       // 更新现有提交
       const submissionIndex = assignment.submissions.findIndex(
-        (sub: SubmissionRecord) => sub.student === session.user.id
+        (sub: SubmissionRecord) => sub.student.toString() === session.user.id
       );
       assignment.submissions[submissionIndex] = submissionData;
     } else {
@@ -133,8 +133,26 @@ export async function POST(
 
     // 找到刚才提交的记录
     const savedSubmission = updatedAssignment.submissions.find(
-      (sub: SubmissionRecord) => sub.student === session.user.id
-    ) as SubmissionRecord;
+      (sub: SubmissionRecord) => sub.student.toString() === session.user.id
+    );
+
+    if (!savedSubmission) {
+      console.error(
+        'Failed to find saved submission. User ID:',
+        session.user.id
+      );
+      console.error(
+        'Available submissions:',
+        updatedAssignment.submissions.map((sub: SubmissionRecord) => ({
+          student: sub.student,
+          id: sub._id,
+        }))
+      );
+      return NextResponse.json(
+        { error: 'Failed to save submission' },
+        { status: 500 }
+      );
+    }
 
     const response: SubmissionResponse = {
       id: savedSubmission._id.toString(),
@@ -144,11 +162,10 @@ export async function POST(
       submittedAt: savedSubmission.submittedAt.toISOString(),
       score: savedSubmission.score,
       feedback: savedSubmission.feedback,
-      gradedAt: savedSubmission.gradedAt?.toISOString()
+      gradedAt: savedSubmission.gradedAt?.toISOString(),
     };
 
     return NextResponse.json(response, { status: 201 });
-
   } catch (error) {
     console.error('Error submitting assignment:', error);
     return NextResponse.json(
@@ -179,24 +196,20 @@ export async function GET(
     // 验证用户身份
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
     await connectDB();
 
-    // 检查作业是否存在
+    // 检查作业/测验是否存在
     const assignment = await Assessment.findOne({
       _id: assignmentId,
       course: courseId,
-      type: 'assignment'
     });
 
     if (!assignment) {
       return NextResponse.json(
-        { error: 'Assignment not found' },
+        { error: 'Assessment not found' },
         { status: 404 }
       );
     }
@@ -217,18 +230,19 @@ export async function GET(
       id: studentSubmission._id.toString(),
       assignmentId: assignmentId,
       studentId: session.user.id,
-      answers: studentSubmission.answers.map((ans: SubmissionRecord['answers'][0], index: number) => ({
-        questionId: `question-${index}`,
-        answer: ans.answer
-      })),
+      answers: studentSubmission.answers.map(
+        (ans: SubmissionRecord['answers'][0], index: number) => ({
+          questionId: `question-${index}`,
+          answer: ans.answer,
+        })
+      ),
       submittedAt: studentSubmission.submittedAt.toISOString(),
       score: studentSubmission.score,
       feedback: studentSubmission.feedback,
-      gradedAt: studentSubmission.gradedAt?.toISOString()
+      gradedAt: studentSubmission.gradedAt?.toISOString(),
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     console.error('Error fetching submission:', error);
     return NextResponse.json(

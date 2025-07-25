@@ -6,6 +6,8 @@ export interface IAssessment extends mongoose.Document {
   type: 'quiz' | 'assignment';
   description: string;
   dueDate?: Date;
+  timeLimit?: number;
+  maxAttempts?: number;
   totalPoints: number;
   questions?: {
     question: string;
@@ -72,6 +74,15 @@ const assessmentSchema = new mongoose.Schema<IAssessment>(
     },
     dueDate: {
       type: Date,
+    },
+    timeLimit: {
+      type: Number,
+      min: 1,
+    },
+    maxAttempts: {
+      type: Number,
+      min: 1,
+      default: 1,
     },
     totalPoints: {
       type: Number,
@@ -172,7 +183,6 @@ const assessmentSchema = new mongoose.Schema<IAssessment>(
   }
 );
 
-// Index for better query performance
 assessmentSchema.index({ course: 1, type: 1 });
 assessmentSchema.index({ 'submissions.student': 1 });
 

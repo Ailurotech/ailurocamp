@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { mockAssignments, getCourseById, getSubmissionByAssignmentAndStudent } from '@/lib/mockData';
+import { assignmentService } from '@/lib/assignmentService';
 
 interface AssignmentOverview {
   id: string;
@@ -22,58 +22,75 @@ export default function DashboardAssignmentsPage() {
   const [assignments, setAssignments] = useState<AssignmentOverview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
 
   const fetchAllAssignments = React.useCallback(async () => {
     try {
       setLoading(true);
-      // 使用测试数据
       const studentId = session?.user?.id || 'student-1';
-      const assignmentsWithStatus: AssignmentOverview[] = mockAssignments
-        .filter(assignment => assignment.courseId) // 只包含有courseId的assignments
-        .map(assignment => {
-          const course = getCourseById(assignment.courseId!);
+
+      const assignments = await assignmentService.getAssignments();
+
+      const coursePromises = assignments.map((assignment) => {
+        const courseId = assignment.course || assignment.courseId!;
+        return assignmentService.getCourseById(courseId);
+      });
+      const courses = await Promise.all(coursePromises);
+      const courseMap = new Map(
+        courses.filter((c) => c).map((c) => [c!._id, c!])
+      );
+
+      const assignmentsWithStatus: AssignmentOverview[] = assignments
+        .filter((assignment) => assignment.course || assignment.courseId)
+        .map((assignment) => {
+          const courseId = assignment.course || assignment.courseId!;
+          const course = courseMap.get(courseId);
           const now = new Date();
-          const dueDate = assignment.dueDate ? new Date(assignment.dueDate) : null;
-          
-          // 获取真实的提交记录
-          const submission = getSubmissionByAssignmentAndStudent(assignment.id, studentId);
-          
+          const dueDate = assignment.dueDate
+            ? new Date(assignment.dueDate)
+            : null;
+
+          const submission = assignment.submissions?.find(
+            (sub) => sub.student.toString() === studentId
+          );
+
           let status: 'pending' | 'submitted' | 'graded' | 'overdue';
           const isSubmitted = !!submission;
           const submissionScore = submission?.score;
-          
+
           if (submission) {
-            // 有提交记录
             if (submission.score !== undefined && submission.gradedAt) {
               status = 'graded';
             } else {
               status = 'submitted';
             }
           } else {
-            // 没有提交记录
             if (dueDate && now > dueDate) {
               status = 'overdue';
             } else {
               status = 'pending';
             }
           }
-          
+
           return {
-            id: assignment.id,
+            id: assignment._id || assignment.id!,
             title: assignment.title,
-            courseId: assignment.courseId!,
+            courseId: assignment.course || assignment.courseId!,
             courseTitle: course?.title || 'Unknown Course',
-            dueDate: assignment.dueDate,
-            points: assignment.points,
+            dueDate: assignment.dueDate
+              ? typeof assignment.dueDate === 'string'
+                ? assignment.dueDate
+                : assignment.dueDate.toISOString()
+              : undefined,
+            points: assignment.totalPoints || assignment.points!,
             isSubmitted,
             submissionScore,
-            status
+            status,
           };
         });
-      
+
       setAssignments(assignmentsWithStatus);
     } catch (err) {
       setError('Failed to fetch assignments');
@@ -170,18 +187,18 @@ export default function DashboardAssignmentsPage() {
     );
   }
 
-  // 按状态分组assignments
-  const pendingAssignments = assignments.filter(a => a.status === 'pending');
-  const overdueAssignments = assignments.filter(a => a.status === 'overdue');
-  const submittedAssignments = assignments.filter(a => a.status === 'submitted');
-  const gradedAssignments = assignments.filter(a => a.status === 'graded');
+  const pendingAssignments = assignments.filter((a) => a.status === 'pending');
+  const overdueAssignments = assignments.filter((a) => a.status === 'overdue');
+  const submittedAssignments = assignments.filter(
+    (a) => a.status === 'submitted'
+  );
+  const gradedAssignments = assignments.filter((a) => a.status === 'graded');
 
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
         <div className="mb-8">
-          <Link 
+          <Link
             href="/dashboard"
             className="text-blue-600 hover:underline mb-4 inline-block"
           >
@@ -195,27 +212,33 @@ export default function DashboardAssignmentsPage() {
           </p>
         </div>
 
-        {/* Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{pendingAssignments.length}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {pendingAssignments.length}
+            </div>
             <div className="text-sm text-gray-600">Pending</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">{overdueAssignments.length}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {overdueAssignments.length}
+            </div>
             <div className="text-sm text-gray-600">Overdue</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{submittedAssignments.length}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {submittedAssignments.length}
+            </div>
             <div className="text-sm text-gray-600">Submitted</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{gradedAssignments.length}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {gradedAssignments.length}
+            </div>
             <div className="text-sm text-gray-600">Graded</div>
           </div>
         </div>
 
-        {/* Assignments List */}
         {assignments.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
             <div className="text-gray-500">
@@ -227,8 +250,8 @@ export default function DashboardAssignmentsPage() {
         ) : (
           <div className="space-y-4">
             {assignments.map((assignment) => (
-              <div 
-                key={assignment.id} 
+              <div
+                key={assignment.id}
                 className={`bg-white rounded-lg shadow-sm border-l-4 p-6 ${getStatusColor(assignment.status)}`}
               >
                 <div className="flex justify-between items-start mb-4">
@@ -239,39 +262,42 @@ export default function DashboardAssignmentsPage() {
                       </h3>
                       {getStatusBadge(assignment)}
                     </div>
-                    
+
                     <p className="text-sm text-gray-600 mb-2">
                       📚 {assignment.courseTitle}
                     </p>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <span>📊 {assignment.points} points</span>
                       {assignment.dueDate && (
                         <span>
-                          📅 Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                          📅 Due:{' '}
+                          {new Date(assignment.dueDate).toLocaleDateString()}
                         </span>
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col items-end gap-2">
-                    <Link 
-                      href={
-                        assignment.isSubmitted 
-                          ? `/dashboard/assignments/${assignment.id}/submission`
-                          : `/dashboard/assignments/${assignment.id}`
-                      }
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
-                    >
-                      {assignment.isSubmitted ? 'View Submission' : 'Start Assignment'}
-                    </Link>
-                    
-                    <Link 
-                      href={`/dashboard/assignments`}
-                      className="text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      View all assignments →
-                    </Link>
+                    {assignment.status === 'overdue' &&
+                    !assignment.isSubmitted ? (
+                      <div className="px-4 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed text-sm">
+                        Assignment Overdue
+                      </div>
+                    ) : (
+                      <Link
+                        href={
+                          assignment.isSubmitted
+                            ? `/dashboard/assignments/${assignment.id}/submission`
+                            : `/dashboard/assignments/${assignment.id}`
+                        }
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+                      >
+                        {assignment.isSubmitted
+                          ? 'View Submission'
+                          : 'Start Assignment'}
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
