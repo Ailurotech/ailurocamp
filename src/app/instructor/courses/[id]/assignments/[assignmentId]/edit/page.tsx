@@ -52,13 +52,17 @@ export default function EditAssignmentPage({
         id: apiResponse.id,
         title: apiResponse.title,
         description: apiResponse.description,
+        course: courseId,
         courseId: courseId,
-        dueDate: apiResponse.dueDate || '',
+        type: 'assignment',
+        dueDate: apiResponse.dueDate ? new Date(apiResponse.dueDate) : undefined,
+        totalPoints: apiResponse.points,
         points: apiResponse.points,
         questions: apiResponse.questions
           ? apiResponse.questions.map((q, index) => {
               const baseQuestion = {
                 id: `${Date.now()}-${index}-${Math.random()}`,
+                question: q.question,
                 title: q.question,
                 type: q.type as
                   | 'multiple-choice'
@@ -104,7 +108,7 @@ export default function EditAssignmentPage({
                       q.testCases?.map((tc) => ({
                         input: tc.input || '',
                         output: tc.output || '',
-                        file: tc.file || null,
+                        file: tc.file || undefined,
                       })) || [],
                   };
 
@@ -124,10 +128,11 @@ export default function EditAssignmentPage({
               }
             })
           : [],
+        submissions: [],
         timeLimit: 0,
         passingScore: 0,
-        createdAt: apiResponse.createdAt || new Date().toISOString(),
-        updatedAt: apiResponse.updatedAt || new Date().toISOString(),
+        createdAt: apiResponse.createdAt ? new Date(apiResponse.createdAt) : new Date(),
+        updatedAt: apiResponse.updatedAt ? new Date(apiResponse.updatedAt) : new Date(),
       };
 
       setAssignment(converted);

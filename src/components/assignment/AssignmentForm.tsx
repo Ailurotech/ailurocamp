@@ -29,14 +29,12 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       title: '',
       description: '',
       questions: [],
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 16),
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       points: 100,
       timeLimit: 0,
       passingScore: 0,
-      createdAt: '',
-      updatedAt: '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
       id: '',
     },
   });
@@ -81,7 +79,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       const convertedQuestions =
         data.questions?.map((question) => {
           const baseQuestion = {
-            question: question.title,
+            question: question.question || question.title || '',
             type: question.type as
               | 'multiple-choice'
               | 'true-false'
@@ -245,6 +243,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           render={({ field }) => (
             <input
               {...field}
+              value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
               type="datetime-local"
               className="border p-2 w-full rounded"
               placeholder="Select due date and time"
@@ -312,6 +311,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             onClick={() =>
               append({
                 id: Date.now().toString(),
+                question: '',
                 title: '',
                 type: 'multiple-choice',
                 points: 0,
