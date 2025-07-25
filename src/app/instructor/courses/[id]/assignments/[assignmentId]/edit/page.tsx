@@ -55,7 +55,9 @@ export default function EditAssignmentPage({
         course: courseId,
         courseId: courseId,
         type: 'assignment',
-        dueDate: apiResponse.dueDate ? new Date(apiResponse.dueDate) : undefined,
+        dueDate: apiResponse.dueDate
+          ? new Date(apiResponse.dueDate)
+          : undefined,
         totalPoints: apiResponse.points,
         points: apiResponse.points,
         questions: apiResponse.questions
@@ -131,8 +133,12 @@ export default function EditAssignmentPage({
         submissions: [],
         timeLimit: 0,
         passingScore: 0,
-        createdAt: apiResponse.createdAt ? new Date(apiResponse.createdAt) : new Date(),
-        updatedAt: apiResponse.updatedAt ? new Date(apiResponse.updatedAt) : new Date(),
+        createdAt: apiResponse.createdAt
+          ? new Date(apiResponse.createdAt)
+          : new Date(),
+        updatedAt: apiResponse.updatedAt
+          ? new Date(apiResponse.updatedAt)
+          : new Date(),
       };
 
       setAssignment(converted);

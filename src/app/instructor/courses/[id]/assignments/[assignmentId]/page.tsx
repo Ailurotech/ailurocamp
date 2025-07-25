@@ -50,7 +50,9 @@ export default function AssignmentDetailPage({
           course: courseId,
           courseId: courseId,
           type: 'assignment',
-          dueDate: apiResponse.dueDate ? new Date(apiResponse.dueDate) : undefined,
+          dueDate: apiResponse.dueDate
+            ? new Date(apiResponse.dueDate)
+            : undefined,
           totalPoints: apiResponse.points,
           points: apiResponse.points,
           questions: apiResponse.questions
@@ -70,15 +72,20 @@ export default function AssignmentDetailPage({
                 correctAnswer: q.correctAnswer,
                 choices:
                   q.options?.map((opt) => ({ value: opt, label: opt })) || [],
-                testCases: q.testCases?.map((tc) => ({
-                  input: tc.input || '',
-                  output: tc.output || '',
-                  file: tc.file || undefined,
-                })) || undefined,
+                testCases:
+                  q.testCases?.map((tc) => ({
+                    input: tc.input || '',
+                    output: tc.output || '',
+                    file: tc.file || undefined,
+                  })) || undefined,
                 fileType: q.fileType,
                 maxFileSize: q.maxFileSize,
-                placeholder: q.type === 'essay' ? 'Write your essay here...' : 
-                           q.type === 'short-answer' ? 'Enter your answer here...' : undefined,
+                placeholder:
+                  q.type === 'essay'
+                    ? 'Write your essay here...'
+                    : q.type === 'short-answer'
+                      ? 'Enter your answer here...'
+                      : undefined,
               }))
             : [],
           timeLimit: 0,

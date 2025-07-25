@@ -243,7 +243,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           render={({ field }) => (
             <input
               {...field}
-              value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
+              value={
+                field.value
+                  ? new Date(field.value).toISOString().slice(0, 16)
+                  : ''
+              }
               type="datetime-local"
               className="border p-2 w-full rounded"
               placeholder="Select due date and time"
