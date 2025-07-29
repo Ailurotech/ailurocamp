@@ -19,6 +19,21 @@ export interface ICourse {
   updatedAt: Date;
 }
 
+// Course interface for frontend display
+export interface Course {
+  _id: string;
+  title: string;
+  description: string;
+  thumbnail?: string;
+  category: string;
+  level: string;
+  price: number;
+  averageRating?: number;
+  ratingCount?: number;
+  enrolledStudents: string[];
+  createdAt: string;
+}
+
 export interface ICategory {
   _id: string;
   category: string[];

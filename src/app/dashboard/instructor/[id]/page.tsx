@@ -4,31 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { UsersIcon, BookOpenIcon, ClockIcon } from '@/components/ui/Icons';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  roles: string[];
-  currentRole: string;
-  avatar?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  thumbnail?: string;
-  category: string;
-  level: string;
-  price: number;
-  averageRating?: number;
-  ratingCount?: number;
-  enrolledStudents: string[];
-  createdAt: string;
-}
+import { User } from '@/types';
+import { Course } from '@/types/course';
 
 export default function InstructorProfilePage() {
   const params = useParams();
