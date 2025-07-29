@@ -104,7 +104,7 @@ export default function InstructorProfilePage() {
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-center space-x-6">
-            // Replace the img element around line 105:
+            {/* Replace the img element with Image component */}
             <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
               {instructor.avatar ? (
                 <Image
