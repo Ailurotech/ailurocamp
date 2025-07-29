@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Assessment from '@/models/Assessment';
 import { SubmissionDocument, SubmissionResponse } from '@/types/submission';
+import { requireAuth } from '@/lib/apiUtils';
 
-/**
- * GET /api/assessments/:id/submissions/:studentId
- * 获取特定学生的作业提交记录
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; studentId: string }> }
@@ -16,16 +11,13 @@ export async function GET(
   try {
     const { id: assessmentId, studentId } = await params;
     
-    // 验证会话
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { response: authResponse } = await requireAuth();
+    if (authResponse) return authResponse;
 
-    // 连接数据库
+    
     await connectDB();
 
-    // 查找assessment
+    
     const assessment = await Assessment.findById(assessmentId);
     if (!assessment) {
       return NextResponse.json(
@@ -34,7 +26,7 @@ export async function GET(
       );
     }
 
-    // 查找学生的提交记录
+
     const submission = assessment.submissions?.find(
       (sub: SubmissionDocument) => sub.student.toString() === studentId
     );
@@ -46,7 +38,7 @@ export async function GET(
       );
     }
 
-    // 格式化返回数据
+    
     const formattedSubmission: SubmissionResponse = {
       id: submission._id?.toString() || submission.id || '',
       assignmentId: assessmentId,

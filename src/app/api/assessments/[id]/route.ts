@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Assessment from '@/models/Assessment';
+import { requireAuth } from '@/lib/apiUtils';
 
-/**
- * GET /api/assessments/:id
- * 获取特定的assessment
- */
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,16 +11,13 @@ export async function GET(
   try {
     const { id: assessmentId } = await params;
     
-    // 验证会话
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { response: authResponse } = await requireAuth();
+    if (authResponse) return authResponse;
 
-    // 连接数据库
+    
     await connectDB();
 
-    // 查找assessment
+   
     const assessment = await Assessment.findById(assessmentId);
     if (!assessment) {
       return NextResponse.json(

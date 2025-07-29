@@ -54,3 +54,14 @@ export async function safeConnectDB(): Promise<void> {
     throw new Error('Database connection failed');
   }
 }
+
+export async function requireAuth() {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return {
+      session: null,
+      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    };
+  }
+  return { session, response: null };
+}
