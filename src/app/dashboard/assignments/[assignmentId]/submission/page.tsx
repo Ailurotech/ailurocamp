@@ -14,11 +14,10 @@ export default function DashboardAssignmentSubmissionPage({
   params: Promise<{ assignmentId: string }>;
 }) {
   const { assignmentId } = React.use(params);
-  const [assignment, setAssignment] = useState<Assignment | null>(null);
-  const [submission, setSubmission] = useState<AssessmentSubmission | null>(
-    null
-  );
+  const [assignment, setAssignment] = useState<Assignment | undefined>(undefined);
+  const [submission, setSubmission] = useState<AssessmentSubmission | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
@@ -26,23 +25,20 @@ export default function DashboardAssignmentSubmissionPage({
   const fetchAssignmentAndSubmission = React.useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
 
-     
-      const assignment =
-        await assignmentService.getAssignmentById(assignmentId);
+      const assignment = await assignmentService.getAssignmentById(assignmentId);
 
       if (assignment) {
         setAssignment(assignment);
 
-       
-        const studentId = session?.user?.id || 'student-1';
+        const studentId = session!.user.id;
         const submissionRecord = await assignmentService.getSubmissionByAssignmentAndStudent(
           assignmentId,
           studentId
         );
 
         if (submissionRecord) {
-          
           setSubmission({
             id: submissionRecord.id,
             student: submissionRecord.studentId,
@@ -56,15 +52,18 @@ export default function DashboardAssignmentSubmissionPage({
             gradedAt: submissionRecord.gradedAt ? new Date(submissionRecord.gradedAt) : undefined,
           } as AssessmentSubmission);
         } else {
-          setSubmission(null);
+          setSubmission(undefined);
         }
+      } else {
+        setAssignment(undefined);
       }
     } catch (error) {
       console.error('Failed to fetch assignment or submission:', error);
+      setError('Failed to load assignment data');
     } finally {
       setLoading(false);
     }
-  }, [assignmentId, session?.user?.id]);
+  }, [assignmentId, session]);
 
   useEffect(() => {
     if (sessionStatus === 'loading') return;
@@ -97,7 +96,37 @@ export default function DashboardAssignmentSubmissionPage({
     return null;
   }
 
-  if (!assignment) {
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 px-4 py-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
+            <h2 className="text-xl font-semibold text-red-800 mb-2">
+              Error Loading Assignment
+            </h2>
+            <p className="text-red-600 mb-4">{error}</p>
+            <div className="space-y-4">
+              <button
+                onClick={() => fetchAssignmentAndSubmission()}
+                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+              <br />
+              <Link
+                href="/dashboard/assignments"
+                className="text-blue-600 hover:underline"
+              >
+                ← Back to Assignments
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (assignment === undefined) {
     return (
       <div className="min-h-screen bg-gray-100 px-4 py-10">
         <div className="max-w-4xl mx-auto">
@@ -120,7 +149,7 @@ export default function DashboardAssignmentSubmissionPage({
     );
   }
 
-  if (!submission) {
+  if (submission === undefined) {
     return (
       <div className="min-h-screen bg-gray-100 px-4 py-10">
         <div className="max-w-4xl mx-auto">
