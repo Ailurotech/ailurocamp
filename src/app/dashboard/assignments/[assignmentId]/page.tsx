@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Assignment } from '@/types/assignment';
 import { assignmentService } from '@/lib/assignmentService';
-import { 
-  AssignmentTakingHeader, 
-  AssignmentQuestionRenderer, 
-  SubmissionControls 
+import {
+  AssignmentTakingHeader,
+  AssignmentQuestionRenderer,
+  SubmissionControls,
 } from '@/components/assignment/Dashboard';
 
 export default function DashboardAssignmentPage({
@@ -34,16 +34,14 @@ export default function DashboardAssignmentPage({
       setLoading(true);
       setError(null);
 
-      
       const assignment =
         await assignmentService.getAssignmentById(assignmentId);
 
       if (assignment) {
         setAssignment(assignment);
 
-        
         if (assignment.timeLimit && assignment.timeLimit > 0) {
-          setTimeRemaining(assignment.timeLimit * 60); 
+          setTimeRemaining(assignment.timeLimit * 60);
         }
       } else {
         setError('Assignment not found');
@@ -72,14 +70,12 @@ export default function DashboardAssignmentPage({
     fetchAssignment();
   }, [session, sessionStatus, router, fetchAssignment]);
 
-
   useEffect(() => {
     if (timeRemaining === null || timeRemaining <= 0) return;
 
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev === null || prev <= 1) {
-          
           return 0;
         }
         return prev - 1;
@@ -204,8 +200,8 @@ export default function DashboardAssignmentPage({
   }
 
   const totalQuestions = assignment.questions?.length || 0;
-  const answeredQuestions = Object.values(answers).filter(answer => 
-    answer !== null && answer !== undefined && answer !== ''
+  const answeredQuestions = Object.values(answers).filter(
+    (answer) => answer !== null && answer !== undefined && answer !== ''
   ).length;
   const isComplete = answeredQuestions === totalQuestions;
 
@@ -223,9 +219,10 @@ export default function DashboardAssignmentPage({
         {/* Questions */}
         <div className="space-y-6 mb-8">
           {assignment.questions?.map((question, index) => {
-            const questionId = question.id || question.title || `question-${index}`;
+            const questionId =
+              question.id || question.title || `question-${index}`;
             const currentAnswer = answers[questionId];
-            
+
             return (
               <AssignmentQuestionRenderer
                 key={questionId}

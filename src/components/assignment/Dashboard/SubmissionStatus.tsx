@@ -14,7 +14,10 @@ const getScorePercentage = (score: number, total: number) => {
   return Math.round((score / total) * 100);
 };
 
-export default function SubmissionStatus({ submission, assignment }: SubmissionStatusProps) {
+export default function SubmissionStatus({
+  submission,
+  assignment,
+}: SubmissionStatusProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
       <h2 className="text-xl font-bold text-gray-900 mb-4">
@@ -24,9 +27,7 @@ export default function SubmissionStatus({ submission, assignment }: SubmissionS
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-green-50 p-3 rounded">
           <div className="text-sm text-green-600">Status</div>
-          <div className="text-lg font-semibold text-green-800">
-            Submitted
-          </div>
+          <div className="text-lg font-semibold text-green-800">Submitted</div>
         </div>
         <div className="bg-blue-50 p-3 rounded">
           <div className="text-sm text-blue-600">Submitted At</div>

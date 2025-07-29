@@ -5,7 +5,9 @@ interface AssignmentHeaderProps {
   assignment: Assignment;
 }
 
-export default function AssignmentHeader({ assignment }: AssignmentHeaderProps) {
+export default function AssignmentHeader({
+  assignment,
+}: AssignmentHeaderProps) {
   return (
     <div className="mb-8">
       <Link

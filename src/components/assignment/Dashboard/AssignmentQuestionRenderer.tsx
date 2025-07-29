@@ -145,7 +145,8 @@ export default function AssignmentQuestionRenderer({
           />
           {question.maxFileSize && (
             <p className="text-sm text-gray-500 mt-1">
-              Maximum file size: {(question.maxFileSize / 1024 / 1024).toFixed(1)}MB
+              Maximum file size:{' '}
+              {(question.maxFileSize / 1024 / 1024).toFixed(1)}MB
             </p>
           )}
           {uploadedFiles[questionId] && (

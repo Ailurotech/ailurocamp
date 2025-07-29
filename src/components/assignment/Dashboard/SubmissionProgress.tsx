@@ -5,9 +5,9 @@ interface SubmissionProgressProps {
   totalQuestions: number;
 }
 
-export default function SubmissionProgress({ 
-  answeredQuestions, 
-  totalQuestions 
+export default function SubmissionProgress({
+  answeredQuestions,
+  totalQuestions,
 }: SubmissionProgressProps) {
   return (
     <div className="flex items-center justify-between">

@@ -7,10 +7,10 @@ interface QuestionDisplayProps {
   answer: string | string[];
 }
 
-export default function QuestionDisplay({ 
-  question, 
-  questionIndex, 
-  answer 
+export default function QuestionDisplay({
+  question,
+  questionIndex,
+  answer,
 }: QuestionDisplayProps) {
   return (
     <div className="bg-white rounded-lg border p-6 mb-6">
@@ -24,12 +24,9 @@ export default function QuestionDisplay({
       </div>
 
       <div className="mb-4">
-        <p className="text-gray-700 leading-relaxed">
-          {question.title}
-        </p>
+        <p className="text-gray-700 leading-relaxed">{question.title}</p>
       </div>
 
-     
       {question.type === 'multiple-choice' && question.options && (
         <div className="mb-4">
           <h4 className="font-medium text-gray-600 mb-2">Options:</h4>
@@ -50,9 +47,7 @@ export default function QuestionDisplay({
       )}
 
       <div className="border-t pt-4">
-        <h4 className="font-medium text-gray-600 mb-2">
-          Your Answer:
-        </h4>
+        <h4 className="font-medium text-gray-600 mb-2">Your Answer:</h4>
         <AnswerDisplay question={question} answer={answer} />
       </div>
     </div>

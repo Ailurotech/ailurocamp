@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Assessment from '@/models/Assessment';
-import { SubmissionDocument, SubmissionRequest, SubmissionResponse } from '@/types/submission';
+import {
+  SubmissionDocument,
+  SubmissionRequest,
+  SubmissionResponse,
+} from '@/types/submission';
 import { requireAuth } from '@/lib/apiUtils';
 
 export async function POST(
@@ -12,7 +16,7 @@ export async function POST(
     const { id: assessmentId } = await params;
     const body: SubmissionRequest = await request.json();
     const { studentId, answers } = body;
-    
+
     const { response: authResponse } = await requireAuth();
     if (authResponse) return authResponse;
 
@@ -30,7 +34,7 @@ export async function POST(
       student: studentId,
       answers: answers.map((answer) => ({
         questionIndex: answer.questionIndex,
-        answer: answer.answer
+        answer: answer.answer,
       })),
       submittedAt: new Date(),
     };
@@ -50,9 +54,12 @@ export async function POST(
 
     await assessment.save();
 
-    const savedSubmission = assessment.submissions[
-      existingSubmissionIndex >= 0 ? existingSubmissionIndex : assessment.submissions.length - 1
-    ];
+    const savedSubmission =
+      assessment.submissions[
+        existingSubmissionIndex >= 0
+          ? existingSubmissionIndex
+          : assessment.submissions.length - 1
+      ];
 
     const response: SubmissionResponse = {
       id: savedSubmission._id?.toString() || '',
@@ -66,7 +73,6 @@ export async function POST(
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     console.error('Error submitting assignment:', error);
     return NextResponse.json(

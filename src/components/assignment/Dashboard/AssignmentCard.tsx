@@ -6,7 +6,9 @@ interface AssignmentCardProps {
   assignment: AssignmentOverview;
 }
 
-export const AssignmentCard: React.FC<AssignmentCardProps> = ({ assignment }) => {
+export const AssignmentCard: React.FC<AssignmentCardProps> = ({
+  assignment,
+}) => {
   const getStatusBadge = (assignment: AssignmentOverview) => {
     switch (assignment.status) {
       case 'graded':
@@ -72,8 +74,7 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({ assignment }) =>
             <span>📊 {assignment.points} points</span>
             {assignment.dueDate && (
               <span>
-                📅 Due:{' '}
-                {new Date(assignment.dueDate).toLocaleDateString()}
+                📅 Due: {new Date(assignment.dueDate).toLocaleDateString()}
               </span>
             )}
           </div>

@@ -6,7 +6,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Assignment, AssessmentSubmission } from '@/types/assignment';
 import { assignmentService } from '@/lib/assignmentService';
-import { AssignmentHeader, SubmissionStatus, QuestionDisplay } from '@/components/assignment/Dashboard';
+import {
+  AssignmentHeader,
+  SubmissionStatus,
+  QuestionDisplay,
+} from '@/components/assignment/Dashboard';
 
 export default function DashboardAssignmentSubmissionPage({
   params,
@@ -14,8 +18,12 @@ export default function DashboardAssignmentSubmissionPage({
   params: Promise<{ assignmentId: string }>;
 }) {
   const { assignmentId } = React.use(params);
-  const [assignment, setAssignment] = useState<Assignment | undefined>(undefined);
-  const [submission, setSubmission] = useState<AssessmentSubmission | undefined>(undefined);
+  const [assignment, setAssignment] = useState<Assignment | undefined>(
+    undefined
+  );
+  const [submission, setSubmission] = useState<
+    AssessmentSubmission | undefined
+  >(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,29 +35,33 @@ export default function DashboardAssignmentSubmissionPage({
       setLoading(true);
       setError(null);
 
-      const assignment = await assignmentService.getAssignmentById(assignmentId);
+      const assignment =
+        await assignmentService.getAssignmentById(assignmentId);
 
       if (assignment) {
         setAssignment(assignment);
 
         const studentId = session!.user.id;
-        const submissionRecord = await assignmentService.getSubmissionByAssignmentAndStudent(
-          assignmentId,
-          studentId
-        );
+        const submissionRecord =
+          await assignmentService.getSubmissionByAssignmentAndStudent(
+            assignmentId,
+            studentId
+          );
 
         if (submissionRecord) {
           setSubmission({
             id: submissionRecord.id,
             student: submissionRecord.studentId,
-            answers: submissionRecord.answers.map(answer => ({
+            answers: submissionRecord.answers.map((answer) => ({
               questionIndex: answer.questionIndex,
-              answer: answer.answer || '' 
+              answer: answer.answer || '',
             })),
             submittedAt: new Date(submissionRecord.submittedAt),
             score: submissionRecord.score,
             feedback: submissionRecord.feedback,
-            gradedAt: submissionRecord.gradedAt ? new Date(submissionRecord.gradedAt) : undefined,
+            gradedAt: submissionRecord.gradedAt
+              ? new Date(submissionRecord.gradedAt)
+              : undefined,
           } as AssessmentSubmission);
         } else {
           setSubmission(undefined);
@@ -184,22 +196,19 @@ export default function DashboardAssignmentSubmissionPage({
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-4xl mx-auto px-4 py-8">
-       
         <AssignmentHeader assignment={assignment} />
 
-      
         <SubmissionStatus submission={submission} assignment={assignment} />
 
-        
         <div className="mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-6">
             📝 Your Answers
           </h2>
 
           {assignment.questions?.map((question, index) => {
-            const answer = submission.answers.find(
-              (a) => a.questionIndex === index
-            )?.answer || ''; 
+            const answer =
+              submission.answers.find((a) => a.questionIndex === index)
+                ?.answer || '';
 
             return (
               <QuestionDisplay

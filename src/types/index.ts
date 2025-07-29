@@ -23,9 +23,9 @@ export interface ApiResponse<T = unknown> {
 export type { AssignmentOverview } from './assignment';
 
 // Re-export submission types for convenience
-export type { 
-  SubmissionData, 
-  SubmissionRequest, 
-  SubmissionDocument, 
-  SubmissionResponse 
+export type {
+  SubmissionData,
+  SubmissionRequest,
+  SubmissionDocument,
+  SubmissionResponse,
 } from './submission';

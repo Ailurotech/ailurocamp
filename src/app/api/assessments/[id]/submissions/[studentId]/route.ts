@@ -10,14 +10,12 @@ export async function GET(
 ) {
   try {
     const { id: assessmentId, studentId } = await params;
-    
+
     const { response: authResponse } = await requireAuth();
     if (authResponse) return authResponse;
 
-    
     await connectDB();
 
-    
     const assessment = await Assessment.findById(assessmentId);
     if (!assessment) {
       return NextResponse.json(
@@ -25,7 +23,6 @@ export async function GET(
         { status: 404 }
       );
     }
-
 
     const submission = assessment.submissions?.find(
       (sub: SubmissionDocument) => sub.student.toString() === studentId
@@ -38,15 +35,16 @@ export async function GET(
       );
     }
 
-    
     const formattedSubmission: SubmissionResponse = {
       id: submission._id?.toString() || submission.id || '',
       assignmentId: assessmentId,
       studentId: submission.student.toString(),
-      answers: submission.answers.map((answer: SubmissionDocument['answers'][0]) => ({
-        questionIndex: answer.questionIndex,
-        answer: answer.answer || ''
-      })),
+      answers: submission.answers.map(
+        (answer: SubmissionDocument['answers'][0]) => ({
+          questionIndex: answer.questionIndex,
+          answer: answer.answer || '',
+        })
+      ),
       submittedAt: submission.submittedAt.toISOString(),
       score: submission.score,
       feedback: submission.feedback,
@@ -54,9 +52,8 @@ export async function GET(
     };
 
     return NextResponse.json({
-      submission: formattedSubmission
+      submission: formattedSubmission,
     });
-
   } catch (error) {
     console.error('Error fetching submission:', error);
     return NextResponse.json(

@@ -5,8 +5,10 @@ interface AnswerDisplayProps {
   answer: string | string[];
 }
 
-export default function AnswerDisplay({ question, answer }: AnswerDisplayProps) {
-  
+export default function AnswerDisplay({
+  question,
+  answer,
+}: AnswerDisplayProps) {
   if (!answer || (Array.isArray(answer) && answer.length === 0)) {
     return <span className="text-gray-500">No answer provided</span>;
   }
@@ -27,9 +29,7 @@ export default function AnswerDisplay({ question, answer }: AnswerDisplayProps) 
     case 'coding':
       return (
         <div className="bg-gray-50 p-3 rounded border">
-          <pre className="whitespace-pre-wrap text-sm font-mono">
-            {answer}
-          </pre>
+          <pre className="whitespace-pre-wrap text-sm font-mono">{answer}</pre>
         </div>
       );
 

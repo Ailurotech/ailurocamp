@@ -5,7 +5,10 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { assignmentService } from '@/lib/assignmentService';
-import { AssignmentStatsCards, AssignmentCard } from '@/components/assignment/Dashboard';
+import {
+  AssignmentStatsCards,
+  AssignmentCard,
+} from '@/components/assignment/Dashboard';
 import { AssignmentOverview } from '@/types/assignment';
 
 export default function DashboardAssignmentsPage() {
@@ -23,12 +26,13 @@ export default function DashboardAssignmentsPage() {
 
       const assignments = await assignmentService.getAssignments();
 
-     
-      const uniqueCourseIds = [...new Set(
-        assignments
-          .filter(assignment => assignment.course || assignment.courseId)
-          .map(assignment => assignment.course || assignment.courseId!)
-      )];
+      const uniqueCourseIds = [
+        ...new Set(
+          assignments
+            .filter((assignment) => assignment.course || assignment.courseId)
+            .map((assignment) => assignment.course || assignment.courseId!)
+        ),
+      ];
 
       const coursePromises = uniqueCourseIds.map((courseId) => {
         return assignmentService.getCourseById(courseId);
@@ -164,13 +168,13 @@ export default function DashboardAssignmentsPage() {
           </p>
         </div>
 
-        <AssignmentStatsCards 
+        <AssignmentStatsCards
           stats={{
             pending: pendingAssignments.length,
             overdue: overdueAssignments.length,
             submitted: submittedAssignments.length,
-            graded: gradedAssignments.length
-          }} 
+            graded: gradedAssignments.length,
+          }}
         />
 
         {assignments.length === 0 ? (

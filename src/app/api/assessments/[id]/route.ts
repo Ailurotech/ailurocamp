@@ -3,21 +3,18 @@ import connectDB from '@/lib/mongodb';
 import Assessment from '@/models/Assessment';
 import { requireAuth } from '@/lib/apiUtils';
 
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: assessmentId } = await params;
-    
+
     const { response: authResponse } = await requireAuth();
     if (authResponse) return authResponse;
 
-    
     await connectDB();
 
-   
     const assessment = await Assessment.findById(assessmentId);
     if (!assessment) {
       return NextResponse.json(
@@ -27,9 +24,8 @@ export async function GET(
     }
 
     return NextResponse.json({
-      assignment: assessment
+      assignment: assessment,
     });
-
   } catch (error) {
     console.error('Error fetching assessment:', error);
     return NextResponse.json(

@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     await connectDB();
-    
+
     const { courseId } = await params;
 
     const course = await Course.findById(courseId);

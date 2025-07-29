@@ -32,9 +32,7 @@ export class AssignmentApiAdapter {
     }
 
     // 使用新的简化API路径，不需要courseId
-    const response = await fetch(
-      `${API_BASE}/api/assessments/${assignmentId}`
-    );
+    const response = await fetch(`${API_BASE}/api/assessments/${assignmentId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch assignment');
     }
@@ -118,7 +116,6 @@ export class AssignmentApiAdapter {
     return response.json();
   }
 
-
   async submitAssignment(
     courseId: string,
     assignmentId: string,
@@ -166,7 +163,7 @@ export class AssignmentApiAdapter {
     }
 
     const result = await response.json();
-    
+
     // 转换回旧格式以保持兼容性
     return {
       id: result.id,
@@ -180,7 +177,6 @@ export class AssignmentApiAdapter {
     };
   }
 
-  
   async getSubmission(
     courseId: string,
     assignmentId: string,
@@ -211,16 +207,21 @@ export class AssignmentApiAdapter {
     }
 
     const result = await response.json();
-    
+
     // 转换格式以保持兼容性
     return {
       id: result.submission.id,
       assignmentId: result.submission.assignmentId,
       studentId: result.submission.studentId,
-      answers: result.submission.answers.map((answer: { questionIndex: number; answer: string | string[] }, index: number) => ({
-        questionId: `question-${index}`,
-        answer: answer.answer,
-      })),
+      answers: result.submission.answers.map(
+        (
+          answer: { questionIndex: number; answer: string | string[] },
+          index: number
+        ) => ({
+          questionId: `question-${index}`,
+          answer: answer.answer,
+        })
+      ),
       submittedAt: result.submission.submittedAt,
       score: result.submission.score,
       feedback: result.submission.feedback,
@@ -228,8 +229,11 @@ export class AssignmentApiAdapter {
     };
   }
 
-  
-  async hasSubmitted(courseId: string, assignmentId: string, studentId: string = 'student-1'): Promise<boolean> {
+  async hasSubmitted(
+    courseId: string,
+    assignmentId: string,
+    studentId: string = 'student-1'
+  ): Promise<boolean> {
     try {
       await this.getSubmission(courseId, assignmentId, studentId);
       return true;
