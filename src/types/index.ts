@@ -11,6 +11,9 @@ export interface User {
   password?: string;
   roles: string[];
   currentRole?: string;
+  avatar?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ApiResponse<T = unknown> {
