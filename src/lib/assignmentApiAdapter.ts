@@ -27,12 +27,13 @@ export class AssignmentApiAdapter {
     courseId: string,
     assignmentId: string
   ): Promise<AssignmentApiResponse> {
-    if (!courseId || !assignmentId) {
-      throw new Error('Course ID and Assignment ID are required');
+    if (!assignmentId) {
+      throw new Error('Assignment ID is required');
     }
 
+    // 使用新的简化API路径，不需要courseId
     const response = await fetch(
-      `${API_BASE}/api/courses/${courseId}/assessments/${assignmentId}`
+      `${API_BASE}/api/assessments/${assignmentId}`
     );
     if (!response.ok) {
       throw new Error('Failed to fetch assignment');
@@ -117,11 +118,12 @@ export class AssignmentApiAdapter {
     return response.json();
   }
 
-  // 提交作业答案
+
   async submitAssignment(
     courseId: string,
     assignmentId: string,
-    answers: { questionId: string; answer: string | string[] | null }[]
+    answers: { questionId: string; answer: string | string[] | null }[],
+    studentId: string = 'student-1' // 添加studentId参数，保持向后兼容
   ): Promise<{
     id: string;
     assignmentId: string;
@@ -132,21 +134,27 @@ export class AssignmentApiAdapter {
     feedback?: string;
     gradedAt?: string;
   }> {
-    if (!courseId || !assignmentId) {
-      throw new Error('Course ID and Assignment ID are required');
+    if (!assignmentId) {
+      throw new Error('Assignment ID is required');
     }
 
+    // 转换为新API期望的格式
+    const submissionData = {
+      studentId: studentId, // 使用传入的studentId
+      answers: answers.map((answer, index) => ({
+        questionIndex: index,
+        answer: answer.answer,
+      })),
+    };
+
     const response = await fetch(
-      `${API_BASE}/api/courses/${courseId}/assessments/${assignmentId}/submissions`,
+      `${API_BASE}/api/assessments/${assignmentId}/submissions`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          answers,
-          submittedAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify(submissionData),
       }
     );
 
@@ -157,13 +165,26 @@ export class AssignmentApiAdapter {
       );
     }
 
-    return response.json();
+    const result = await response.json();
+    
+    // 转换回旧格式以保持兼容性
+    return {
+      id: result.id,
+      assignmentId: result.assignmentId,
+      studentId: result.studentId,
+      answers: answers, // 保持原有格式
+      submittedAt: result.submittedAt,
+      score: result.score,
+      feedback: result.feedback,
+      gradedAt: result.gradedAt,
+    };
   }
 
-  // 获取作业提交记录
+  
   async getSubmission(
     courseId: string,
-    assignmentId: string
+    assignmentId: string,
+    studentId: string = 'student-1' // 添加studentId参数
   ): Promise<{
     id: string;
     assignmentId: string;
@@ -174,12 +195,12 @@ export class AssignmentApiAdapter {
     feedback?: string;
     gradedAt?: string;
   }> {
-    if (!courseId || !assignmentId) {
-      throw new Error('Course ID and Assignment ID are required');
+    if (!assignmentId) {
+      throw new Error('Assignment ID is required');
     }
 
     const response = await fetch(
-      `${API_BASE}/api/courses/${courseId}/assessments/${assignmentId}/submissions`
+      `${API_BASE}/api/assessments/${assignmentId}/submissions/${studentId}`
     );
 
     if (!response.ok) {
@@ -189,13 +210,28 @@ export class AssignmentApiAdapter {
       throw new Error('Failed to fetch submission');
     }
 
-    return response.json();
+    const result = await response.json();
+    
+    // 转换格式以保持兼容性
+    return {
+      id: result.submission.id,
+      assignmentId: result.submission.assignmentId,
+      studentId: result.submission.studentId,
+      answers: result.submission.answers.map((answer: { questionIndex: number; answer: string | string[] }, index: number) => ({
+        questionId: `question-${index}`,
+        answer: answer.answer,
+      })),
+      submittedAt: result.submission.submittedAt,
+      score: result.submission.score,
+      feedback: result.submission.feedback,
+      gradedAt: result.submission.gradedAt,
+    };
   }
 
-  // 检查作业是否已提交
-  async hasSubmitted(courseId: string, assignmentId: string): Promise<boolean> {
+  
+  async hasSubmitted(courseId: string, assignmentId: string, studentId: string = 'student-1'): Promise<boolean> {
     try {
-      await this.getSubmission(courseId, assignmentId);
+      await this.getSubmission(courseId, assignmentId, studentId);
       return true;
     } catch {
       return false;

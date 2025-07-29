@@ -50,7 +50,7 @@ class AssignmentService {
       }
 
       const response = await fetch(
-        `${this.baseUrl}/courses/all/assessments/${assignmentId}`
+        `${this.baseUrl}/assessments/${assignmentId}`
       );
       if (!response.ok) {
         return null;
@@ -65,40 +65,12 @@ class AssignmentService {
 
   async getCourseById(courseId: string): Promise<Course | null> {
     try {
-      const mockCourses = [
-        {
-          _id: '507f1f77bcf86cd799439011',
-          title: 'Web Development Fundamentals',
-          description: 'Learn web development',
-          instructor: 'Dr. Sarah Johnson',
-        },
-        {
-          _id: '507f1f77bcf86cd799439012',
-          title: 'Database Systems and SQL',
-          description: 'Learn databases',
-          instructor: 'Prof. Michael Chen',
-        },
-        {
-          _id: '507f1f77bcf86cd799439013',
-          title: 'Data Structures and Algorithms',
-          description: 'Learn algorithms',
-          instructor: 'Dr. Alex Rodriguez',
-        },
-        {
-          _id: '507f1f77bcf86cd799439014',
-          title: 'UI/UX Design Principles',
-          description: 'Learn design',
-          instructor: 'Emily Thompson',
-        },
-        {
-          _id: '507f1f77bcf86cd799439015',
-          title: 'Introduction to Machine Learning',
-          description: 'Learn ML',
-          instructor: 'Dr. Lisa Wang',
-        },
-      ];
-
-      return mockCourses.find((c) => c._id === courseId) || null;
+      const response = await fetch(`${this.baseUrl}/courses/${courseId}`);
+      if (!response.ok) {
+        return null;
+      }
+      const data = await response.json();
+      return data.course || null;
     } catch (error) {
       console.error('Error fetching course:', error);
       return null;
@@ -110,38 +82,14 @@ class AssignmentService {
     studentId: string = 'student-1'
   ): Promise<SubmissionRecord | null> {
     try {
-      // 模拟的提交记录 - 在实际环境中会从 API 获取
-      const mockSubmissions: SubmissionRecord[] = [
-        {
-          id: 'submission-react-intro-1',
-          assignmentId: 'assignment-react-intro',
-          studentId: 'student-1',
-          answers: [
-            {
-              questionIndex: 0,
-              answer:
-                'Functional components are simpler and use hooks for state management, while class components use this.state and lifecycle methods',
-            },
-            {
-              questionIndex: 1,
-              answer:
-                'Props are read-only data passed from parent to child components. State is mutable data managed within a component.',
-            },
-            { questionIndex: 2, answer: 'react-project.zip' },
-          ],
-          submittedAt: '2024-07-15T10:30:00.000Z',
-          score: 85,
-          feedback:
-            'Excellent work! Your understanding of React fundamentals is solid.',
-          gradedAt: '2024-07-16T14:20:00.000Z',
-        },
-      ];
-
-      return (
-        mockSubmissions.find(
-          (s) => s.assignmentId === assignmentId && s.studentId === studentId
-        ) || null
+      const response = await fetch(
+        `${this.baseUrl}/assessments/${assignmentId}/submissions/${studentId}`
       );
+      if (!response.ok) {
+        return null;
+      }
+      const data = await response.json();
+      return data.submission || null;
     } catch (error) {
       console.error('Error fetching submission:', error);
       return null;
@@ -155,7 +103,7 @@ class AssignmentService {
   ): Promise<SubmissionRecord> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/courses/all/assessments/${assignmentId}/submissions`,
+        `${this.baseUrl}/assessments/${assignmentId}/submissions`,
         {
           method: 'POST',
           headers: {

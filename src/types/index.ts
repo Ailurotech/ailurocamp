@@ -18,3 +18,14 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
+
+// Re-export assignment types for convenience
+export type { AssignmentOverview } from './assignment';
+
+// Re-export submission types for convenience
+export type { 
+  SubmissionData, 
+  SubmissionRequest, 
+  SubmissionDocument, 
+  SubmissionResponse 
+} from './submission';

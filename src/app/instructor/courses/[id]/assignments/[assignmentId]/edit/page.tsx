@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Assignment, AssignmentApiResponse } from '@/types/assignment';
 import { AssignmentApiAdapter } from '@/lib/assignmentApiAdapter';
-import AssignmentForm from '@/components/assignment/AssignmentForm';
+import { AssignmentForm } from '@/components/assignment/Instructor';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';

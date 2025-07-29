@@ -227,3 +227,16 @@ export type AssignmentApiResponse = {
 export type AssignmentListResponse = {
   assignments: AssignmentApiResponse[];
 };
+
+// Dashboard overview type for assignments
+export type AssignmentOverview = {
+  id: string;
+  title: string;
+  courseId: string;
+  courseTitle: string;
+  dueDate?: string;
+  points: number;
+  isSubmitted?: boolean;
+  submissionScore?: number;
+  status: 'pending' | 'submitted' | 'graded' | 'overdue';
+};

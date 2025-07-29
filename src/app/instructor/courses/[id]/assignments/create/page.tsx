@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import AssignmentForm from '@/components/assignment/AssignmentForm';
+import { AssignmentForm } from '@/components/assignment/Instructor';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
