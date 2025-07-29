@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -116,15 +116,7 @@ export default function BrowseCoursesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    fetchCourses();
-  }, [selectedCategory, priceRange, sortBy, currentPage]);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch('/api/category');
       if (response.ok) {
@@ -134,9 +126,9 @@ export default function BrowseCoursesPage() {
     } catch (err) {
       console.error('Failed to fetch categories:', err);
     }
-  };
+  }, []);
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -166,7 +158,15 @@ export default function BrowseCoursesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, priceRange.min, priceRange.max, sortBy, currentPage]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);

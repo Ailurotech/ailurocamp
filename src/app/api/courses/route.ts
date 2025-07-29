@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Course from '@/models/Course';
 
+// Define types for query and sort objects
+interface CourseQuery {
+  status: string;
+  category?: string;
+  price?: {
+    $gte?: number;
+    $lte?: number;
+  };
+}
+
+interface SortObject {
+  [key: string]: 1 | -1;
+}
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
@@ -17,7 +31,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const skip = (page - 1) * limit;
 
     // Build query for published courses only
-    let query: any = { status: 'published' };
+    const query: CourseQuery = { status: 'published' };
 
     if (category && category !== 'all') {
       query.category = category;
@@ -35,7 +49,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Build sort object based on sortBy parameter
-    let sortObject: any = {};
+    let sortObject: SortObject = {};
     switch (sortBy) {
       case 'newest':
         sortObject = { createdAt: -1 };
@@ -60,7 +74,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Get courses with instructor details
-    let coursesQuery = Course.find(query)
+    const coursesQuery = Course.find(query)
       .populate('instructor', 'name email')
       .select(
         'title description thumbnail category level averageRating price modules createdAt'

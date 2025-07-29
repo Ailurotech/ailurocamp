@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { BookOpenIcon, ClockIcon, PlayIcon } from '@/components/ui/Icons';
@@ -39,13 +39,7 @@ export default function CourseDetailPage() {
 
   const courseId = params.courseId as string;
 
-  useEffect(() => {
-    if (session?.user && courseId) {
-      fetchCourse();
-    }
-  }, [session, courseId]);
-
-  const fetchCourse = async () => {
+  const fetchCourse = useCallback(async () => {
     try {
       const response = await fetch(`/api/courses/${courseId}`);
       if (!response.ok) {
@@ -61,7 +55,13 @@ export default function CourseDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    if (session?.user && courseId) {
+      fetchCourse();
+    }
+  }, [session?.user, courseId, fetchCourse]);
 
   if (loading) {
     return (

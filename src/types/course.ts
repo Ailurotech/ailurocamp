@@ -34,6 +34,20 @@ export interface Course {
   createdAt: string;
 }
 
+// API related types for courses route
+export interface CourseQuery {
+  status: string;
+  category?: string;
+  price?: {
+    $gte?: number;
+    $lte?: number;
+  };
+}
+
+export interface SortObject {
+  [key: string]: 1 | -1;
+}
+
 export interface ICategory {
   _id: string;
   category: string[];

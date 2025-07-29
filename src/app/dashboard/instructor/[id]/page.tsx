@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { UsersIcon, BookOpenIcon, ClockIcon } from '@/components/ui/Icons';
+import Image from 'next/image';
+// Remove unused import: ClockIcon
+// Remove StarIcon from import since it's not used in the component
+import { BookOpenIcon, UsersIcon } from '@/components/ui/Icons';
 import { User } from '@/types';
 import { Course } from '@/types/course';
 
@@ -18,13 +21,7 @@ export default function InstructorProfilePage() {
 
   const instructorId = params.id as string;
 
-  useEffect(() => {
-    if (session?.user && instructorId) {
-      fetchInstructorData();
-    }
-  }, [session, instructorId]);
-
-  const fetchInstructorData = async () => {
+  const fetchInstructorData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -45,11 +42,18 @@ export default function InstructorProfilePage() {
         setCourses(coursesData.courses || []);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error fetching instructor data:', err);
+      setError('Failed to load instructor data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [instructorId]);
+
+  useEffect(() => {
+    if (session?.user && instructorId) {
+      fetchInstructorData();
+    }
+  }, [session, instructorId, fetchInstructorData]);
 
   if (loading) {
     return (
@@ -100,11 +104,14 @@ export default function InstructorProfilePage() {
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-center space-x-6">
+            // Replace the img element around line 105:
             <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
               {instructor.avatar ? (
-                <img
-                  src={instructor.avatar}
+                <Image
+                  src={instructor.avatar || '/default-avatar.png'}
                   alt={instructor.name}
+                  width={96}
+                  height={96}
                   className="w-24 h-24 rounded-full object-cover"
                 />
               ) : (
