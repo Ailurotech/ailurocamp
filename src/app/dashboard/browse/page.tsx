@@ -2,111 +2,14 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import {
-  BookOpenIcon,
-  ClockIcon,
-  UsersIcon,
-  ChevronUpDownIcon,
-} from '@/components/ui/Icons';
-
-interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  thumbnail?: string;
-  modules: Array<{
-    _id: string;
-    title: string;
-    duration: number;
-    order: number;
-  }>;
-  instructor: {
-    _id: string;
-    name: string;
-    email: string;
-  };
-  category: string;
-  level: string;
-  averageRating: number;
-  price: number;
-  createdAt: string;
-}
-
-interface Category {
-  _id: string;
-  category: string[];
-}
-
-function BrowseCourseCard({ course }: { course: Course }) {
-  const router = useRouter();
-
-  const handleCourseClick = () => {
-    router.push(`/dashboard/courses/${course._id}`);
-  };
-
-  const handleInstructorClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    router.push(`/dashboard/instructor/${course.instructor._id}`);
-  };
-
-  // Calculate total duration from modules
-  const totalDuration = course.modules.reduce(
-    (total, module) => total + module.duration,
-    0
-  );
-
-  return (
-    <div
-      className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-      onClick={handleCourseClick}
-    >
-      <div className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
-          {course.title}
-        </h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {course.description}
-        </p>
-
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-          <div className="flex items-center">
-            <UsersIcon className="h-4 w-4 mr-1" />
-            <span
-              className="text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
-              onClick={handleInstructorClick}
-            >
-              {course.instructor.name}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <ClockIcon className="h-4 w-4 mr-1" />
-            {Math.round(totalDuration)} min
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-4">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-            {course.level}
-          </span>
-          <span className="text-sm font-medium text-gray-900">
-            ${course.price}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">
-            {course.modules.length} modules
-          </span>
-          <span className="text-sm text-gray-500">{course.category}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { BookOpenIcon } from '@/components/ui/Icons';
+import BrowseCourseCard from '@/components/browse/BrowseCourseCard';
+import CourseFilters from '@/components/browse/CourseFilters';
+import CoursePagination from '@/components/browse/CoursePagination';
+import { CourseWithInstructor, Category } from '@/types/course';
 
 export default function BrowseCoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CourseWithInstructor[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
@@ -190,9 +93,6 @@ export default function BrowseCoursesPage() {
     setCurrentPage(1);
   };
 
-  const allCategories = categories.flatMap((cat) => cat.category);
-  const uniqueCategories = Array.from(new Set(allCategories));
-
   if (error) {
     return (
       <div className="text-center py-12">
@@ -225,85 +125,16 @@ export default function BrowseCoursesPage() {
           </Link>
         </div>
 
-        {/* Filters and Sort */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Category Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category
-            </label>
-            <div className="relative">
-              <select
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="all">All Categories</option>
-                {uniqueCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-              <ChevronUpDownIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Price Range Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Price Range ($)
-            </label>
-            <div className="flex space-x-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={priceRange.min}
-                onChange={(e) => handlePriceRangeChange('min', e.target.value)}
-                className="block w-full px-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={priceRange.max}
-                onChange={(e) => handlePriceRangeChange('max', e.target.value)}
-                className="block w-full px-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              />
-            </div>
-          </div>
-
-          {/* Sort By */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Sort By
-            </label>
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
-                <option value="title">Title A-Z</option>
-              </select>
-              <ChevronUpDownIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Clear Filters */}
-          <div className="flex items-end">
-            <button
-              onClick={clearFilters}
-              className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Clear Filters
-            </button>
-          </div>
-        </div>
+        <CourseFilters
+          categories={categories}
+          selectedCategory={selectedCategory}
+          priceRange={priceRange}
+          sortBy={sortBy}
+          onCategoryChange={handleCategoryChange}
+          onPriceRangeChange={handlePriceRangeChange}
+          onSortChange={handleSortChange}
+          onClearFilters={clearFilters}
+        />
       </div>
 
       {loading ? (
@@ -319,7 +150,7 @@ export default function BrowseCoursesPage() {
           <p className="mt-1 text-sm text-gray-500">
             {selectedCategory === 'all'
               ? 'No courses are currently available'
-              : `No courses found with current filters`}
+              : 'No courses found with current filters'}
           </p>
         </div>
       ) : (
@@ -330,36 +161,11 @@ export default function BrowseCoursesPage() {
             ))}
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-8 flex justify-center">
-              <nav className="flex items-center space-x-2">
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-
-                <span className="px-3 py-2 text-sm font-medium text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </span>
-
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </nav>
-            </div>
-          )}
+          <CoursePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </>
       )}
     </div>

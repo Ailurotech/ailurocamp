@@ -4,35 +4,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { BookOpenIcon, ClockIcon, PlayIcon } from '@/components/ui/Icons';
-
-interface Module {
-  _id: string;
-  title: string;
-  content: string;
-  duration: number;
-  order: number;
-}
-
-interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  thumbnail?: string;
-  modules: Module[];
-  instructor: {
-    name: string;
-    email: string;
-  };
-  category: string;
-  level: string;
-  averageRating: number;
-}
+import { CourseWithModules, Module } from '@/types/course';
 
 export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
-  const [course, setCourse] = useState<Course | null>(null);
+  const [course, setCourse] = useState<CourseWithModules | null>(null);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
