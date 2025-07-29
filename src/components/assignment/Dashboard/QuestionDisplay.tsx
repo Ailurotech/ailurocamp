@@ -4,7 +4,7 @@ import AnswerDisplay from './AnswerDisplay';
 interface QuestionDisplayProps {
   question: NonNullable<Assignment['questions']>[number];
   questionIndex: number;
-  answer: string | string[] | null;
+  answer: string | string[];
 }
 
 export default function QuestionDisplay({ 
@@ -29,7 +29,7 @@ export default function QuestionDisplay({
         </p>
       </div>
 
-      {/* 选择题选项展示 */}
+     
       {question.type === 'multiple-choice' && question.options && (
         <div className="mb-4">
           <h4 className="font-medium text-gray-600 mb-2">Options:</h4>

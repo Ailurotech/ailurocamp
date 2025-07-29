@@ -2,11 +2,12 @@ import { Assignment } from '@/types/assignment';
 
 interface AnswerDisplayProps {
   question: NonNullable<Assignment['questions']>[number];
-  answer: string | string[] | null;
+  answer: string | string[];
 }
 
 export default function AnswerDisplay({ question, answer }: AnswerDisplayProps) {
-  if (!answer) {
+  
+  if (!answer || (Array.isArray(answer) && answer.length === 0)) {
     return <span className="text-gray-500">No answer provided</span>;
   }
 
@@ -36,6 +37,7 @@ export default function AnswerDisplay({ question, answer }: AnswerDisplayProps) 
       return (
         <div className="bg-blue-50 p-3 rounded border">
           <span className="text-blue-800 font-medium">📎 {answer}</span>
+          <div className="text-xs text-blue-600 mt-1">File uploaded</div>
         </div>
       );
 

@@ -204,7 +204,9 @@ export default function DashboardAssignmentPage({
   }
 
   const totalQuestions = assignment.questions?.length || 0;
-  const answeredQuestions = Object.keys(answers).length;
+  const answeredQuestions = Object.values(answers).filter(answer => 
+    answer !== null && answer !== undefined && answer !== ''
+  ).length;
   const isComplete = answeredQuestions === totalQuestions;
 
   return (

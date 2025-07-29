@@ -170,14 +170,14 @@ export default function DashboardAssignmentSubmissionPage({
           {assignment.questions?.map((question, index) => {
             const answer = submission.answers.find(
               (a) => a.questionIndex === index
-            )?.answer;
+            )?.answer || ''; 
 
             return (
               <QuestionDisplay
                 key={question.id || question.title || `question-${index}`}
                 question={question}
                 questionIndex={index}
-                answer={answer || null}
+                answer={answer}
               />
             );
           })}
