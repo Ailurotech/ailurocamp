@@ -57,7 +57,7 @@ export default function AssignmentTakingHeader({
           </div>
         </div>
 
-        {/* 内联时间倒计时 */}
+        
         {timeRemaining !== null && timeRemaining > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div className="text-yellow-800 font-medium">Time Remaining</div>
@@ -68,7 +68,7 @@ export default function AssignmentTakingHeader({
         )}
       </div>
 
-      {/* 内联进度条 */}
+      
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-600">
           Progress: {answeredQuestions} / {totalQuestions} questions completed
