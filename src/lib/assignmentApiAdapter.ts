@@ -31,7 +31,7 @@ export class AssignmentApiAdapter {
       throw new Error('Assignment ID is required');
     }
 
-    // 使用新的简化API路径，不需要courseId
+   
     const response = await fetch(`${API_BASE}/api/assessments/${assignmentId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch assignment');
@@ -120,7 +120,7 @@ export class AssignmentApiAdapter {
     courseId: string,
     assignmentId: string,
     answers: { questionId: string; answer: string | string[] | null }[],
-    studentId: string = 'student-1' // 添加studentId参数，保持向后兼容
+    studentId: string = 'student-1' // Add studentId parameter for backward compatibility
   ): Promise<{
     id: string;
     assignmentId: string;
@@ -135,9 +135,9 @@ export class AssignmentApiAdapter {
       throw new Error('Assignment ID is required');
     }
 
-    // 转换为新API期望的格式
+    // Convert to new API expected format
     const submissionData = {
-      studentId: studentId, // 使用传入的studentId
+      studentId: studentId, // Use passed studentId
       answers: answers.map((answer, index) => ({
         questionIndex: index,
         answer: answer.answer,
@@ -164,12 +164,12 @@ export class AssignmentApiAdapter {
 
     const result = await response.json();
 
-    // 转换回旧格式以保持兼容性
+    // Convert back to old format for compatibility
     return {
       id: result.id,
       assignmentId: result.assignmentId,
       studentId: result.studentId,
-      answers: answers, // 保持原有格式
+      answers: answers, // Keep original format
       submittedAt: result.submittedAt,
       score: result.score,
       feedback: result.feedback,
@@ -180,7 +180,7 @@ export class AssignmentApiAdapter {
   async getSubmission(
     courseId: string,
     assignmentId: string,
-    studentId: string = 'student-1' // 添加studentId参数
+    studentId: string = 'student-1' // Add studentId parameter
   ): Promise<{
     id: string;
     assignmentId: string;
@@ -208,7 +208,7 @@ export class AssignmentApiAdapter {
 
     const result = await response.json();
 
-    // 转换格式以保持兼容性
+    // Convert format for compatibility
     return {
       id: result.submission.id,
       assignmentId: result.submission.assignmentId,

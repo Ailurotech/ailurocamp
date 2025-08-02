@@ -1,4 +1,4 @@
-// 共享的assessment submission相关类型定义
+// Shared assessment submission type definitions
 
 export interface SubmissionData {
   questionIndex: number;
