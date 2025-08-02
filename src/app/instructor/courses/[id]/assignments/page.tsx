@@ -47,6 +47,12 @@ export default function InstructorAssignmentsPage({
       if ('assignments' in result) {
         const converted = result.assignments.map((item) => ({
           ...item,
+          course: courseId,
+          courseId: courseId,
+          type: 'assignment' as const,
+          dueDate: item.dueDate ? new Date(item.dueDate) : undefined,
+          totalPoints: item.points,
+          submissions: [],
           questions: item.questions
             ? item.questions.map((q) => ({
                 id: Date.now().toString() + Math.random(),
@@ -69,8 +75,8 @@ export default function InstructorAssignmentsPage({
             : [],
           timeLimit: 0,
           passingScore: 0,
-          createdAt: item.createdAt || new Date().toISOString(),
-          updatedAt: item.updatedAt || new Date().toISOString(),
+          createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+          updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
         })) as Assignment[];
         setAssignments(converted);
       } else {
@@ -121,6 +127,7 @@ export default function InstructorAssignmentsPage({
 
   const handleDeleteFromCard = (assignment: Assignment) => {
     if (
+      assignment.id &&
       window.confirm(
         'Are you sure you want to delete this assignment? This action cannot be undone.'
       )

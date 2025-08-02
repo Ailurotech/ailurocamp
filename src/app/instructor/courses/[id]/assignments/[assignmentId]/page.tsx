@@ -47,33 +47,52 @@ export default function AssignmentDetailPage({
           id: apiResponse.id,
           title: apiResponse.title,
           description: apiResponse.description,
-          dueDate: apiResponse.dueDate,
+          course: courseId,
+          courseId: courseId,
+          type: 'assignment',
+          dueDate: apiResponse.dueDate
+            ? new Date(apiResponse.dueDate)
+            : undefined,
+          totalPoints: apiResponse.points,
           points: apiResponse.points,
           questions: apiResponse.questions
             ? apiResponse.questions.map((q) => ({
                 id: Date.now().toString() + Math.random(),
-                title: q.question,
                 question: q.question,
+                title: q.question,
                 type: q.type as
                   | 'multiple-choice'
+                  | 'true-false'
+                  | 'short-answer'
+                  | 'essay'
                   | 'coding'
-                  | 'file-upload'
-                  | 'essay',
+                  | 'file-upload',
                 points: q.points,
                 options: q.options,
+                correctAnswer: q.correctAnswer,
                 choices:
                   q.options?.map((opt) => ({ value: opt, label: opt })) || [],
-                testCases: q.testCases,
+                testCases:
+                  q.testCases?.map((tc) => ({
+                    input: tc.input || '',
+                    output: tc.output || '',
+                    file: tc.file || undefined,
+                  })) || undefined,
                 fileType: q.fileType,
                 maxFileSize: q.maxFileSize,
-                correctAnswer: q.correctAnswer,
+                placeholder:
+                  q.type === 'essay'
+                    ? 'Write your essay here...'
+                    : q.type === 'short-answer'
+                      ? 'Enter your answer here...'
+                      : undefined,
               }))
             : [],
           timeLimit: 0,
           passingScore: 0,
-          courseId: courseId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          submissions: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
         setAssignment(converted);
       } else {

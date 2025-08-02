@@ -188,7 +188,7 @@ const CodingTestCasesFields = ({
       ))}
       <button
         type="button"
-        onClick={() => append({ input: '', output: '', file: null })}
+        onClick={() => append({ input: '', output: '', file: undefined })}
         className="text-blue-600 hover:underline text-sm mt-4"
       >
         ➕ Add Test Case
