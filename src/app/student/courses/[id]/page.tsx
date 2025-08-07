@@ -23,19 +23,21 @@ export default function StudentCourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [editingReview, setEditingReview] = useState<IReview | null>(null); // State for the review being edited
 
-  // 获取课程信息
+  // Fetch course information
   useEffect(() => {
     if (!courseId) return;
     setLoading(true);
-    fetch(`/api/instructor/course/${courseId}`)
+    console.log("Session User ID:", session?.user?.id);
+    fetch(`/api/student/course/${courseId}`)
       .then((res) => res.json())
       .then((data) => setCourse(data.course))
       .catch(() => setCourse(null))
       .finally(() => setLoading(false));
   }, [courseId]);
 
-  // 获取评价
+  // Fetch reviews
   useEffect(() => {
     if (!courseId) return;
     setReviewLoading(true);
@@ -47,27 +49,34 @@ export default function StudentCourseDetailPage() {
       .finally(() => setReviewLoading(false));
   }, [courseId]);
 
-  // 提交评价
+  // Submit review
   async function handleReviewSubmit(data: Omit<IReview, "_id" | "userId" | "updatedAt" | "instructorResponse" | "reports">) {
     if (!courseId || !session?.user) return;
     setReviewLoading(true);
     setReviewError(null);
+
+    const method = editingReview ? "PUT" : "POST"; // Determine HTTP method
+    const body = editingReview
+      ? { ...data, courseId, userId: session.user.id, _id: editingReview._id } // Include _id for PUT
+      : { ...data, courseId, userId: session.user.id };
+
     const res = await fetch("/api/review", {
-      method: "POST",
+      method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, courseId, userId: session.user.id }),
+      body: JSON.stringify(body),
     });
     if (res.ok) {
       fetch(`/api/review?courseId=${courseId}&page=1`)
         .then((res) => res.json())
         .then((data) => setReviews(data.reviews || []));
+      setEditingReview(null); // Clear editing state on successful submission
     } else {
       setReviewError("Failed to submit review");
     }
     setReviewLoading(false);
   }
 
-  // 举报评价
+  // Report review
   async function handleReport(reviewId: string) {
     const reason = window.prompt("Please enter the reason for reporting this review:");
     if (!reason) return;
@@ -98,8 +107,8 @@ export default function StudentCourseDetailPage() {
       <p className="mb-4 text-gray-700">{course.description}</p>
       <div className="mb-6 text-sm text-gray-500">Instructor: {typeof course.instructor === "string" ? course.instructor : course.instructor?.name || "Unknown"}</div>
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Write a Review</h2>
-        <ReviewForm onSubmit={handleReviewSubmit} loading={reviewLoading} />
+        <h2 className="text-xl font-semibold mb-2">{editingReview ? "Edit Your Review" : "Write a Review"}</h2>
+        <ReviewForm onSubmit={handleReviewSubmit} loading={reviewLoading} initial={editingReview || undefined} />
         {reviewError && <div className="text-red-500 mt-2">{reviewError}</div>}
       </div>
       <div>
@@ -107,7 +116,7 @@ export default function StudentCourseDetailPage() {
         {reviewLoading ? (
           <div>Loading reviews...</div>
         ) : (
-          <Reviews reviews={reviews} onReport={handleReport} />
+          <Reviews reviews={reviews} onReport={handleReport} onEdit={setEditingReview} currentUserId={session?.user?.id} />
         )}
       </div>
     </div>

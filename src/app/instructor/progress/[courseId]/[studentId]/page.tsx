@@ -104,7 +104,6 @@ export default function StudentProgressPage({
     return new Date(dateString).toLocaleString();
   };
 
-  // Identify struggling students (based on completion progress and time)
   // Identify struggling students based on multiple factors
   const identifyStruggling = (): boolean => {
     if (!progressData) return false;
@@ -258,7 +257,7 @@ export default function StudentProgressPage({
     };
   };
 
-  // 3. 更新学生进度到数据库的逻辑
+  // Update student progress in the database logic
   // Update progress in database when calculated value differs from stored value
   const updateProgressInDatabase = async (newProgress: number) => {
     try {

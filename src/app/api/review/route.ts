@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
     // Validate the request body
     const parsedBody = reviewSchema.safeParse(body);
     if (!parsedBody.success) {
+      console.error("Review validation error:", parsedBody.error.errors);
       return NextResponse.json(
         { message: parsedBody.error.errors[0].message },
         { status: 400 }
@@ -124,16 +125,20 @@ export async function POST(req: NextRequest) {
     await review.save();
 
     // Update the course's rating
-    course.ratingCount = (course.ratingCount || 0) + 1;
-    course.ratingSum = (course.ratingSum || 0) + rating;
-    course.averageRating = course.ratingSum / course.ratingCount;
-    await course.save();
+    await Course.findByIdAndUpdate(courseId, {
+      $set: {
+        ratingCount: (course.ratingCount || 0) + 1,
+        ratingSum: (course.ratingSum || 0) + rating,
+        averageRating: ((course.ratingSum || 0) + rating) / ((course.ratingCount || 0) + 1),
+      },
+    });
 
     return NextResponse.json(
       { message: 'Review added successfully.', review },
       { status: 201 }
     );
   } catch (error: unknown) {
+    console.error("Error adding review:", error);
     return NextResponse.json(
       { message: 'Error adding review.', error: (error as Error).message },
       { status: 500 }
@@ -167,6 +172,7 @@ export async function PUT(req: NextRequest) {
     // Validate the request body
     const parsedBody = reviewSchema.safeParse(body);
     if (!parsedBody.success) {
+      console.error("Review update validation error:", parsedBody.error.errors);
       return NextResponse.json(
         { message: parsedBody.error.errors[0].message },
         { status: 400 }
@@ -200,15 +206,25 @@ export async function PUT(req: NextRequest) {
     await review.save();
 
     // Update the course's rating
-    course.ratingSum = (course.ratingSum || 0) + rating - oldRating;
-    course.averageRating = course.ratingSum / course.ratingCount;
-    await course.save();
+    await Course.findByIdAndUpdate(courseId, {
+      $set: {
+        rating: rating,
+        comment: comment,
+        aspectRatings: aspectRatings,
+        images: images,
+      },
+      $inc: {
+        ratingSum: rating - oldRating,
+      },
+      averageRating: ((course.ratingSum || 0) + rating - oldRating) / course.ratingCount,
+    });
 
     return NextResponse.json(
       { message: 'Review updated successfully.', review },
       { status: 200 }
     );
   } catch (error: unknown) {
+    console.error("Error updating review:", error);
     return NextResponse.json(
       { message: 'Error updating review.', error: (error as Error).message },
       { status: 500 }
@@ -247,43 +263,6 @@ export async function PATCH(req: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { message: 'Error adding instructor response.', error: (error as Error).message },
-      { status: 500 }
-    );
-  }
-}
-
-// POST: Report a review
-export async function POST_REPORT(req: NextRequest) {
-  try {
-    const session: Session | null = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-    await connectDB();
-    const { reviewId, reason } = await req.json();
-    if (!reviewId || !reason) {
-      return NextResponse.json(
-        { message: 'Missing reviewId or reason.' },
-        { status: 400 }
-      );
-    }
-    const review = await Review.findById(reviewId);
-    if (!review) {
-      return NextResponse.json(
-        { message: 'Review not found.' },
-        { status: 404 }
-      );
-    }
-    review.reports = review.reports || [];
-    review.reports.push({ userId: session.user.id, reason, date: new Date() });
-    await review.save();
-    return NextResponse.json(
-      { message: 'Review reported.', review },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { message: 'Error reporting review.', error: (error as Error).message },
       { status: 500 }
     );
   }

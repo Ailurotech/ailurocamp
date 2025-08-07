@@ -21,13 +21,10 @@ export default function StudentCoursesPage() {
   useEffect(() => {
     if (!session?.user?.id) return;
     setLoading(true);
-    fetch("/api/instructor/course?page=1") 
+    fetch("/api/student/courses")
       .then((res) => res.json())
       .then((data) => {
-        const filtered = (data.courses || []).filter((course: Course) =>
-          course.enrolledStudents.includes(session.user.id)
-        );
-        setCourses(filtered);
+        setCourses(data.courses || []);
       })
       .finally(() => setLoading(false));
   }, [session?.user?.id]);
@@ -35,6 +32,8 @@ export default function StudentCoursesPage() {
   if (loading) {
     return <div className="p-8 text-center">Loading courses...</div>;
   }
+
+  console.log("courses", courses);
 
   return (
     <div className="max-w-3xl mx-auto p-6">

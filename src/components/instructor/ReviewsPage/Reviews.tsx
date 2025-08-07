@@ -122,7 +122,19 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
   );
 }
 
-export default function Reviews({ reviews, onReport, onReply }: { reviews: IReview[]; onReport?: (reviewId: string) => void; onReply?: (reviewId: string, response: string) => void; }) {
+export default function Reviews({
+  reviews,
+  onReport,
+  onReply,
+  onEdit,
+  currentUserId,
+}: {
+  reviews: IReview[];
+  onReport?: (reviewId: string) => void;
+  onReply?: (reviewId: string, response: string) => void;
+  onEdit?: (review: IReview) => void;
+  currentUserId?: string;
+}) {
   if (reviews.length === 0) {
     return <p className="text-gray-500">No reviews yet</p>;
   }
@@ -131,6 +143,8 @@ export default function Reviews({ reviews, onReport, onReply }: { reviews: IRevi
     <div>
       {reviews.map((review: IReview) => (
         <div key={review._id} className="mb-4 bg-white p-4 shadow rounded-lg">
+          {/* Temporarily logging review.userId._id for debugging */}
+          {(console.log("Review User ID:", review.userId._id), null)}
           <p className="font-semibold">{review.userId.name}</p>
           <p className="text-gray-700">{review.comment}</p>
           <p className="text-sm text-gray-500">Rating: {review.rating} / 5</p>
@@ -164,6 +178,14 @@ export default function Reviews({ reviews, onReport, onReply }: { reviews: IRevi
                 onClick={() => onReport(review._id)}
               >
                 Report
+              </button>
+            )}
+            {onEdit && currentUserId === review.userId._id && (
+              <button
+                className="text-xs text-blue-500 hover:underline"
+                onClick={() => onEdit(review)}
+              >
+                Edit
               </button>
             )}
             {onReply && (
