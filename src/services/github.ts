@@ -95,10 +95,13 @@ export async function getProjects() {
     // Fallback to classic projects API if no v2 projects found
     try {
       console.log('Attempting to fetch repository classic projects (v1)...');
-      const repoResponse = await octokit.request('GET /repos/{owner}/{repo}/projects', {
-        owner,
-        repo,
-      });
+      const repoResponse = await octokit.request(
+        'GET /repos/{owner}/{repo}/projects',
+        {
+          owner,
+          repo,
+        }
+      );
 
       if (repoResponse.data.length > 0) {
         console.log(
@@ -516,9 +519,12 @@ export async function getProjectColumns(projectNumber: number) {
     try {
       console.log('Attempting to fetch project columns for classic project...');
 
-      const columnsResponse = await octokit.request('GET /projects/{project_id}/columns', {
-        project_id: projectNumber,
-      });
+      const columnsResponse = await octokit.request(
+        'GET /projects/{project_id}/columns',
+        {
+          project_id: projectNumber,
+        }
+      );
 
       console.log(`Found ${columnsResponse.data.length} columns`);
 
@@ -528,9 +534,12 @@ export async function getProjectColumns(projectNumber: number) {
           console.log(`Fetching cards for column: ${column.name}`);
 
           // Get cards for this column
-          const cardsResponse = await octokit.request('GET /projects/columns/{column_id}/cards', {
-            column_id: column.id,
-          });
+          const cardsResponse = await octokit.request(
+            'GET /projects/columns/{column_id}/cards',
+            {
+              column_id: column.id,
+            }
+          );
 
           console.log(
             `Found ${cardsResponse.data.length} cards in column ${column.name}`
@@ -649,10 +658,13 @@ export async function getProjectColumns(projectNumber: number) {
 export async function getColumnCards(columnId: number) {
   try {
     console.log(`Fetching cards for column ID: ${columnId}`);
-    const response = await octokit.request('GET /projects/columns/{column_id}/cards', {
-      column_id: columnId,
-      archived_state: 'all',
-    });
+    const response = await octokit.request(
+      'GET /projects/columns/{column_id}/cards',
+      {
+        column_id: columnId,
+        archived_state: 'all',
+      }
+    );
 
     console.log(
       `Found ${response.data.length} cards for column ID: ${columnId}`
@@ -707,11 +719,14 @@ export async function moveCard(
     } else {
       // For classic projects, use the REST API
       console.log('Using REST API to move card');
-      const response = await octokit.request('POST /projects/columns/cards/{card_id}/moves', {
-        card_id: Number(cardId),
-        column_id: Number(columnId),
-        position,
-      });
+      const response = await octokit.request(
+        'POST /projects/columns/cards/{card_id}/moves',
+        {
+          card_id: Number(cardId),
+          column_id: Number(columnId),
+          position,
+        }
+      );
       console.log('REST API response:', response.status);
       return response.data;
     }
