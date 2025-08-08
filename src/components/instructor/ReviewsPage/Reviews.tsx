@@ -1,5 +1,6 @@
 import { IReview } from '@/types/review';
 import React, { useState } from 'react';
+import Image from 'next/image';
 
 export function ReviewForm({
   initial,
@@ -103,10 +104,12 @@ export function ReviewForm({
         <div className="flex flex-wrap gap-2">
           {images.map((img, idx) => (
             <div key={idx} className="relative group">
-              <img
+              <Image
                 src={img}
                 alt="review-img"
                 className="w-16 h-16 object-cover rounded border"
+                width={64}
+                height={64}
               />
               <button
                 type="button"
@@ -193,11 +196,13 @@ export default function Reviews({
           {review.images && review.images.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {review.images.map((img, idx) => (
-                <img
+                <Image
                   key={idx}
                   src={img}
                   alt="review-img"
                   className="w-20 h-20 object-cover rounded border"
+                  width={80}
+                  height={80}
                 />
               ))}
             </div>

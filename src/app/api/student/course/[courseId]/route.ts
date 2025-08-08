@@ -1,11 +1,11 @@
 import { getServerSession } from 'next-auth';
 import Course from '@/models/Course';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 
 export async function GET(
-  req: any,
+  req: NextRequest,
   { params }: { params: { courseId: string } }
 ) {
   const session = await getServerSession(authOptions);

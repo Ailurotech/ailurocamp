@@ -37,7 +37,7 @@ export default function StudentCourseDetailPage() {
       .then((data) => setCourse(data.course))
       .catch(() => setCourse(null))
       .finally(() => setLoading(false));
-  }, [courseId]);
+  }, [courseId, session?.user?.id]);
 
   // Fetch reviews
   useEffect(() => {

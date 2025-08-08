@@ -73,7 +73,7 @@ export default function CertificateDetailPage() {
     )
       .then((res) => res.json())
       .then((data) => setReviews(data.reviews || []))
-      .catch((err) => setReviewError('Failed to load reviews'))
+      .catch(() => setReviewError('Failed to load reviews'))
       .finally(() => setReviewLoading(false));
   }, [certificate]);
 
