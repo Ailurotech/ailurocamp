@@ -62,7 +62,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Find reviews for the course
     const reviews = await Review.find({ courseId })
       .populate('userId', 'name')
-      .select('_id comment rating aspectRatings images instructorResponse reports updatedAt')
+      .select(
+        '_id comment rating aspectRatings images instructorResponse reports updatedAt'
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -93,7 +95,14 @@ export async function POST(req: NextRequest) {
     const body: IReviewApiRequest = await req.json();
 
     // Check if the required fields are present, comment is optional
-    const { courseId, userId, rating, comment, aspectRatings, images }: IReviewApiRequest = body;
+    const {
+      courseId,
+      userId,
+      rating,
+      comment,
+      aspectRatings,
+      images,
+    }: IReviewApiRequest = body;
     if (!courseId || !userId || !rating) {
       return NextResponse.json(
         { message: 'Missing required fields courseId, uerId or rating.' },
@@ -104,7 +113,7 @@ export async function POST(req: NextRequest) {
     // Validate the request body
     const parsedBody = reviewSchema.safeParse(body);
     if (!parsedBody.success) {
-      console.error("Review validation error:", parsedBody.error.errors);
+      console.error('Review validation error:', parsedBody.error.errors);
       return NextResponse.json(
         { message: parsedBody.error.errors[0].message },
         { status: 400 }
@@ -121,7 +130,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Create a new review
-    const review: IReview = new Review({ rating, comment, courseId, userId, aspectRatings, images });
+    const review: IReview = new Review({
+      rating,
+      comment,
+      courseId,
+      userId,
+      aspectRatings,
+      images,
+    });
     await review.save();
 
     // Update the course's rating
@@ -129,7 +145,8 @@ export async function POST(req: NextRequest) {
       $set: {
         ratingCount: (course.ratingCount || 0) + 1,
         ratingSum: (course.ratingSum || 0) + rating,
-        averageRating: ((course.ratingSum || 0) + rating) / ((course.ratingCount || 0) + 1),
+        averageRating:
+          ((course.ratingSum || 0) + rating) / ((course.ratingCount || 0) + 1),
       },
     });
 
@@ -138,7 +155,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error: unknown) {
-    console.error("Error adding review:", error);
+    console.error('Error adding review:', error);
     return NextResponse.json(
       { message: 'Error adding review.', error: (error as Error).message },
       { status: 500 }
@@ -172,7 +189,7 @@ export async function PUT(req: NextRequest) {
     // Validate the request body
     const parsedBody = reviewSchema.safeParse(body);
     if (!parsedBody.success) {
-      console.error("Review update validation error:", parsedBody.error.errors);
+      console.error('Review update validation error:', parsedBody.error.errors);
       return NextResponse.json(
         { message: parsedBody.error.errors[0].message },
         { status: 400 }
@@ -216,7 +233,8 @@ export async function PUT(req: NextRequest) {
       $inc: {
         ratingSum: rating - oldRating,
       },
-      averageRating: ((course.ratingSum || 0) + rating - oldRating) / course.ratingCount,
+      averageRating:
+        ((course.ratingSum || 0) + rating - oldRating) / course.ratingCount,
     });
 
     return NextResponse.json(
@@ -224,7 +242,7 @@ export async function PUT(req: NextRequest) {
       { status: 200 }
     );
   } catch (error: unknown) {
-    console.error("Error updating review:", error);
+    console.error('Error updating review:', error);
     return NextResponse.json(
       { message: 'Error updating review.', error: (error as Error).message },
       { status: 500 }
@@ -262,7 +280,10 @@ export async function PATCH(req: NextRequest) {
     );
   } catch (error) {
     return NextResponse.json(
-      { message: 'Error adding instructor response.', error: (error as Error).message },
+      {
+        message: 'Error adding instructor response.',
+        error: (error as Error).message,
+      },
       { status: 500 }
     );
   }

@@ -1,9 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import Reviews, { ReviewForm } from "@/components/instructor/ReviewsPage/Reviews";
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Reviews, {
+  ReviewForm,
+} from '@/components/instructor/ReviewsPage/Reviews';
 
 interface Course {
   _id: string;
@@ -13,7 +15,7 @@ interface Course {
   averageRating: number;
 }
 
-import type { IReview } from "@/types/review";
+import type { IReview } from '@/types/review';
 
 export default function StudentCourseDetailPage() {
   const { id: courseId } = useParams();
@@ -29,7 +31,7 @@ export default function StudentCourseDetailPage() {
   useEffect(() => {
     if (!courseId) return;
     setLoading(true);
-    console.log("Session User ID:", session?.user?.id);
+    console.log('Session User ID:', session?.user?.id);
     fetch(`/api/student/course/${courseId}`)
       .then((res) => res.json())
       .then((data) => setCourse(data.course))
@@ -45,24 +47,29 @@ export default function StudentCourseDetailPage() {
     fetch(`/api/review?courseId=${courseId}&page=1`)
       .then((res) => res.json())
       .then((data) => setReviews(data.reviews || []))
-      .catch(() => setReviewError("Failed to load reviews"))
+      .catch(() => setReviewError('Failed to load reviews'))
       .finally(() => setReviewLoading(false));
   }, [courseId]);
 
   // Submit review
-  async function handleReviewSubmit(data: Omit<IReview, "_id" | "userId" | "updatedAt" | "instructorResponse" | "reports">) {
+  async function handleReviewSubmit(
+    data: Omit<
+      IReview,
+      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports'
+    >
+  ) {
     if (!courseId || !session?.user) return;
     setReviewLoading(true);
     setReviewError(null);
 
-    const method = editingReview ? "PUT" : "POST"; // Determine HTTP method
+    const method = editingReview ? 'PUT' : 'POST'; // Determine HTTP method
     const body = editingReview
       ? { ...data, courseId, userId: session.user.id, _id: editingReview._id } // Include _id for PUT
       : { ...data, courseId, userId: session.user.id };
 
-    const res = await fetch("/api/review", {
+    const res = await fetch('/api/review', {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     if (res.ok) {
@@ -71,18 +78,20 @@ export default function StudentCourseDetailPage() {
         .then((data) => setReviews(data.reviews || []));
       setEditingReview(null); // Clear editing state on successful submission
     } else {
-      setReviewError("Failed to submit review");
+      setReviewError('Failed to submit review');
     }
     setReviewLoading(false);
   }
 
   // Report review
   async function handleReport(reviewId: string) {
-    const reason = window.prompt("Please enter the reason for reporting this review:");
+    const reason = window.prompt(
+      'Please enter the reason for reporting this review:'
+    );
     if (!reason) return;
-    const res = await fetch("/api/review/report", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/review/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reviewId, reason }),
     });
     if (res.ok) {
@@ -90,25 +99,44 @@ export default function StudentCourseDetailPage() {
         .then((res) => res.json())
         .then((data) => setReviews(data.reviews || []));
     } else {
-      alert("Failed to report review");
+      alert('Failed to report review');
     }
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading course...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading course...
+      </div>
+    );
   }
   if (!course) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">Course not found.</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        Course not found.
+      </div>
+    );
   }
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
       <p className="mb-4 text-gray-700">{course.description}</p>
-      <div className="mb-6 text-sm text-gray-500">Instructor: {typeof course.instructor === "string" ? course.instructor : course.instructor?.name || "Unknown"}</div>
+      <div className="mb-6 text-sm text-gray-500">
+        Instructor:{' '}
+        {typeof course.instructor === 'string'
+          ? course.instructor
+          : course.instructor?.name || 'Unknown'}
+      </div>
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">{editingReview ? "Edit Your Review" : "Write a Review"}</h2>
-        <ReviewForm onSubmit={handleReviewSubmit} loading={reviewLoading} initial={editingReview || undefined} />
+        <h2 className="text-xl font-semibold mb-2">
+          {editingReview ? 'Edit Your Review' : 'Write a Review'}
+        </h2>
+        <ReviewForm
+          onSubmit={handleReviewSubmit}
+          loading={reviewLoading}
+          initial={editingReview || undefined}
+        />
         {reviewError && <div className="text-red-500 mt-2">{reviewError}</div>}
       </div>
       <div>
@@ -116,9 +144,14 @@ export default function StudentCourseDetailPage() {
         {reviewLoading ? (
           <div>Loading reviews...</div>
         ) : (
-          <Reviews reviews={reviews} onReport={handleReport} onEdit={setEditingReview} currentUserId={session?.user?.id} />
+          <Reviews
+            reviews={reviews}
+            onReport={handleReport}
+            onEdit={setEditingReview}
+            currentUserId={session?.user?.id}
+          />
         )}
       </div>
     </div>
   );
-} 
+}

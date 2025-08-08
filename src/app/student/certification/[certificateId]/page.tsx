@@ -8,7 +8,10 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import CertificateDetail from '@/components/CertificateDetail';
 import { extractApiErrorMessage } from '@/utils/handleApiError';
 import type { Certificate } from '@/types/certificate';
-import { ReviewForm, default as Reviews } from '@/components/instructor/ReviewsPage/Reviews';
+import {
+  ReviewForm,
+  default as Reviews,
+} from '@/components/instructor/ReviewsPage/Reviews';
 import { useSession } from 'next-auth/react';
 import type { IReview } from '@/types/review';
 
@@ -65,15 +68,22 @@ export default function CertificateDetailPage() {
     if (!certificate) return;
     setReviewLoading(true);
     setReviewError(null);
-    fetch(`/api/review?courseId=${encodeURIComponent(certificate.courseTitle)}&page=1`)
-      .then(res => res.json())
-      .then(data => setReviews(data.reviews || []))
-      .catch(err => setReviewError('Failed to load reviews'))
+    fetch(
+      `/api/review?courseId=${encodeURIComponent(certificate.courseTitle)}&page=1`
+    )
+      .then((res) => res.json())
+      .then((data) => setReviews(data.reviews || []))
+      .catch((err) => setReviewError('Failed to load reviews'))
       .finally(() => setReviewLoading(false));
   }, [certificate]);
 
   // Submit review
-  async function handleReviewSubmit(data: Omit<IReview, '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports'>) {
+  async function handleReviewSubmit(
+    data: Omit<
+      IReview,
+      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports'
+    >
+  ) {
     if (!certificate || !session?.user) return;
     setReviewLoading(true);
     setReviewError(null);
@@ -82,14 +92,16 @@ export default function CertificateDetailPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...data,
-        courseId: certificate.courseTitle, 
+        courseId: certificate.courseTitle,
         userId: session.user.id,
       }),
     });
     if (res.ok) {
-      fetch(`/api/review?courseId=${encodeURIComponent(certificate.courseTitle)}&page=1`)
-        .then(res => res.json())
-        .then(data => setReviews(data.reviews || []));
+      fetch(
+        `/api/review?courseId=${encodeURIComponent(certificate.courseTitle)}&page=1`
+      )
+        .then((res) => res.json())
+        .then((data) => setReviews(data.reviews || []));
     } else {
       setReviewError('Failed to submit review');
     }
@@ -124,7 +136,9 @@ export default function CertificateDetailPage() {
           <div className="mt-8">
             <h2 className="text-xl font-bold mb-2">Course Reviews</h2>
             <ReviewForm onSubmit={handleReviewSubmit} loading={reviewLoading} />
-            {reviewError && <div className="text-red-500 mb-2">{reviewError}</div>}
+            {reviewError && (
+              <div className="text-red-500 mb-2">{reviewError}</div>
+            )}
             {reviewLoading ? (
               <div className="text-gray-500">Loading reviews...</div>
             ) : (

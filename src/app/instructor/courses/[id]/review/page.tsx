@@ -18,7 +18,10 @@ export default function InstructorReviewsPage({
   const courseId: string = React.use(params).id;
   const { data: session } = useSession();
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [popup, setPopup] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  const [popup, setPopup] = useState<{
+    message: string;
+    type: 'error' | 'success';
+  } | null>(null);
 
   const { data, error, isPending, isPlaceholderData, refetch } = useQuery<
     GetReviewApiResponse,
@@ -39,7 +42,9 @@ export default function InstructorReviewsPage({
 
   // Report functionality
   async function handleReport(reviewId: string) {
-    const reason = window.prompt('Please enter the reason for reporting this review:');
+    const reason = window.prompt(
+      'Please enter the reason for reporting this review:'
+    );
     if (!reason) return;
     const res = await fetch('/api/review/report', {
       method: 'POST',
@@ -98,7 +103,11 @@ export default function InstructorReviewsPage({
             <Reviews
               reviews={data?.reviews || []}
               onReport={handleReport}
-              onReply={session?.user?.currentRole === 'instructor' ? handleReply : undefined}
+              onReply={
+                session?.user?.currentRole === 'instructor'
+                  ? handleReply
+                  : undefined
+              }
             />
             <PaginationControls
               currentPage={data?.page || 1}

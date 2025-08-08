@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 interface Course {
   _id: string;
@@ -21,7 +21,7 @@ export default function StudentCoursesPage() {
   useEffect(() => {
     if (!session?.user?.id) return;
     setLoading(true);
-    fetch("/api/student/courses")
+    fetch('/api/student/courses')
       .then((res) => res.json())
       .then((data) => {
         setCourses(data.courses || []);
@@ -33,13 +33,15 @@ export default function StudentCoursesPage() {
     return <div className="p-8 text-center">Loading courses...</div>;
   }
 
-  console.log("courses", courses);
+  console.log('courses', courses);
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">My Courses</h1>
       {courses.length === 0 ? (
-        <div className="text-gray-500">You have not enrolled in any courses yet.</div>
+        <div className="text-gray-500">
+          You have not enrolled in any courses yet.
+        </div>
       ) : (
         <ul className="space-y-4">
           {courses.map((course) => (
@@ -49,7 +51,10 @@ export default function StudentCoursesPage() {
                   <h2 className="text-lg font-semibold">{course.title}</h2>
                   <p className="text-gray-600">{course.description}</p>
                   <p className="text-sm text-gray-400 mt-1">
-                    Instructor: {typeof course.instructor === "string" ? course.instructor : course.instructor?.name}
+                    Instructor:{' '}
+                    {typeof course.instructor === 'string'
+                      ? course.instructor
+                      : course.instructor?.name}
                   </p>
                 </div>
                 <Link
@@ -65,4 +70,4 @@ export default function StudentCoursesPage() {
       )}
     </div>
   );
-} 
+}

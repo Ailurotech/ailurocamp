@@ -7,11 +7,18 @@ export function ReviewForm({
   loading,
 }: {
   initial?: Partial<IReview>;
-  onSubmit: (data: Omit<IReview, '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports'>) => void;
+  onSubmit: (
+    data: Omit<
+      IReview,
+      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports'
+    >
+  ) => void;
   loading?: boolean;
 }) {
   const [rating, setRating] = useState(initial?.rating || 5);
-  const [aspectRatings, setAspectRatings] = useState(initial?.aspectRatings || { content: 5, instructor: 5, materials: 5 });
+  const [aspectRatings, setAspectRatings] = useState(
+    initial?.aspectRatings || { content: 5, instructor: 5, materials: 5 }
+  );
   const [comment, setComment] = useState(initial?.comment || '');
   const [images, setImages] = useState<string[]>(initial?.images || []);
   const [imgInput, setImgInput] = useState('');
@@ -37,22 +44,34 @@ export function ReviewForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 p-4 bg-gray-50 rounded shadow">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-6 p-4 bg-gray-50 rounded shadow"
+    >
       <div className="mb-2">
         <label className="block font-semibold mb-1">Overall Rating</label>
         <StarRating value={rating} onChange={setRating} />
       </div>
       <div className="mb-2">
         <label className="block font-semibold mb-1">Content Quality</label>
-        <StarRating value={aspectRatings.content} onChange={v => handleAspectChange('content', v)} />
+        <StarRating
+          value={aspectRatings.content}
+          onChange={(v) => handleAspectChange('content', v)}
+        />
       </div>
       <div className="mb-2">
         <label className="block font-semibold mb-1">Instructor Quality</label>
-        <StarRating value={aspectRatings.instructor} onChange={v => handleAspectChange('instructor', v)} />
+        <StarRating
+          value={aspectRatings.instructor}
+          onChange={(v) => handleAspectChange('instructor', v)}
+        />
       </div>
       <div className="mb-2">
         <label className="block font-semibold mb-1">Materials Quality</label>
-        <StarRating value={aspectRatings.materials} onChange={v => handleAspectChange('materials', v)} />
+        <StarRating
+          value={aspectRatings.materials}
+          onChange={(v) => handleAspectChange('materials', v)}
+        />
       </div>
       <div className="mb-2">
         <label className="block font-semibold mb-1">Comment</label>
@@ -60,7 +79,7 @@ export function ReviewForm({
           className="w-full border rounded p-2"
           rows={3}
           value={comment}
-          onChange={e => setComment(e.target.value)}
+          onChange={(e) => setComment(e.target.value)}
           required
         />
       </div>
@@ -70,17 +89,25 @@ export function ReviewForm({
           <input
             className="border rounded px-2 py-1 flex-1"
             value={imgInput}
-            onChange={e => setImgInput(e.target.value)}
+            onChange={(e) => setImgInput(e.target.value)}
             placeholder="Paste image URL and click Add"
           />
-          <button type="button" className="bg-blue-500 text-white px-2 rounded" onClick={handleAddImage}>
+          <button
+            type="button"
+            className="bg-blue-500 text-white px-2 rounded"
+            onClick={handleAddImage}
+          >
             Add
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
           {images.map((img, idx) => (
             <div key={idx} className="relative group">
-              <img src={img} alt="review-img" className="w-16 h-16 object-cover rounded border" />
+              <img
+                src={img}
+                alt="review-img"
+                className="w-16 h-16 object-cover rounded border"
+              />
               <button
                 type="button"
                 className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded px-1 opacity-80 group-hover:opacity-100"
@@ -103,7 +130,13 @@ export function ReviewForm({
   );
 }
 
-function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function StarRating({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}) {
   return (
     <span>
       {[1, 2, 3, 4, 5].map((star) => (
@@ -144,21 +177,28 @@ export default function Reviews({
       {reviews.map((review: IReview) => (
         <div key={review._id} className="mb-4 bg-white p-4 shadow rounded-lg">
           {/* Temporarily logging review.userId._id for debugging */}
-          {(console.log("Review User ID:", review.userId._id), null)}
+          {(console.log('Review User ID:', review.userId._id), null)}
           <p className="font-semibold">{review.userId.name}</p>
           <p className="text-gray-700">{review.comment}</p>
           <p className="text-sm text-gray-500">Rating: {review.rating} / 5</p>
           {review.aspectRatings && (
             <div className="text-xs text-gray-600 mt-1">
-              <span>Content: {review.aspectRatings.content} / 5</span>{' | '}
-              <span>Instructor: {review.aspectRatings.instructor} / 5</span>{' | '}
+              <span>Content: {review.aspectRatings.content} / 5</span>
+              {' | '}
+              <span>Instructor: {review.aspectRatings.instructor} / 5</span>
+              {' | '}
               <span>Materials: {review.aspectRatings.materials} / 5</span>
             </div>
           )}
           {review.images && review.images.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {review.images.map((img, idx) => (
-                <img key={idx} src={img} alt="review-img" className="w-20 h-20 object-cover rounded border" />
+                <img
+                  key={idx}
+                  src={img}
+                  alt="review-img"
+                  className="w-20 h-20 object-cover rounded border"
+                />
               ))}
             </div>
           )}
@@ -167,8 +207,12 @@ export default function Reviews({
           </p>
           {review.instructorResponse && (
             <div className="mt-2 p-2 bg-blue-50 border-l-4 border-blue-400 rounded">
-              <span className="font-semibold text-blue-700">Instructor Reply:</span>
-              <span className="ml-2 text-gray-800">{review.instructorResponse}</span>
+              <span className="font-semibold text-blue-700">
+                Instructor Reply:
+              </span>
+              <span className="ml-2 text-gray-800">
+                {review.instructorResponse}
+              </span>
             </div>
           )}
           <div className="flex gap-2 mt-2">
@@ -188,12 +232,12 @@ export default function Reviews({
                 Edit
               </button>
             )}
-            {onReply && (
-              <ReplyBox reviewId={review._id} onReply={onReply} />
-            )}
+            {onReply && <ReplyBox reviewId={review._id} onReply={onReply} />}
           </div>
           {review.reports && review.reports.length > 0 && (
-            <div className="mt-1 text-xs text-red-400">Reported {review.reports.length} times</div>
+            <div className="mt-1 text-xs text-red-400">
+              Reported {review.reports.length} times
+            </div>
           )}
         </div>
       ))}
@@ -201,12 +245,21 @@ export default function Reviews({
   );
 }
 
-function ReplyBox({ reviewId, onReply }: { reviewId: string; onReply: (reviewId: string, response: string) => void }) {
+function ReplyBox({
+  reviewId,
+  onReply,
+}: {
+  reviewId: string;
+  onReply: (reviewId: string, response: string) => void;
+}) {
   const [show, setShow] = React.useState(false);
   const [value, setValue] = React.useState('');
   return (
     <span>
-      <button className="text-xs text-blue-500 hover:underline" onClick={() => setShow((s) => !s)}>
+      <button
+        className="text-xs text-blue-500 hover:underline"
+        onClick={() => setShow((s) => !s)}
+      >
         {show ? 'Cancel' : 'Reply'}
       </button>
       {show && (
@@ -214,12 +267,16 @@ function ReplyBox({ reviewId, onReply }: { reviewId: string; onReply: (reviewId:
           <input
             className="border px-1 py-0.5 text-xs rounded"
             value={value}
-            onChange={e => setValue(e.target.value)}
+            onChange={(e) => setValue(e.target.value)}
             placeholder="Reply..."
           />
           <button
             className="ml-1 text-xs text-green-600 hover:underline"
-            onClick={() => { onReply(reviewId, value); setValue(''); setShow(false); }}
+            onClick={() => {
+              onReply(reviewId, value);
+              setValue('');
+              setShow(false);
+            }}
             disabled={!value.trim()}
           >
             Send
