@@ -95,7 +95,7 @@ export async function getProjects() {
     // Fallback to classic projects API if no v2 projects found
     try {
       console.log('Attempting to fetch repository classic projects (v1)...');
-      const repoResponse = await octokit.rest.projects.listForRepo({
+      const repoResponse = await octokit.request('GET /repos/{owner}/{repo}/projects', {
         owner,
         repo,
       });
@@ -120,7 +120,7 @@ export async function getProjects() {
       console.log(
         `Attempting to fetch organization classic projects for ${owner}...`
       );
-      const orgResponse = await octokit.rest.projects.listForOrg({
+      const orgResponse = await octokit.request('GET /orgs/{org}/projects', {
         org: owner,
       });
 
@@ -516,7 +516,7 @@ export async function getProjectColumns(projectNumber: number) {
     try {
       console.log('Attempting to fetch project columns for classic project...');
 
-      const columnsResponse = await octokit.rest.projects.listColumns({
+      const columnsResponse = await octokit.request('GET /projects/{project_id}/columns', {
         project_id: projectNumber,
       });
 
@@ -528,7 +528,7 @@ export async function getProjectColumns(projectNumber: number) {
           console.log(`Fetching cards for column: ${column.name}`);
 
           // Get cards for this column
-          const cardsResponse = await octokit.rest.projects.listCards({
+          const cardsResponse = await octokit.request('GET /projects/columns/{column_id}/cards', {
             column_id: column.id,
           });
 
@@ -649,8 +649,9 @@ export async function getProjectColumns(projectNumber: number) {
 export async function getColumnCards(columnId: number) {
   try {
     console.log(`Fetching cards for column ID: ${columnId}`);
-    const response = await octokit.rest.projects.listCards({
+    const response = await octokit.request('GET /projects/columns/{column_id}/cards', {
       column_id: columnId,
+      archived_state: 'all',
     });
 
     console.log(
@@ -706,7 +707,7 @@ export async function moveCard(
     } else {
       // For classic projects, use the REST API
       console.log('Using REST API to move card');
-      const response = await octokit.rest.projects.moveCard({
+      const response = await octokit.request('POST /projects/columns/cards/{card_id}/moves', {
         card_id: Number(cardId),
         column_id: Number(columnId),
         position,
