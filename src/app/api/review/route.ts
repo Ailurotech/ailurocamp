@@ -43,7 +43,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const skip: number = (page - 1) * limit;
 
     // Get total count of reviews for pagination controls
-    const totalReviews: number = await MongooseReviewModel.countDocuments({ courseId });
+    const totalReviews: number = await MongooseReviewModel.countDocuments({
+      courseId,
+    });
 
     // Find reviews for the course
     const reviews = await MongooseReviewModel.find({ courseId })
@@ -120,17 +122,13 @@ export async function POST(req: NextRequest) {
       await connectDB();
 
       // Parse the request body
-      const body: Omit<ReviewType, '_id' | 'updatedAt' | 'instructorResponse' | 'reports' | 'createdAt'> = await req.json();
+      const body: Omit<
+        ReviewType,
+        '_id' | 'updatedAt' | 'instructorResponse' | 'reports' | 'createdAt'
+      > = await req.json();
 
       // Check if the required fields are present, comment is optional
-      const {
-        courseId,
-        userId,
-        rating,
-        comment,
-        aspectRatings,
-        images,
-      } = body;
+      const { courseId, userId, rating, comment, aspectRatings, images } = body;
       if (!courseId || !userId || !rating) {
         return NextResponse.json(
           { message: 'Missing required fields courseId, uerId or rating.' },
@@ -236,7 +234,10 @@ export async function PUT(req: NextRequest) {
     }
 
     // Find the existing review
-    const review: IReview | null = await MongooseReviewModel.findOne({ courseId, userId });
+    const review: IReview | null = await MongooseReviewModel.findOne({
+      courseId,
+      userId,
+    });
     if (!review) {
       return NextResponse.json(
         { message: 'Review not found.' },

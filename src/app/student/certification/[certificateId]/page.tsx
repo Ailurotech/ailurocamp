@@ -81,7 +81,12 @@ export default function CertificateDetailPage() {
   async function handleReviewSubmit(
     data: Omit<
       Review,
-      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports' | 'createdAt'
+      | '_id'
+      | 'userId'
+      | 'updatedAt'
+      | 'instructorResponse'
+      | 'reports'
+      | 'createdAt'
     >
   ) {
     if (!certificate || !session?.user) return;

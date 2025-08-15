@@ -55,7 +55,12 @@ export default function StudentCourseDetailPage() {
   async function handleReviewSubmit(
     data: Omit<
       Review,
-      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports' | 'createdAt'
+      | '_id'
+      | 'userId'
+      | 'updatedAt'
+      | 'instructorResponse'
+      | 'reports'
+      | 'createdAt'
     > & { courseId: string }
   ) {
     if (!courseId || !session?.user) return;
