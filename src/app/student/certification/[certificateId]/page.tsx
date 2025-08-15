@@ -13,7 +13,7 @@ import {
   default as Reviews,
 } from '@/components/instructor/ReviewsPage/Reviews';
 import { useSession } from 'next-auth/react';
-import type { IReview } from '@/types/review';
+import type { Review } from '@/types/review';
 
 // Automatically retry network requests on failure using exponential backoff
 axiosRetry(axios, {
@@ -32,7 +32,7 @@ export default function CertificateDetailPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { data: session } = useSession();
-  const [reviews, setReviews] = useState<IReview[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
 
@@ -80,8 +80,8 @@ export default function CertificateDetailPage() {
   // Submit review
   async function handleReviewSubmit(
     data: Omit<
-      IReview,
-      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports'
+      Review,
+      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports' | 'createdAt'
     >
   ) {
     if (!certificate || !session?.user) return;

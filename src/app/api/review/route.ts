@@ -3,26 +3,12 @@ import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Course from '@/models/Course';
-import Review from '@/models/Review';
+import MongooseReviewModel from '@/models/Review';
 import type { ICourse } from '@/models/Course';
 import type { IReview } from '@/models/Review';
 import { z } from 'zod';
+import type { Review as ReviewType } from '@/types/review';
 
-// Define a type for review request
-interface IReviewApiRequest {
-  courseId: string;
-  userId: string;
-  rating: number;
-  comment?: string;
-  aspectRatings?: {
-    content: number;
-    instructor: number;
-    materials: number;
-  };
-  images?: string[];
-}
-
-// Define a Zod schema for review input validation
 const reviewSchema = z.object({
   courseId: z.string().nonempty({ message: 'Course ID is required.' }),
   userId: z.string().nonempty({ message: 'User ID is required.' }),
@@ -36,9 +22,9 @@ const reviewSchema = z.object({
   comment: z.string().optional().or(z.literal('')),
   aspectRatings: z
     .object({
-      content: z.number().min(1).max(5),
-      instructor: z.number().min(1).max(5),
-      materials: z.number().min(1).max(5),
+      contentRating: z.number().min(1).max(5),
+      instructorRating: z.number().min(1).max(5),
+      materialsRating: z.number().min(1).max(5),
     })
     .optional(),
   images: z.array(z.string()).optional(),
@@ -57,10 +43,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const skip: number = (page - 1) * limit;
 
     // Get total count of reviews for pagination controls
-    const totalReviews: number = await Review.countDocuments({ courseId });
+    const totalReviews: number = await MongooseReviewModel.countDocuments({ courseId });
 
     // Find reviews for the course
-    const reviews = await Review.find({ courseId })
+    const reviews = await MongooseReviewModel.find({ courseId })
       .populate('userId', 'name')
       .select(
         '_id comment rating aspectRatings images instructorResponse reports updatedAt'
@@ -79,87 +65,131 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 }
 
-// Create a review
+// Handler for both creating a review and adding instructor response
 export async function POST(req: NextRequest) {
-  try {
-    const session: Session | null = await getServerSession(authOptions);
+  const { pathname } = req.nextUrl;
+  const isInstructorResponse = pathname.endsWith('/response');
 
-    // Authenticate the user
-    if (!session?.user || session?.user?.currentRole !== 'student') {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
-    await connectDB();
-
-    // Parse the request body
-    const body: IReviewApiRequest = await req.json();
-
-    // Check if the required fields are present, comment is optional
-    const {
-      courseId,
-      userId,
-      rating,
-      comment,
-      aspectRatings,
-      images,
-    }: IReviewApiRequest = body;
-    if (!courseId || !userId || !rating) {
+  if (isInstructorResponse) {
+    // Instructor responds to a review
+    try {
+      const session: Session | null = await getServerSession(authOptions);
+      if (!session?.user || session?.user?.currentRole !== 'instructor') {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      }
+      await connectDB();
+      const { reviewId, instructorResponse } = await req.json();
+      if (!reviewId || !instructorResponse) {
+        return NextResponse.json(
+          { message: 'Missing reviewId or instructorResponse.' },
+          { status: 400 }
+        );
+      }
+      const review = await MongooseReviewModel.findById(reviewId);
+      if (!review) {
+        return NextResponse.json(
+          { message: 'Review not found.' },
+          { status: 404 }
+        );
+      }
+      review.instructorResponse = instructorResponse;
+      await review.save();
       return NextResponse.json(
-        { message: 'Missing required fields courseId, uerId or rating.' },
-        { status: 400 }
+        { message: 'Instructor response added.', review },
+        { status: 200 }
+      );
+    } catch (error) {
+      return NextResponse.json(
+        {
+          message: 'Error adding instructor response.',
+          error: (error as Error).message,
+        },
+        { status: 500 }
       );
     }
+  } else {
+    // Create a review
+    try {
+      const session: Session | null = await getServerSession(authOptions);
 
-    // Validate the request body
-    const parsedBody = reviewSchema.safeParse(body);
-    if (!parsedBody.success) {
-      console.error('Review validation error:', parsedBody.error.errors);
+      // Authenticate the user
+      if (!session?.user || session?.user?.currentRole !== 'student') {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      }
+
+      await connectDB();
+
+      // Parse the request body
+      const body: Omit<ReviewType, '_id' | 'updatedAt' | 'instructorResponse' | 'reports' | 'createdAt'> = await req.json();
+
+      // Check if the required fields are present, comment is optional
+      const {
+        courseId,
+        userId,
+        rating,
+        comment,
+        aspectRatings,
+        images,
+      } = body;
+      if (!courseId || !userId || !rating) {
+        return NextResponse.json(
+          { message: 'Missing required fields courseId, uerId or rating.' },
+          { status: 400 }
+        );
+      }
+
+      // Validate the request body
+      const parsedBody = reviewSchema.safeParse(body);
+      if (!parsedBody.success) {
+        console.error('Review validation error:', parsedBody.error.errors);
+        return NextResponse.json(
+          { message: parsedBody.error.errors[0].message },
+          { status: 400 }
+        );
+      }
+
+      // Find the course by ID
+      const course: ICourse | null = await Course.findById(courseId);
+      if (!course) {
+        return NextResponse.json(
+          { message: 'Course not found.' },
+          { status: 404 }
+        );
+      }
+
+      // Create a new review
+      const review: IReview = new MongooseReviewModel({
+        rating,
+        comment,
+        courseId,
+        userId,
+        aspectRatings,
+        images,
+      });
+      await review.save();
+
+      // Update the course's rating
+      await Course.findByIdAndUpdate(courseId, {
+        $set: {
+          ratingCount: (course.ratingCount || 0) + 1,
+          ratingSum: (course.ratingSum || 0) + rating,
+          averageRating:
+            ((course.ratingSum || 0) + rating) /
+            ((course.ratingCount || 0) + 1),
+        },
+      });
+
       return NextResponse.json(
-        { message: parsedBody.error.errors[0].message },
-        { status: 400 }
+        { message: 'Review added successfully.', review },
+        { status: 201 }
+      );
+    } catch (error: unknown) {
+      console.error('Error adding review:', error);
+      return NextResponse.json(
+        { message: 'Error adding review.', error: (error as Error).message },
+        { status: 500 }
       );
     }
-
-    // Find the course by ID
-    const course: ICourse | null = await Course.findById(courseId);
-    if (!course) {
-      return NextResponse.json(
-        { message: 'Course not found.' },
-        { status: 404 }
-      );
-    }
-
-    // Create a new review
-    const review: IReview = new Review({
-      rating,
-      comment,
-      courseId,
-      userId,
-      aspectRatings,
-      images,
-    });
-    await review.save();
-
-    // Update the course's rating
-    await Course.findByIdAndUpdate(courseId, {
-      $set: {
-        ratingCount: (course.ratingCount || 0) + 1,
-        ratingSum: (course.ratingSum || 0) + rating,
-        averageRating:
-          ((course.ratingSum || 0) + rating) / ((course.ratingCount || 0) + 1),
-      },
-    });
-
-    return NextResponse.json(
-      { message: 'Review added successfully.', review },
-      { status: 201 }
-    );
-  } catch (error: unknown) {
-    console.error('Error adding review:', error);
-    return NextResponse.json(
-      { message: 'Error adding review.', error: (error as Error).message },
-      { status: 500 }
-    );
   }
 }
 
@@ -175,7 +205,7 @@ export async function PUT(req: NextRequest) {
     await connectDB();
 
     // Parse the request body
-    const body: IReviewApiRequest = await req.json();
+    const body: Partial<ReviewType> = await req.json();
 
     // Check if the required fields are present, comment is optional
     const { courseId, userId, rating, comment, aspectRatings, images } = body;
@@ -206,7 +236,7 @@ export async function PUT(req: NextRequest) {
     }
 
     // Find the existing review
-    const review: IReview | null = await Review.findOne({ courseId, userId });
+    const review: IReview | null = await MongooseReviewModel.findOne({ courseId, userId });
     if (!review) {
       return NextResponse.json(
         { message: 'Review not found.' },
@@ -245,45 +275,6 @@ export async function PUT(req: NextRequest) {
     console.error('Error updating review:', error);
     return NextResponse.json(
       { message: 'Error updating review.', error: (error as Error).message },
-      { status: 500 }
-    );
-  }
-}
-
-// PATCH: Instructor responds to a review
-export async function PATCH(req: NextRequest) {
-  try {
-    const session: Session | null = await getServerSession(authOptions);
-    if (!session?.user || session?.user?.currentRole !== 'instructor') {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-    await connectDB();
-    const { reviewId, instructorResponse } = await req.json();
-    if (!reviewId || !instructorResponse) {
-      return NextResponse.json(
-        { message: 'Missing reviewId or instructorResponse.' },
-        { status: 400 }
-      );
-    }
-    const review = await Review.findById(reviewId);
-    if (!review) {
-      return NextResponse.json(
-        { message: 'Review not found.' },
-        { status: 404 }
-      );
-    }
-    review.instructorResponse = instructorResponse;
-    await review.save();
-    return NextResponse.json(
-      { message: 'Instructor response added.', review },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        message: 'Error adding instructor response.',
-        error: (error as Error).message,
-      },
       { status: 500 }
     );
   }

@@ -15,17 +15,17 @@ interface Course {
   averageRating: number;
 }
 
-import type { IReview } from '@/types/review';
+import type { Review } from '@/types/review';
 
 export default function StudentCourseDetailPage() {
   const { id: courseId } = useParams();
   const { data: session } = useSession();
   const [course, setCourse] = useState<Course | null>(null);
-  const [reviews, setReviews] = useState<IReview[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
-  const [editingReview, setEditingReview] = useState<IReview | null>(null); // State for the review being edited
+  const [editingReview, setEditingReview] = useState<Review | null>(null); // State for the review being edited
 
   // Fetch course information
   useEffect(() => {
@@ -54,9 +54,9 @@ export default function StudentCourseDetailPage() {
   // Submit review
   async function handleReviewSubmit(
     data: Omit<
-      IReview,
-      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports'
-    >
+      Review,
+      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports' | 'createdAt'
+    > & { courseId: string }
   ) {
     if (!courseId || !session?.user) return;
     setReviewLoading(true);

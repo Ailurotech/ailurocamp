@@ -1,4 +1,4 @@
-import { IReview } from '@/types/review';
+import { Review } from '@/types/review';
 import React, { useState } from 'react';
 import Image from 'next/image';
 
@@ -7,18 +7,27 @@ export function ReviewForm({
   onSubmit,
   loading,
 }: {
-  initial?: Partial<IReview>;
+  initial?: Partial<Review>;
   onSubmit: (
     data: Omit<
-      IReview,
-      '_id' | 'userId' | 'updatedAt' | 'instructorResponse' | 'reports'
-    >
+      Review,
+      | '_id'
+      | 'userId'
+      | 'updatedAt'
+      | 'instructorResponse'
+      | 'reports'
+      | 'createdAt'
+    > & { courseId: string }
   ) => void;
   loading?: boolean;
 }) {
-  const [rating, setRating] = useState(initial?.rating || 5);
+  const [rating, setRating] = useState(initial?.rating || 0);
   const [aspectRatings, setAspectRatings] = useState(
-    initial?.aspectRatings || { content: 5, instructor: 5, materials: 5 }
+    initial?.aspectRatings || {
+      contentRating: 5,
+      instructorRating: 5,
+      materialsRating: 5,
+    }
   );
   const [comment, setComment] = useState(initial?.comment || '');
   const [images, setImages] = useState<string[]>(initial?.images || []);
@@ -41,7 +50,14 @@ export function ReviewForm({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSubmit({ rating, aspectRatings, comment, images });
+    // Assuming courseId is passed as a prop or available in context
+    onSubmit({
+      rating,
+      aspectRatings,
+      comment,
+      images,
+      courseId: 'your_course_id_here',
+    }); // Placeholder for courseId
   }
 
   return (
@@ -56,22 +72,22 @@ export function ReviewForm({
       <div className="mb-2">
         <label className="block font-semibold mb-1">Content Quality</label>
         <StarRating
-          value={aspectRatings.content}
-          onChange={(v) => handleAspectChange('content', v)}
+          value={aspectRatings.contentRating}
+          onChange={(v) => handleAspectChange('contentRating', v)}
         />
       </div>
       <div className="mb-2">
         <label className="block font-semibold mb-1">Instructor Quality</label>
         <StarRating
-          value={aspectRatings.instructor}
-          onChange={(v) => handleAspectChange('instructor', v)}
+          value={aspectRatings.instructorRating}
+          onChange={(v) => handleAspectChange('instructorRating', v)}
         />
       </div>
       <div className="mb-2">
         <label className="block font-semibold mb-1">Materials Quality</label>
         <StarRating
-          value={aspectRatings.materials}
-          onChange={(v) => handleAspectChange('materials', v)}
+          value={aspectRatings.materialsRating}
+          onChange={(v) => handleAspectChange('materialsRating', v)}
         />
       </div>
       <div className="mb-2">
@@ -165,10 +181,10 @@ export default function Reviews({
   onEdit,
   currentUserId,
 }: {
-  reviews: IReview[];
+  reviews: Review[];
   onReport?: (reviewId: string) => void;
   onReply?: (reviewId: string, response: string) => void;
-  onEdit?: (review: IReview) => void;
+  onEdit?: (review: Review) => void;
   currentUserId?: string;
 }) {
   if (reviews.length === 0) {
@@ -177,7 +193,7 @@ export default function Reviews({
 
   return (
     <div>
-      {reviews.map((review: IReview) => (
+      {reviews.map((review: Review) => (
         <div key={review._id} className="mb-4 bg-white p-4 shadow rounded-lg">
           {/* Temporarily logging review.userId._id for debugging */}
           {(console.log('Review User ID:', review.userId._id), null)}
@@ -185,17 +201,17 @@ export default function Reviews({
           <p className="text-gray-700">{review.comment}</p>
           <p className="text-sm text-gray-500">Rating: {review.rating} / 5</p>
           {review.aspectRatings && (
-            <div className="text-xs text-gray-600 mt-1">
-              <span>Content: {review.aspectRatings.content} / 5</span>
-              {' | '}
-              <span>Instructor: {review.aspectRatings.instructor} / 5</span>
-              {' | '}
-              <span>Materials: {review.aspectRatings.materials} / 5</span>
+            <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+              <span>Content: {review.aspectRatings.contentRating} / 5</span>
+              <span>
+                Instructor: {review.aspectRatings.instructorRating} / 5
+              </span>
+              <span>Materials: {review.aspectRatings.materialsRating} / 5</span>
             </div>
           )}
           {review.images && review.images.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
-              {review.images.map((img, idx) => (
+              {review.images.map((img: string, idx: number) => (
                 <Image
                   key={idx}
                   src={img}

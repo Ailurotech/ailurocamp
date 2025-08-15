@@ -6,9 +6,9 @@ export interface IReview extends mongoose.Document {
   comment?: string;
   rating: number;
   aspectRatings?: {
-    content: number;
-    instructor: number;
-    materials: number;
+    contentRating: number;
+    instructorRating: number;
+    materialsRating: number;
   };
   images?: string[];
   instructorResponse?: string;
@@ -37,9 +37,9 @@ const reviewSchema = new mongoose.Schema<IReview>(
       required: true,
     },
     aspectRatings: {
-      content: { type: Number, min: 1, max: 5 },
-      instructor: { type: Number, min: 1, max: 5 },
-      materials: { type: Number, min: 1, max: 5 },
+      contentRating: { type: Number, min: 1, max: 5 },
+      instructorRating: { type: Number, min: 1, max: 5 },
+      materialsRating: { type: Number, min: 1, max: 5 },
     },
     images: [{ type: String }],
     instructorResponse: { type: String },

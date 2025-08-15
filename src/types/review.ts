@@ -1,24 +1,23 @@
-export interface IReview {
+export interface Review {
   _id: string;
-  userId: {
-    _id: string;
-    name: string;
-  };
-  comment: string;
+  courseId: string;
+  userId: { _id: string; name: string };
+  comment?: string;
   rating: number;
   aspectRatings?: {
-    content: number;
-    instructor: number;
-    materials: number;
+    contentRating: number;
+    instructorRating: number;
+    materialsRating: number;
   };
   images?: string[];
   instructorResponse?: string;
-  reports?: { userId: string; reason: string; date: string }[];
+  reports?: { userId: string; reason: string; date: Date }[];
+  createdAt: string;
   updatedAt: string;
 }
 
 export interface GetReviewApiResponse {
-  reviews: IReview[];
+  reviews: Review[];
   totalReviews: number;
   page: number;
   limit: number;
