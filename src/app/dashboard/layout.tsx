@@ -9,7 +9,7 @@ import AccessDeniedRedirect from '@/components/auth/AccessDeniedRedirect';
 
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
-  { name: 'My Courses', href: '/dashboard/courses', icon: BookOpenIcon },
+  { name: 'My Courses', href: '/student/courses', icon: BookOpenIcon },
   { name: 'Assignments', href: '/dashboard/assignments', icon: ClipboardIcon },
   { name: 'Progress', href: '/dashboard/progress', icon: ChartBarIcon },
   { name: 'Messages', href: '/dashboard/messages', icon: ChatBubbleIcon },

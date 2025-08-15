@@ -70,20 +70,17 @@ Our AI code review system evaluates changes based on five key criteria:
 ## Review Process
 
 1. **Pull Request Creation**
-
    - Create a pull request targeting the `main` branch
    - Provide a clear description of changes
    - Link any related issues or tickets
    - Ensure you've run `yarn format` before creating the PR
 
 2. **Automated Checks**
-
    - Code formatting check runs automatically
    - AI review is triggered after formatting check passes
    - Review results are posted as comments on the PR
 
 3. **Review Criteria**
-
    - Overall score must be 91/100 or higher
    - Each category must score 16/20 or higher
    - Issues identified must be addressed before merging
